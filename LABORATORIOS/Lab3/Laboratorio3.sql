@@ -1,5 +1,5 @@
 /* CICLO 1: TABLAS
-Creación de Tablas
+Creaciï¿½n de Tablas
 
 CREATE TABLE USUARIOS(
     universidadC    VARCHAR(3) NOT NULL,
@@ -104,12 +104,12 @@ CREATE TABLE RESPUESTAS(
 -- Los conceptos Grandes son --
 /*
 Universidad YA
-Categoría YA
+Categorï¿½a YA
 Usuario YA
-Artículo YA 
+Artï¿½culo YA 
 Calificacion YA 
-Auditoría YA
-Evaluación 
+Auditorï¿½a YA
+Evaluaciï¿½n 
 
 */
 -- ************ PoblarOK ************ --
@@ -131,19 +131,19 @@ VALUES ('Uni', '004', 'tid004', '004', 'Usuario 4', 'Programa 4', 'usuario4@exam
 -- Poblando Tabla de Universidad --
 INSERT INTO UNIVERSIDAD (codigo, usuarioTid, usuarioNid, representante, nombre, direccion)
 VALUES
-('001', NULL, NULL, 'Rep1', 'Universidad1', 'Dirección1');
+('001', NULL, NULL, 'Rep1', 'Universidad1', 'Direcciï¿½n1');
 
 INSERT INTO UNIVERSIDAD (codigo, usuarioTid, usuarioNid, representante, nombre, direccion)
 VALUES
-('002', NULL, NULL, 'Rep2', 'Universidad2', 'Dirección2');
+('002', NULL, NULL, 'Rep2', 'Universidad2', 'Direcciï¿½n2');
 
 INSERT INTO UNIVERSIDAD (codigo, usuarioTid, usuarioNid, representante, nombre, direccion)
 VALUES
-('003', NULL, NULL, 'Rep3', 'Universidad3', 'Dirección3');
+('003', NULL, NULL, 'Rep3', 'Universidad3', 'Direcciï¿½n3');
 
 INSERT INTO UNIVERSIDAD (codigo, usuarioTid, usuarioNid, representante, nombre, direccion)
 VALUES
-('004', NULL, NULL, 'Rep4', 'Universidad4', 'Dirección4');
+('004', NULL, NULL, 'Rep4', 'Universidad4', 'Direcciï¿½n4');
 
 -- Poblando Calificaciones --
 INSERT INTO CALIFICACIONES (usuarioUtid, usuarioUnid, usuarioCtid, usuarioCnid, articuloI, estrellas)
@@ -160,55 +160,55 @@ VALUES ('004', '003', '004', '004', 1011, 2);
 
 -- Poblacion Articulo --
 INSERT INTO ARTICULO (id, usuarioUtid, usuarioUnid, usuarioCtid, usuarioCnid, categoriaC, descripcion, estado, foto, precio, disponible)
-VALUES (1, '001', '002', '003', '003', 'CAT01', 'Descripción 1', 'Nuevo', 'foto1.jpg', 100.00, 'Y');
+VALUES (1, '001', '002', '003', '003', 'CAT01', 'Descripciï¿½n 1', 'Nuevo', 'foto1.jpg', 100.00, 'Y');
 
 INSERT INTO ARTICULO (id, usuarioUtid, usuarioUnid, usuarioCtid, usuarioCnid, categoriaC, descripcion, estado, foto, precio, disponible)
-VALUES (2, '002', '002', '001', '001', 'CAT02', 'Descripción 2', 'Usado', 'foto2.jpg', 50.00, 'N');
+VALUES (2, '002', '002', '001', '001', 'CAT02', 'Descripciï¿½n 2', 'Usado', 'foto2.jpg', 50.00, 'N');
 
 INSERT INTO ARTICULO (id, usuarioUtid, usuarioUnid, usuarioCtid, usuarioCnid, categoriaC, descripcion, estado, foto, precio, disponible)
-VALUES (3, '003', '001', '004', '004', 'CAT03', 'Descripción 3', 'Reparación', 'foto3.jpg', 75.00, 'Y');
+VALUES (3, '003', '001', '004', '004', 'CAT03', 'Descripciï¿½n 3', 'Reparaciï¿½n', 'foto3.jpg', 75.00, 'Y');
 
 INSERT INTO ARTICULO (id, usuarioUtid, usuarioUnid, usuarioCtid, usuarioCnid, categoriaC, descripcion, estado, foto, precio, disponible)
-VALUES (4, '004', '003', '002', '002', 'CAT01', 'Descripción 4', 'Nuevo', 'foto4.jpg', 120.00, 'N');
+VALUES (4, '004', '003', '002', '002', 'CAT01', 'Descripciï¿½n 4', 'Nuevo', 'foto4.jpg', 120.00, 'N');
 
 -- Poblando CATEGORIAS --
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI)
-VALUES ('CAT01', 'Categoría 1', 'Electrónica', 50.00, 200.00, 1);
+VALUES ('CAT01', 'Categorï¿½a 1', 'Electrï¿½nica', 50.00, 200.00, 1);
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI)
-VALUES ('CAT02', 'Categoría 2', 'Hogar', 30.00, 150.00, 2);
+VALUES ('CAT02', 'Categorï¿½a 2', 'Hogar', 30.00, 150.00, 2);
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI)
-VALUES ('CAT03', 'Categoría 3', 'Ropa', 20.00, 100.00, 3);
+VALUES ('CAT03', 'Categorï¿½a 3', 'Ropa', 20.00, 100.00, 3);
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI)
-VALUES ('CAT04', 'Categoría 4', 'Otro', 10.00, 80.00, 4);
+VALUES ('CAT04', 'Categorï¿½a 4', 'Otro', 10.00, 80.00, 4);
 
 -- Poblando AUDITORIAS --
 INSERT INTO AUDITORIAS (id, fecha, ACCION, nombre)
-VALUES (1, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'Auditoría 1');
+VALUES (1, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'Auditorï¿½a 1');
 
 INSERT INTO AUDITORIAS (id, fecha, ACCION, nombre)
-VALUES (2, TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Actualizar', 'Auditoría 2');
+VALUES (2, TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Actualizar', 'Auditorï¿½a 2');
 
 INSERT INTO AUDITORIAS (id, fecha, ACCION, nombre)
-VALUES (3, TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Eliminar', 'Auditoría 3');
+VALUES (3, TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Eliminar', 'Auditorï¿½a 3');
 
 INSERT INTO AUDITORIAS (id, fecha, ACCION, nombre)
-VALUES (4, TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Crear', 'Auditoría 4');
+VALUES (4, TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Crear', 'Auditorï¿½a 4');
 
 -- Poblando EVALUACION --
 INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
-VALUES ('Institución', 'tid001', 'nid001', TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Descripción evaluación 1', 'reporte1.pdf', 'Aprobado', 'Respuestas evaluación 1', 1);
+VALUES ('Instituciï¿½n', 'tid001', 'nid001', TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Descripciï¿½n evaluaciï¿½n 1', 'reporte1.pdf', 'Aprobado', 'Respuestas evaluaciï¿½n 1', 1);
 
 INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
-VALUES ('Estudiante', 'tid002', 'nid002', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Descripción evaluación 2', 'reporte2.pdf', 'Rechazado', 'Respuestas evaluación 2', 2);
+VALUES ('Estudiante', 'tid002', 'nid002', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Descripciï¿½n evaluaciï¿½n 2', 'reporte2.pdf', 'Rechazado', 'Respuestas evaluaciï¿½n 2', 2);
 
 INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
-VALUES ('Administrativo', NULL, NULL, TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Descripción evaluación 3', 'reporte3.pdf', 'Pendiente', 'Respuestas evaluación 3', 3);
+VALUES ('Administrativo', NULL, NULL, TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Descripciï¿½n evaluaciï¿½n 3', 'reporte3.pdf', 'Pendiente', 'Respuestas evaluaciï¿½n 3', 3);
 
 INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
-VALUES ('Docente', 'tid004', 'nid004', TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Descripción evaluación 4', 'reporte4.pdf', 'Aprobado', 'Respuestas evaluación 4', 4);
+VALUES ('Docente', 'tid004', 'nid004', TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Descripciï¿½n evaluaciï¿½n 4', 'reporte4.pdf', 'Aprobado', 'Respuestas evaluaciï¿½n 4', 4);
 
 
 -- ************ PoblarNoOk ************ -- 
@@ -216,42 +216,42 @@ VALUES ('Docente', 'tid004', 'nid004', TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Des
 
 -- Parte (2) --
 
-La longitud de la pk código debería ser máximo de 3, aquí es de 4, por eso devuelve un error.
+La longitud de la pk cï¿½digo deberï¿½a ser mï¿½ximo de 3, aquï¿½ es de 4, por eso devuelve un error.
 
 INSERT INTO UNIVERSIDAD (codigo, usuarioTid, usuarioNid, representante, nombre, direccion)
 VALUES ('1234', NULL, NULL, 'nada', 'nada', 'nada');
 
-El formato de fecha no coinside con el especificado en la creación de la tabla USUARIOS
+El formato de fecha no coinside con el especificado en la creaciï¿½n de la tabla USUARIOS
 
 INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('Uni', '001', '001', '001', 'MismasPK', 'Nodebería', 'repetirse', '14-03-20-24' , NULL, 0);
+VALUES ('Uni', '001', '001', '001', 'MismasPK', 'Nodeberï¿½a', 'repetirse', '14-03-20-24' , NULL, 0);
 
-La llave reporte debería ser única, y en este caso al intentar insertar valores repetidos devuelve un error, pues se viola la restricción.
+La llave reporte deberï¿½a ser ï¿½nica, y en este caso al intentar insertar valores repetidos devuelve un error, pues se viola la restricciï¿½n.
 
 INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
-VALUES ('Administrativo', '001', '999', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Descripción evaluación 3', 'reporte44.pdf', 'Por hacer', 'Respuestas evaluación 3', 3);
+VALUES ('Administrativo', '001', '999', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Descripciï¿½n evaluaciï¿½n 3', 'reporte44.pdf', 'Por hacer', 'Respuestas evaluaciï¿½n 3', 3);
 
 
 -- Parte (3) --
 
-En este caso tenemos una universidad que no se referencia a ninún estudiante, pero si repite la PK
-que debería ser única y aún así la añadió.
+En este caso tenemos una universidad que no se referencia a ninï¿½n estudiante, pero si repite la PK
+que deberï¿½a ser ï¿½nica y aï¿½n asï¿½ la aï¿½adiï¿½.
 
 INSERT INTO UNIVERSIDAD (codigo, usuarioTid, usuarioNid, representante, nombre, direccion)
 VALUES
 ('001', NULL, NULL, 'Rep1', 'Universidad55', 'Calle 17A # 75 ');
 
-En este caso la PK de Usuarios es tid, nid, y se repiten, primer error, además debería comprobar 
+En este caso la PK de Usuarios es tid, nid, y se repiten, primer error, ademï¿½s deberï¿½a comprobar 
 que la universidad existiera.
 
 INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('Uni', '001', '001', '001', 'MismasPK', 'Nodebería', 'repetirse', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+VALUES ('Uni', '001', '001', '001', 'MismasPK', 'Nodeberï¿½a', 'repetirse', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
 
-Funciona pero no debería, puesto que usa las FK's de tid y nid, debería comprobar que existan en la tabla de Usuarios
-y en este caso, esos tid y nid no existen para ningún usuario.
+Funciona pero no deberï¿½a, puesto que usa las FK's de tid y nid, deberï¿½a comprobar que existan en la tabla de Usuarios
+y en este caso, esos tid y nid no existen para ningï¿½n usuario.
 
 INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
-VALUES ('Administrativo', '001', '999', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Descripción evaluación 3', 'reporte44.pdf', 'Por hacer', 'Respuestas evaluación 3', 3);
+VALUES ('Administrativo', '001', '999', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Descripciï¿½n evaluaciï¿½n 3', 'reporte44.pdf', 'Por hacer', 'Respuestas evaluaciï¿½n 3', 3);
 
 --  XPoblar(Eliminar los datos) --
 
@@ -315,5 +315,12 @@ CREATE TABLE RESPUESTAS(
 
 
 
+-- ALTER TABLE ROPAS ADD CONSTRAINT checkTalla CHECK (talla IN ('S', 'M', 'L')); --
 
+
+
+
+
+-- INSERT INTO ROPAS(articuloI, talla, material, color) VALUES(1, 'S', 'asdf', 'red'); --
+-- DELETE FROM ROPAS WHERE articuloI = 1; --
 
