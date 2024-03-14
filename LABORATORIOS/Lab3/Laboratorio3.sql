@@ -108,11 +108,11 @@ Categoría YA
 Usuario YA
 Artículo YA 
 Calificacion YA 
-Auditoría 
-Evaluación
+Auditoría YA
+Evaluación 
 
 */
--- PoblarOK --
+-- ************ PoblarOK ************ --
 
 /*
 -- Poblando Tabla de Usuarios
@@ -197,5 +197,123 @@ VALUES (3, TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Eliminar', 'Auditoría 3');
 INSERT INTO AUDITORIAS (id, fecha, ACCION, nombre)
 VALUES (4, TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Crear', 'Auditoría 4');
 
+-- Poblando EVALUACION --
+INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
+VALUES ('Institución', 'tid001', 'nid001', TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Descripción evaluación 1', 'reporte1.pdf', 'Aprobado', 'Respuestas evaluación 1', 1);
+
+INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
+VALUES ('Estudiante', 'tid002', 'nid002', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Descripción evaluación 2', 'reporte2.pdf', 'Rechazado', 'Respuestas evaluación 2', 2);
+
+INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
+VALUES ('Administrativo', NULL, NULL, TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Descripción evaluación 3', 'reporte3.pdf', 'Pendiente', 'Respuestas evaluación 3', 3);
+
+INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
+VALUES ('Docente', 'tid004', 'nid004', TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Descripción evaluación 4', 'reporte4.pdf', 'Aprobado', 'Respuestas evaluación 4', 4);
+
+
+-- ************ PoblarNoOk ************ -- 
+
+
+-- Parte (2) --
+
+La longitud de la pk código debería ser máximo de 3, aquí es de 4, por eso devuelve un error.
+
+INSERT INTO UNIVERSIDAD (codigo, usuarioTid, usuarioNid, representante, nombre, direccion)
+VALUES ('1234', NULL, NULL, 'nada', 'nada', 'nada');
+
+El formato de fecha no coinside con el especificado en la creación de la tabla USUARIOS
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('Uni', '001', '001', '001', 'MismasPK', 'Nodebería', 'repetirse', '14-03-20-24' , NULL, 0);
+
+La llave reporte debería ser única, y en este caso al intentar insertar valores repetidos devuelve un error, pues se viola la restricción.
+
+INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
+VALUES ('Administrativo', '001', '999', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Descripción evaluación 3', 'reporte44.pdf', 'Por hacer', 'Respuestas evaluación 3', 3);
+
+
+-- Parte (3) --
+
+En este caso tenemos una universidad que no se referencia a ninún estudiante, pero si repite la PK
+que debería ser única y aún así la añadió.
+
+INSERT INTO UNIVERSIDAD (codigo, usuarioTid, usuarioNid, representante, nombre, direccion)
+VALUES
+('001', NULL, NULL, 'Rep1', 'Universidad55', 'Calle 17A # 75 ');
+
+En este caso la PK de Usuarios es tid, nid, y se repiten, primer error, además debería comprobar 
+que la universidad existiera.
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('Uni', '001', '001', '001', 'MismasPK', 'Nodebería', 'repetirse', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+Funciona pero no debería, puesto que usa las FK's de tid y nid, debería comprobar que existan en la tabla de Usuarios
+y en este caso, esos tid y nid no existen para ningún usuario.
+
+INSERT INTO EVALUACION (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
+VALUES ('Administrativo', '001', '999', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Descripción evaluación 3', 'reporte44.pdf', 'Por hacer', 'Respuestas evaluación 3', 3);
+
+--  XPoblar(Eliminar los datos) --
+
+DELETE FROM ARTICULO;
+DELETE FROM AUDITORIAS;
+DELETE FROM CALIFICACIONES;
+DELETE FROM CARACTERISTICAS;
+DELETE FROM CATEGORIAS;
+DELETE FROM EVALUACION;
+DELETE FROM PERECEDERO;
+DELETE FROM PERTENEC;
+DELETE FROM RESPUESTAS;
+DELETE FROM ROPAS;
+DELETE FROM UNIVERSIDAD;
+DELETE FROM USUARIOS;
+
+-- Punto D PROTEGIENDO --
+-- PRIMARIAS --
+
+ALTER TABLE UNIVERSIDAD ADD CONSTRAINT PK_UNIVERSIDAD_
+PRIMARY KEY (codigo);
+
+ALTER TABLE USUARIOS ADD CONSTRAINT PK_USUARIOS_
+PRIMARY KEY (universidadC, codigo);
+
+ALTER TABLE CALIFICACIONES ADD CONSTRAINT PK_CALIFICACIONES_
+PRIMARY KEY (usuarioUtid, usuarioUnid, usuarioCtid, usuarioCnid);
+
+ALTER TABLE ARTICULO ADD CONSTRAINT PK_ARTICULO_
+PRIMARY KEY (id);
+
+ALTER TABLE PERECEDERO ADD CONSTRAINT PK_PERECEDERO_
+PRIMARY KEY (articuloI);
+
+ALTER TABLE ROPAS ADD CONSTRAINT PK_ROPAS_
+PRIMARY KEY (articuloI);
+
+ALTER TABLE CARACTERISTICAS ADD CONSTRAINT PK_CARACTERISTICAS_
+PRIMARY KEY (articuloI, caracteristica);
+
+ALTER TABLE CATEGORIAS ADD CONSTRAINT PK_CATEGORIAS_
+PRIMARY KEY (codigo);
+
+ALTER TABLE AUDITORIAS ADD CONSTRAINT PK_AUDITORIAS_
+PRIMARY KEY (id);
+
+ALTER TABLE EVALUACION ADD CONSTRAINT PK_EVALUACION_
+PRIMARY KEY (a_omes);
+
+ALTER TABLE RESPUESTAS ADD CONSTRAINT PK_RESPUESTAS_
+PRIMARY KEY (evaluacionA_omes);
 */
+
+-- Creando Atributos (Tipos) --
+/*
+
+CREATE TABLE RESPUESTAS(
+    evaluacionA_omes    VARCHAR(20) NOT NULL, -- Reemplazado por VARCHAR(20)
+    respuesta           VARCHAR(50)
+*/
+
+
+
+
 
