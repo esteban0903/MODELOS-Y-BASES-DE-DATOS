@@ -277,6 +277,8 @@ DELETE FROM USUARIOS;
 
 /*
 ------------------------------------CONSTRUCCION: PROTEGIENDO ------------------------------------
+------------------------- PARTE 1 -------------------------
+
 
 --- PRIMARIAS ---
 
@@ -371,8 +373,6 @@ FOREIGN KEY(evaluacionA) REFERENCES EVALUACIONES(a_omes);
 
 /*
 --- Creando Atributos (Tipos) --
-
-
 ALTER TABLE USUARIOS ADD CONSTRAINT CHECK_CORREO CHECK (CORREO LIKE ('%@%'));
 ALTER TABLE CALIFICACIONES ADD CONSTRAINT CHECK_ESTRELLAS CHECK (estrellas BETWEEN 1 AND 5);
 ALTER TABLE ARTICULOS ADD CONSTRAINT CHECK_TESTADO_ARTICULO CHECK (ESTADO IN ('NUEVO', 'USADO'));
@@ -389,10 +389,6 @@ ADD CONSTRAINT CHECK_TMONEDA_C1 CHECK (MINIMO > 0);
 
 ALTER TABLE CATEGORIAS 
 ADD CONSTRAINT CHECK_TMONEDA_C2 CHECK (MAXIMO > 0);
-*/
-
-
-/*
 
 -- Solo pudimos con Trigger --
 -- Que sea consecutivo implica que el maximo de la tabla + 1 es igual al ID, de no haber valores pues se deja en 1 el primer valor --
@@ -419,6 +415,51 @@ ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TURL_E CHECK (
 
 */
 
+
+
+
+
+------------------------- PARTE 3 -------------------------
+/*
+El caso del insert en la tabla UNIVERSIDADES donde la PK se repite debería ser protegido por la restricción de unicidad de la PK PK_UNIVERSIDAD_.
+
+INSERT INTO UNIVERSIDADES (codigo, usuarioTid, usuarioNid, representante, nombre, direccion)
+VALUES('001', NULL, NULL, 'Rep1', 'Universidad55', 'Calle 17A # 75 ');
+
+
+El caso del insert en la tabla USUARIOS donde la PK de tid y nid se repiten debería ser protegido por las restricciones de unicidad de las 
+PK UK_USUARIO_tid y UK_USUARIO_nid.
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('Uni', '001', '001', '001', 'MismasPK', 'Nodeberia', 'repetirse', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+
+
+El caso del insert en la tabla EVALUACIONES donde se hacen referencias a tid y nid inexistentes, debería ser protegido por la 
+restricción de integridad referencial FK_EVALUACIONES_AUDITORIAS_auditoriaI. Aunque esta restricción no verifica directamente la 
+existencia de tid y nid, protege la integridad referencial entre las tablas EVALUACIONES y AUDITORIAS, lo que indirectamente podría ayudar 
+a prevenir este tipo de errores.
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
+VALUES ('Administrativo', '001', '999', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Descripcion evaluacion 3', 'reporte44.pdf', 'Por hacer', 'Respuestas evaluacion 3', 3);
+
+
+
+*/
+------------------------- PARTE 4 -------------------------
+/*
+Si se intenta insertar en la tabla articulo un dato en el atributo foto que sea NULL, generar error ya que es UNIQUE
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (1, '1', '123', 'CAT01', 'Descripcion 1', 'NUEVO', NULL, 100.00, 'Y');
+
+Si se intenta eliminar algún codigoUn (primary key tabla UNIVERSIDADES)  que este presente en la tabla USUARIOS. Va generar error ya que no esta definido como cascade ni null, esta por defecto.
+DELETE FROM UNIVERSIDADES WHERE codigoUn= '1';
+
+Si se trata de insertar un id (primary key)en la tabla ARTICULOS con valor nulo, genera error ya que las llaves principales no pueden ser nulas
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (NULL, '11', '140', 'CAT11', 'Descripcion 11', 'USADO', 'foto11.png', 210.00, 'Y')
+
+*/
 
 ------------------------- CONSTRUCCION: NUEVAMENTE POBLANDO -------------------------
 /*
@@ -661,30 +702,30 @@ VALUES ('10', 132, '10', 5);
 
 
 -- Consultar las categorías con mas artículos: 
+/*
 SELECT c.nombre AS categoria, COUNT(*) AS cantidad_articulos
 FROM ARTICULOS a
 JOIN CATEGORIAS c ON a.categoriac = c.codigo
-GROUP BY a.categoriac
-ORDER BY cantidad_articulos
+GROUP BY c.nombre
+ORDER BY cantidad_articulos DESC;
+-- Consultar las calificaciones de los articulos del último mes
+SELECT a.id, c.estrellas, d.fecha
+FROM ARTICULOS a
+JOIN CALIFICACIONES c ON a.id = c.articuloI
+JOIN CATEGORIAS b ON a.categoriac = b.codigo
+JOIN AUDITORIAS d ON b.auditoriaI = d.id
+WHERE EXTRACT(YEAR FROM d.fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
+AND EXTRACT(MONTH FROM d.fecha) = EXTRACT(MONTH FROM CURRENT_DATE);
+-- Consulta inventada:
+-- Mirar los reportes por fechas y ordenarlos de menor a mayor
+SELECT a.reporte, b.fecha 
+FROM EVALUACIONES a 
+JOIN AUDITORIAS b ON b.id = a.auditoriaI 
+ORDER BY b.fecha;
+*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (1, '1', '123', 'CAT01', 'Descripcion 1', 'NUEVO', 'foto1.jpg', 100.00, 'Y');
 
 
 
