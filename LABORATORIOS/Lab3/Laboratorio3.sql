@@ -5,7 +5,7 @@
 CREATE TABLE USUARIOS(
     universidadC    VARCHAR(3),
     codigo          VARCHAR(3) ,
-    tid             VARCHAR(50), -- Reemplazado por VARCHAR(50)
+    tid             VARCHAR(50),
     nid             VARCHAR(3) ,
     nombre          VARCHAR(50),
     programa        VARCHAR(20),
@@ -17,7 +17,7 @@ CREATE TABLE USUARIOS(
 
 CREATE TABLE UNIVERSIDADES(
     codigoUn        VARCHAR(3),
-    representante   VARCHAR(10)NOT NULL,
+    representante   VARCHAR(10),
     nombre          VARCHAR(20),
     direccion       VARCHAR(50)
 );
@@ -25,46 +25,46 @@ CREATE TABLE UNIVERSIDADES(
 CREATE TABLE CALIFICACIONES(
     usuarioU     VARCHAR(3),
     usuarioC     VARCHAR(3),
-    articuloI    INTEGER L, -- Reemplazado por INTEGER
-    estrellas    INTEGER -- Reemplazado por INTEGER
+    articuloI    INTEGER L,
+    estrellas    INTEGER
 );
 
 CREATE TABLE ARTICULOS(
-    id          INTEGER , -- Reemplazado por INTEGER
+    id          INTEGER ,
     usuarioU    VARCHAR(3),
     usuarioC    VARCHAR(3),
     categoriaC  VARCHAR(5),
     descripcion VARCHAR(20),
-    estado      VARCHAR(20), -- Reemplazado por VARCHAR(20)
-    foto        VARCHAR(255), -- Reemplazado por VARCHAR(255)
-    precio      DECIMAL(10, 2), -- Reemplazado por DECIMAL(10, 2)
-    disponible  CHAR(1) -- Reemplazado por CHAR(1)
+    estado      VARCHAR(20),
+    foto        VARCHAR(255),
+    precio      DECIMAL(10, 2),
+    disponible  CHAR(1)
 );
 
 CREATE TABLE PERECEDERO(
-    articuloI   INTEGER, -- Reemplazado por INTEGER
+    articuloI   INTEGER,
     vencimiento DATE
 );
 
 CREATE TABLE ROPAS(
-    articuloI   INTEGER, -- Reemplazado por INTEGER
-    talla       VARCHAR(10), -- Reemplazado por VARCHAR(10)
+    articuloI   INTEGER,
+    talla       VARCHAR(10),
     material    VARCHAR(10),
     color       VARCHAR(10)
 );
 
 CREATE TABLE CARACTERISTICAS(
-    articuloI   INTEGER, -- Reemplazado por INTEGER
+    articuloI   INTEGER,
     caracteristica VARCHAR(20)
 );
 
 CREATE TABLE CATEGORIAS(
     codigo      VARCHAR(5),
     nombre      VARCHAR(20),
-    tipo        VARCHAR(20), -- Reemplazado por VARCHAR(20)
-    minimo      DECIMAL(10, 2), -- Reemplazado por DECIMAL(10, 2)
-    maximo      DECIMAL(10, 2), -- Reemplazado por DECIMAL(10, 2)
-    auditoriaI  INTEGER, -- Reemplazado por INTEGER
+    tipo        VARCHAR(20),
+    minimo      DECIMAL(10, 2),
+    maximo      DECIMAL(10, 2),
+    auditoriaI  INTEGER,
     pertenecimientos  VARCHAR(20)
 );
 
@@ -73,24 +73,24 @@ CREATE TABLE CATEGORIAS(
 CREATE TABLE AUDITORIAS(
     id      INTEGER, -- Reemplazado por INTEGER
     fecha   DATE,
-    accion  VARCHAR(20), -- Reemplazado por VARCHAR(20)
+    accion  VARCHAR(20),
     nombre  VARCHAR(20)
 );
 
 CREATE TABLE EVALUACIONES(
-    a_omes      VARCHAR(20), -- Reemplazado por VARCHAR(20)
-    tid         VARCHAR(50), -- Reemplazado por VARCHAR(50)
+    a_omes      VARCHAR(20),
+    tid         VARCHAR(50),
     nid         VARCHAR(10),
     fecha       DATE,
-    descripcion VARCHAR(255), -- Reemplazado por VARCHAR(255)
-    reporte     VARCHAR(255) -- Reemplazado por VARCHAR(255)
-    resultado   VARCHAR(20), -- Reemplazado por VARCHAR(20)
+    descripcion VARCHAR(255),
+    reporte     VARCHAR(255)
+    resultado   VARCHAR(20),
     respuestas  VARCHAR(50),
-    auditoriaI  INTEGER -- Reemplazado por INTEGER
+    auditoriaI  INTEGER
 );
 
 CREATE TABLE RESPUESTAS(
-    evaluacionA    VARCHAR(20), -- Reemplazado por VARCHAR(20)
+    evaluacionA    VARCHAR(20),
     respuesta      VARCHAR(50)
 );
 */
@@ -332,6 +332,7 @@ UNIQUE (reporte);
 
 ---/*
 --- FORANEAS ---
+/*
 
 ALTER TABLE USUARIOS ADD CONSTRAINT FK_USUARIOS_UNIVERSIDADES_universidadC
 FOREIGN KEY(universidadC) REFERENCES UNIVERSIDADES(codigoUn);
@@ -366,26 +367,329 @@ FOREIGN KEY(auditoriaI) REFERENCES AUDITORIAS(id);
 
 ALTER TABLE RESPUESTAS ADD CONSTRAINT FK_RESPUESTAS_EVALUACION_evaluacionA
 FOREIGN KEY(evaluacionA) REFERENCES EVALUACIONES(a_omes);
+*/
 
-
----*/
 /*
 --- Creando Atributos (Tipos) --
 
 
-CREATE TABLE RESPUESTAS(
-    evaluacionA_omes    VARCHAR(20) NOT NULL, -- Reemplazado por VARCHAR(20)
-    respuesta           VARCHAR(50)
+ALTER TABLE USUARIOS ADD CONSTRAINT CHECK_CORREO CHECK (CORREO LIKE ('%@%'));
+ALTER TABLE CALIFICACIONES ADD CONSTRAINT CHECK_ESTRELLAS CHECK (estrellas BETWEEN 1 AND 5);
+ALTER TABLE ARTICULOS ADD CONSTRAINT CHECK_TESTADO_ARTICULO CHECK (ESTADO IN ('NUEVO', 'USADO'));
+ALTER TABLE ARTICULOS ADD CONSTRAINT CHECK_TURL CHECK (FOTO LIKE ('%.jpg') OR 
+FOTO LIKE ('%.jpg') 
+OR FOTO LIKE ('%.jpeg') 
+OR FOTO LIKE ('%.png'));
+ALTER TABLE ROPAS ADD CONSTRAINT CHECK_TALLA CHECK (TALLA IN ('S', 'M', 'L', 'XL', 'XS', 'XXL'));
+ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TDESCRIPTION CHECK (DESCRIPCION IN ('A', 'M', 'B')); 
+ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TRESULTADO CHECK(RESULTADO IN ('AP', 'PE'));
+ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TID_E CHECK (TID IN ('CC', 'CD')); 
+ALTER TABLE CATEGORIAS 
+ADD CONSTRAINT CHECK_TMONEDA_C1 CHECK (MINIMO > 0);
+
+ALTER TABLE CATEGORIAS 
+ADD CONSTRAINT CHECK_TMONEDA_C2 CHECK (MAXIMO > 0);
+*/
+
+
+/*
+
+-- Solo pudimos con Trigger --
+-- Que sea consecutivo implica que el maximo de la tabla + 1 es igual al ID, de no haber valores pues se deja en 1 el primer valor --
+CREATE OR REPLACE TRIGGER trg_check_consecutivo
+BEFORE INSERT ON AUDITORIAS
+FOR EACH ROW
+DECLARE
+    v_max_id NUMBER;
+BEGIN
+    SELECT MAX(ID) INTO v_max_id FROM AUDITORIAS;
+    
+    IF v_max_id IS NULL THEN
+        :NEW.ID := 1;
+    ELSE
+        :NEW.ID := v_max_id + 1;
+    END IF;
+END;
+/
+
+ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TURL_E CHECK (
+    SUBSTR(REPORTE, 1, 8) = 'https://'
+    AND LENGTH(REPORTE) <= 100
+);
+
+*/
+
+
+------------------------- CONSTRUCCION: NUEVAMENTE POBLANDO -------------------------
+/*
+--- POBLANDO UNIVERSIDADES ---
+
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('1', 'Rep1', 'Uni1', 'Direccion1');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('2', 'Rep2', 'Uni2', 'Direccion2');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('3', 'Rep3', 'Uni3', 'Direccion3');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('4', 'Rep4', 'Uni4', 'Direccion4');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('5', 'Rep5', 'Uni5', 'Direccion5');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('6', 'Rep6', 'Uni6', 'Direccion6');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('7', 'Rep7', 'Uni7', 'Direccion7');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('8', 'Rep8', 'Uni8', 'Direccion8');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('9', 'Rep9', 'Uni9', 'Direccion9');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('10', 'Rep10', 'Uni10', 'Direccion10');
+
+--- POBLANDO USUARIOS ---
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('1', '123', 'CC1', '1', 'Usuario 1', 'Programa 1', 'usuario1@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('2', '124', 'CC2', '2', 'Usuario 2', 'Programa 2', 'usuario2@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('3', '125', 'CC3', '3', 'Usuario 3', 'Programa 3', 'usuario3@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('4', '126', 'CC4', '4', 'Usuario 4', 'Programa 4', 'usuario4@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('5', '127', 'CD5', '5', 'Usuario 5', 'Programa 5', 'usuario5@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('6', '128', 'CD6', '6', 'Usuario 6', 'Programa 6', 'usuario6@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('7', '129', 'CD7', '7', 'Usuario 7', 'Programa 7', 'usuario7@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('8', '130', 'CD8', '8', 'Usuario 8', 'Programa 8', 'usuario8@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('9', '131', 'CD9', '9', 'Usuario 9', 'Programa 9', 'usuario9@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
+VALUES ('10', '132', 'CD10', '10', 'Usuario 10', 'Programa 10', 'usuarin1@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+
+
+--- POBLANDO AUDITORIAS ---
+
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
+VALUES (1, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'Auditoria 1');
+
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
+VALUES (2, TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Modificar', 'Auditoria 2');
+
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
+VALUES (3, TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Eliminar', 'Auditoria 3');
+
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
+VALUES (4, TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Crear', 'Auditoria 4');
+
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
+VALUES (5, TO_DATE('2024-03-18', 'YYYY-MM-DD'), 'Modificar', 'Auditoria 5');
+
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
+VALUES (6, TO_DATE('2024-03-19', 'YYYY-MM-DD'), 'Eliminar', 'Auditoria 6');
+
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
+VALUES (7, TO_DATE('2024-03-20', 'YYYY-MM-DD'), 'Crear', 'Auditoria 7');
+
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
+VALUES (8, TO_DATE('2024-03-21', 'YYYY-MM-DD'), 'Modificar', 'Auditoria 8');
+
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
+VALUES (9, TO_DATE('2024-03-22', 'YYYY-MM-DD'), 'Eliminar', 'Auditoria 9');
+
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
+VALUES (10, TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'Crear', 'Auditoria 10');
+
+
+--- POBLANDO EVALUACIONES ---
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
+VALUES ('Instituci n', 'CC', 'nid001', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte1.pdf', 'AP', 'Respuestas evaluacion 1', 1);
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
+VALUES ('Instituci1n', 'CC', 'nid002', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'A', 'https://reporte2.pdf', 'PE', 'Respuestas evaluacion 2', 2);
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
+VALUES ('Institucin2', 'CC', 'nid003', TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'A', 'https://reporte3.pdf', 'AP', 'Respuestas evaluacion 3', 3);
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
+VALUES ('Instituci3', 'CD', 'nid004', TO_DATE('2024-03-18', 'YYYY-MM-DD'), 'M', 'https://reporte4.pdf', 'PE', 'Respuestas evaluacion 4', 4);
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
+VALUES ('Instituci4', 'CD', 'nid005', TO_DATE('2024-03-19', 'YYYY-MM-DD'), 'M', 'https://reporte5.pdf', 'AP', 'Respuestas evaluacion 5', 5);
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
+VALUES ('Instituci5', 'CC', 'nid006', TO_DATE('2024-03-20', 'YYYY-MM-DD'), 'M', 'https://reporte6.pdf', 'PE', 'Respuestas evaluacion 6', 6);
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
+VALUES ('Instituci6', 'CD', 'nid007', TO_DATE('2024-03-21', 'YYYY-MM-DD'), 'M', 'https://reporte7.pdf', 'PE', 'Respuestas evaluacion 7', 7);
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
+VALUES ('Instituci7', 'CD', 'nid008', TO_DATE('2024-03-22', 'YYYY-MM-DD'), 'B', 'https://reporte8.pdf', 'AP', 'Respuestas evaluacion 8', 8);
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
+VALUES ('Instituci8', 'CC', 'nid009', TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'B', 'https://reporte9.pdf', 'AP', 'Respuestas evaluacion 9', 9);
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
+VALUES ('Instituci9', 'CC', 'nid010', TO_DATE('2024-03-24', 'YYYY-MM-DD'), 'B', 'https://reporte10.pdf', 'AP', 'Respuestas evaluacion 10', 10);
+
+--- POBLANDO CATEGORIAS ---
+
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
+VALUES ('CAT01', 'Categoria 1', 'Electronica', 50.00, 200.00, 1, 'pert1');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
+VALUES ('CAT02', 'Categoria 2', 'Moda', 20.00, 150.00, 2, 'pert2');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
+VALUES ('CAT03', 'Categoria 3', 'Hogar', 30.00, 300.00, 3, 'pert3');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
+VALUES ('CAT04', 'Categoria 4', 'Electrodomesticos', 100.00, 500.00, 4, 'pert4');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
+VALUES ('CAT05', 'Categoria 5', 'Deporte', 10.00, 250.00, 5, 'pert5');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
+VALUES ('CAT06', 'Categoria 6', 'Libros', 5.00, 100.00, 6, 'pert6');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
+VALUES ('CAT07', 'Categoria 7', 'Juguetes', 2.00, 50.00, 7, 'pert7');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
+VALUES ('CAT08', 'Categoria 8', 'Muebles', 150.00, 1000.00, 8, 'pert8');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
+VALUES ('CAT09', 'Categoria 9', 'Arte', 50.00, 500.00, 9, 'pert9');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
+VALUES ('CAT10', 'Categoria 10', 'Instrumentos ', 80.00, 700.00, 10, 'pert10');
+
+--- POBLANDO ARTICULOS ---
+
+
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (1, '1', '123', 'CAT01', 'Descripcion 1', 'NUEVO', 'foto1.jpg', 100.00, 'Y');
+
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (2, '2', '124', 'CAT02', 'Descripcion 2', 'NUEVO', 'foto2.jpg', 150.00, 'Y');
+
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (3, '3', '125', 'CAT03', 'Descripcion 3', 'NUEVO', 'foto3.jpg', 50.00, 'Y');
+
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (4, '4', '126', 'CAT04', 'Descripcion 4', 'NUEVO', 'foto4.png', 200.00, 'Y');
+
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (5, '5', '127', 'CAT05', 'Descripcion 5', 'NUEVO', 'foto5.jpg', 120.00, 'Y');
+
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (6, '6', '128', 'CAT06', 'Descripcion 6', 'USADO', 'foto6.jpeg', 80.00, 'Y');
+
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (7, '7', '129', 'CAT07', 'Descripcion 7', 'USADO', 'foto7.jpeg', 90.00, 'Y');
+
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (8, '8', '130', 'CAT08', 'Descripcion 8', 'USADO', 'foto8.png', 180.00, 'Y');
+
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (9, '9', '131', 'CAT09', 'Descripcion 9', 'USADO', 'foto9.png', 70.00, 'Y');
+
+INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
+VALUES (10, '10', '132', 'CAT10', 'Descripcion 10', 'USADO', 'foto10.jpg', 160.00, 'Y');
+
+
+
+--- POBLANDO CALIFICACIONES ---
+
+INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
+VALUES ('1', 123, '1', 4);
+
+INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
+VALUES ('2', 124, '2', 5);
+
+INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
+VALUES ('3', 125, '3', 3);
+
+INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
+VALUES ('4', 126, '4', 4);
+
+INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
+VALUES ('5', 127, '5', 2);
+
+INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
+VALUES ('6', 128, '6', 4);
+
+INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
+VALUES ('7', 129, '7', 5);
+
+INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
+VALUES ('8', 130, '8', 3);
+
+INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
+VALUES ('9', 131, '9', 4);
+
+INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
+VALUES ('10', 132, '10', 5);
+
+
+
+
+===============================
 */
 
 
 
--- ALTER TABLE ROPAS ADD CONSTRAINT checkTalla CHECK (talla IN ('S', 'M', 'L')); --
+
+-- Consultar las categorías con mas artículos: 
+SELECT c.nombre AS categoria, COUNT(*) AS cantidad_articulos
+FROM ARTICULOS a
+JOIN CATEGORIAS c ON a.categoriac = c.codigo
+GROUP BY a.categoriac
+ORDER BY cantidad_articulos
 
 
 
 
 
--- INSERT INTO ROPAS(articuloI, talla, material, color) VALUES(1, 'S', 'asdf', 'red'); --
--- DELETE FROM ROPAS WHERE articuloI = 1; --
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
