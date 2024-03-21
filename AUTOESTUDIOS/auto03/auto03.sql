@@ -36,7 +36,7 @@ ROOM_TYPE       VARCHAR(6),
 MAX_OCCUPANCY   NUMBER(11)    
 );
 
------------------------------------- Creando PK's ------------------------------------
+------------------------------------- Creando PK's ------------------------------------
 --ALTER TABLE EXTRAS
 --ADD CONSTRAINT PK_EXTRAS_ID PRIMARY KEY (EXTRAS_ID);
 
@@ -56,12 +56,12 @@ ALTER TABLE ROOM
 ADD CONSTRAINT PK_ID_ROOM PRIMARY KEY (ID);
 
 -- XTABLAS
-DROP TABLE BOOKING;
-DROP TABLE GUEST;
-DROP TABLE ROOM_TYPE;
-DROP TABLE RATE;
-DROP TABLE ROOM;
 
+DROP TABLE "BD1000095256"."BOOKING" CASCADE CONSTRAINTS PURGE;
+DROP TABLE "BD1000095256"."GUEST" CASCADE CONSTRAINTS PURGE;
+DROP TABLE "BD1000095256"."ROOM_TYPE" CASCADE CONSTRAINTS PURGE;
+DROP TABLE "BD1000095256"."RATE" CASCADE CONSTRAINTS PURGE;
+DROP TABLE "BD1000095256"."ROOM" CASCADE CONSTRAINTS PURGE;
 ------------------------------------ PARTE A ------------------------------------
 -- TABLA
 CREATE TABLE EXTRAS (
@@ -170,13 +170,11 @@ BEGIN
     -- Obtener el contador actual de registros en la tabla
     SELECT COUNT(*) INTO v_counter FROM EXTRAS;
     
-    -- Incrementar el contador en 1
-    v_counter := v_counter + 1;
-    
     -- Generar el nuevo ID en el formato 9AAAAMMDDmmss
-    :NEW.EXTRAS_ID := TO_NUMBER(TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')) * 1000 + v_counter;
+    :NEW.EXTRAS_ID := TO_NUMBER(TO_CHAR(SYSDATE, 'YYMMDD')) + v_counter;
 END;
 /
+
 
 CREATE OR REPLACE TRIGGER TR_EXTRAS_BI
 BEFORE INSERT ON EXTRAS
@@ -202,5 +200,18 @@ DROP TRIGGER generar_id_extras;
 DROP TRIGGER TR_EXTRAS_BI;
 
 -- DISPARADORES OK --
-
+-- Se respetan los triggers de longitud, y autmaticamente se genera una pk con el día y el acumulador
+INSERT INTO EXTRAS(extras_id, booking_id, description, discount, amount) VALUES(11, 1, 'Un ejemplo de entrada correcta',1,3);
+INSERT INTO EXTRAS(extras_id, booking_id, description, discount, amount) VALUES(12, 2, 'Seundo ejemplo',1,3);
+INSERT INTO EXTRAS(extras_id, booking_id, description, discount, amount) VALUES(111, 3, 'Tercer ejemplo',1,3);
 -- DISPARADORES NO OK -- 
+-- Este incumple el trigger TR_EXTRAS_BI al ser mayores que el 50%
+INSERT INTO EXTRAS(extras_id, booking_id, description, discount, amount) VALUES(110, 3, 'Error de Descuento',2,3);
+-- Este incumple la longitud permitida del ID (a pesar que lo autogenera)
+INSERT INTO EXTRAS(extras_id, booking_id, description, discount, amount) VALUES(123456789111, 3, 'Es demasiado largo el ID',1,3);
+-- Este no cumple con la referencia de reservación en booking (no puede añadir un extra a una reservación que no existe)
+INSERT INTO EXTRAS(extras_id, booking_id, description, discount, amount) VALUES(211, 999, 'No hay referencia a una reservación con ID 999',1,3);
+
+
+
+
