@@ -115,6 +115,16 @@ ALTER TABLE RESERVAS ADD CONSTRAINT CK_RESERVAS_estado_Testado CHECK(estado in('
 ALTER TABLE DEVOLUCIONES ADD CONSTRAINT CK_DEVOLUCIONES_estado_Testado CHECK(estado in('A','D'));
 ALTER TABLE FACTURAS ADD CONSTRAINT CK_FACTURAS_estado_Testado CHECK(estado in('A','D'));
 
+
+CREATE OR REPLACE TRIGGER TR_SUSCRITOS_nombreUsuario
+BEFORE INSERT ON SUSCRITOS
+FOR EACH ROW
+BEGIN
+    :new.nombreUsuario := :new.nombre || '_' || :new.apellido || '_' || :new.clienteI;
+END;
+/
+
+DROP TRIGGER TR_SUSCRITOS_nombreUsuario;
 ---------------------------------------PRIMARY KEYS---------------------------------------
 
 ALTER TABLE CLIENTES ADD CONSTRAINT PK_CLIENTES
@@ -282,7 +292,7 @@ VALUES('C003','TI');
 
 
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C001','CC','NomUs1','T','Nom1','Ape1');
+VALUES('C001','CC','Nom1_Ape1_C001','T','Nom1','Ape1');
 
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
 VALUES('C002','CE','NomUs2','E','Nom2','Ape2');
