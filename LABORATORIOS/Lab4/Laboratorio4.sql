@@ -70,6 +70,8 @@ CREATE TABLE CATEGORIAS(
     perteneceC VARCHAR(20) -- Agregamos que esta podría ser nula -- 
 );
 
+DESCRIBE CATEGORIAS;
+
 CREATE TABLE AUDITORIAS(
     id      INTEGER NOT NULL,
     fecha   DATE NOT NULL,
@@ -232,42 +234,53 @@ FOREIGN KEY(universidadC) REFERENCES UNIVERSIDADES(codigoUn)
 ON DELETE CASCADE;
 
 ALTER TABLE UNIVERSIDADES ADD CONSTRAINT FK_UNIVERSIDADES_USUARIOS_representanteU_representanteC
-FOREIGN KEY(representanteU,representanteC) REFERENCES USUARIOS(universidadC,codigo);
+FOREIGN KEY(representanteU,representanteC) REFERENCES USUARIOS(universidadC,codigo)
+ON DELETE CASCADE;
 
 ALTER TABLE CALIFICACIONES ADD CONSTRAINT FK_CALIFICACIONES_USUARIOS
-FOREIGN KEY(usuarioU,usuarioC) REFERENCES USUARIOS(universidadC,codigo);
-
+FOREIGN KEY(usuarioU,usuarioC) REFERENCES USUARIOS(universidadC,codigo)
+ON DELETE CASCADE;
 
 ALTER TABLE CALIFICACIONES ADD CONSTRAINT FK_CALIFICACIONES_ARTICULOS_articuloI
-FOREIGN KEY(articuloI) REFERENCES ARTICULOS(id);
+FOREIGN KEY(articuloI) REFERENCES ARTICULOS(id)
+ON DELETE CASCADE;
 
 ALTER TABLE ARTICULOS ADD CONSTRAINT FK_ARTICULOS_USUARIOS_usuarioU
-FOREIGN KEY(usuarioU,usuarioC) REFERENCES USUARIOS(universidadC,codigo);
+FOREIGN KEY(usuarioU,usuarioC) REFERENCES USUARIOS(universidadC,codigo)
+ON DELETE CASCADE;
 
 ALTER TABLE ARTICULOS ADD CONSTRAINT FK_ARTICULOS_CATEGORIAS_categoriaC
-FOREIGN KEY(categoriaC) REFERENCES CATEGORIAS(codigo);
+FOREIGN KEY(categoriaC) REFERENCES CATEGORIAS(codigo)
+ON DELETE CASCADE;
 
 ALTER TABLE PERECEDERO ADD CONSTRAINT FK_PERECEDERO_ARTICULOS_articuloI
-FOREIGN KEY(articuloI) REFERENCES ARTICULOS(id);
+FOREIGN KEY(articuloI) REFERENCES ARTICULOS(id)
+ON DELETE CASCADE;
 
 ALTER TABLE CARACTERISTICAS ADD CONSTRAINT FK_CARACTERISTICAS_ARTICULOS_articuloI
-FOREIGN KEY(articuloI) REFERENCES ARTICULOS(id);
+FOREIGN KEY(articuloI) REFERENCES ARTICULOS(id)
+ON DELETE CASCADE;
 
 ALTER TABLE ROPAS ADD CONSTRAINT FK_ROPAS_ARTICULOS_articuloI
-FOREIGN KEY(articuloI) REFERENCES ARTICULOS(id);
+FOREIGN KEY(articuloI) REFERENCES ARTICULOS(id)
+ON DELETE CASCADE;
+
 
 ALTER TABLE AUDITORIAS ADD CONSTRAINT FK_AUDITORIAS_CATEGORIAS_categoriaC
-FOREIGN KEY(categoriaC) REFERENCES CATEGORIAS(codigo);
+FOREIGN KEY(categoriaC) REFERENCES CATEGORIAS(codigo)
+ON DELETE CASCADE;
 
 ALTER TABLE AUDITORIAS ADD CONSTRAINT FK_AUDITORIAS_EVALUACIONES_evaluacionA
-FOREIGN KEY(evaluacionA) REFERENCES EVALUACIONES(a_omes);
+FOREIGN KEY(evaluacionA) REFERENCES EVALUACIONES(a_omes)
+ON DELETE CASCADE;
 
 ALTER TABLE CATEGORIAS ADD CONSTRAINT FK_CATEGORIAS_CATEGORIAS_perteneceC
 FOREIGN KEY(perteneceC) REFERENCES CATEGORIAS(codigo);
 
 
 ALTER TABLE RESPUESTAS ADD CONSTRAINT FK_RESPUESTAS_EVALUACION_evaluacionA
-FOREIGN KEY(evaluacionA) REFERENCES EVALUACIONES(a_omes);
+FOREIGN KEY(evaluacionA) REFERENCES EVALUACIONES(a_omes)
+ON DELETE CASCADE;
 ------------------------------------------ XTABLAS------------------------------------------
 
 drop table "BD1000095983"."ARTICULOS" cascade constraints PURGE;
@@ -462,6 +475,40 @@ UPDATE UNIVERSIDADES
 SET representanteU = '009', representanteC = '002'
 WHERE codigoUn = '009';
 
+---------------------------------------------------- POBLANDO CATEGORIAS ----------------------------------------------------
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
+VALUES ('CAT01', 'Categoria 1', 'Electronica', 50.00, 200.00, 'CAT01');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
+VALUES ('CAT02', 'Categoria 2', 'Moda', 20.00, 150.00, 'CAT02');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
+VALUES ('CAT03', 'Categoria 3', 'Hogar', 30.00, 300.00, 'CAT01');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
+VALUES ('CAT04', 'Categoria 4', 'Electrodomesticos', 100.00, 500.00, 'CAT03');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
+VALUES ('CAT05', 'Categoria 5', 'Deporte', 10.00, 250.00, 'CAT03');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
+VALUES ('CAT06', 'Categoria 6', 'Libros', 5.00, 100.00, NULL);
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
+VALUES ('CAT07', 'Categoria 7', 'Juguetes', 2.00, 50.00, NULL);
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
+VALUES ('CAT08', 'Categoria 8', 'Muebles', 150.00, 1000.00, 'CAT01');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
+VALUES ('CAT09', 'Categoria 9', 'Arte', 50.00, 500.00, 'CAT09');
+
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
+VALUES ('CAT10', 'Categoria 10', 'Instrumentos ', 80.00, 700.00, 'CAT09');
+
+
+
 ---------------------------------------------------- POBLANDO AUDITORIAS ----------------------------------------------------
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
@@ -495,6 +542,7 @@ INSERT INTO AUDITORIAS (id, fecha, accion, nombre)
 VALUES (10, TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'Crear', 'Auditoria 10');
 
 
+
 --- POBLANDO EVALUACIONES ---
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
 VALUES ('Instituci n', 'CC', 'nid001', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte1.pdf', 'AP', 'Respuestas evaluacion 1', 1);
@@ -526,38 +574,6 @@ VALUES ('Instituci8', 'CC', 'nid009', TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'B', 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
 VALUES ('Instituci9', 'CC', 'nid010', TO_DATE('2024-03-24', 'YYYY-MM-DD'), 'B', 'https://reporte10.pdf', 'AP', 'Respuestas evaluacion 10', 10);
 
---- POBLANDO CATEGORIAS ---
-
-
-INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
-VALUES ('CAT01', 'Categoria 1', 'Electronica', 50.00, 200.00, 1, 'pert1');
-
-INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
-VALUES ('CAT02', 'Categoria 2', 'Moda', 20.00, 150.00, 2, 'pert2');
-
-INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
-VALUES ('CAT03', 'Categoria 3', 'Hogar', 30.00, 300.00, 3, 'pert3');
-
-INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
-VALUES ('CAT04', 'Categoria 4', 'Electrodomesticos', 100.00, 500.00, 4, 'pert4');
-
-INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
-VALUES ('CAT05', 'Categoria 5', 'Deporte', 10.00, 250.00, 5, 'pert5');
-
-INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
-VALUES ('CAT06', 'Categoria 6', 'Libros', 5.00, 100.00, 6, 'pert6');
-
-INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
-VALUES ('CAT07', 'Categoria 7', 'Juguetes', 2.00, 50.00, 7, 'pert7');
-
-INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
-VALUES ('CAT08', 'Categoria 8', 'Muebles', 150.00, 1000.00, 8, 'pert8');
-
-INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
-VALUES ('CAT09', 'Categoria 9', 'Arte', 50.00, 500.00, 9, 'pert9');
-
-INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, auditoriaI, pertenecimientos) 
-VALUES ('CAT10', 'Categoria 10', 'Instrumentos ', 80.00, 700.00, 10, 'pert10');
 
 --- POBLANDO ARTICULOS ---
 
