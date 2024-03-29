@@ -154,6 +154,14 @@ BEGIN
 END;
 /
 
+CREATE OR REPLACE TRIGGER trg_create_TID_U
+BEFORE INSERT ON USUARIOS
+FOR EACH ROW
+BEGIN
+    :new.tid := :new.tid || '_' || TO_CHAR(:new.nid);
+END;
+/
+
 ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TURL_E CHECK (
     SUBSTR(REPORTE, 1, 8) = 'https://'
     AND LENGTH(REPORTE) <= 100
@@ -220,7 +228,8 @@ UNIQUE (reporte);
 
 
 ALTER TABLE USUARIOS ADD CONSTRAINT FK_USUARIOS_UNIVERSIDADES_universidadC
-FOREIGN KEY(universidadC) REFERENCES UNIVERSIDADES(codigoUn);
+FOREIGN KEY(universidadC) REFERENCES UNIVERSIDADES(codigoUn)
+ON DELETE CASCADE;
 
 ALTER TABLE UNIVERSIDADES ADD CONSTRAINT FK_UNIVERSIDADES_USUARIOS_representanteU_representanteC
 FOREIGN KEY(representanteU,representanteC) REFERENCES USUARIOS(universidadC,codigo);
@@ -272,6 +281,7 @@ drop table "BD1000095983"."RESPUESTAS" cascade constraints PURGE;
 drop table "BD1000095983"."ROPAS" cascade constraints PURGE;
 drop table "BD1000095983"."UNIVERSIDADES" cascade constraints PURGE;
 drop table "BD1000095983"."USUARIOS" cascade constraints PURGE;
+
 ------------------------------------------ CONSULTAS------------------------------------------
 -- Consultar las categorías con mas artículos: 
 
@@ -295,115 +305,164 @@ FROM EVALUACIONES a
 JOIN AUDITORIAS b ON b.id = a.auditoriaI 
 ORDER BY b.fecha;
 
------------------------------------------- PoblarOK ------------------------------------------
--------- Probando ---------
+---------------------------------------------------- PoblarOK ---------------------------------------------------
+--------------------------------------- Poblando Universidades y Usuarios ---------------------------------------
 INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
 VALUES ('001', 'Universidad Ejemplo', 'Calle Ejemplo #123');
 
 INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
-VALUES ('001', '001', 'TID001', '001', 'Juan Pérez', 'Ing. Informática', 'juan@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), 0);
+VALUES ('001', '001', 'CD', '001', 'Juan Pérez', 'Ing. Informática', 'juan@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), 0);
+
+-- Insertar otro usuario y relacionarlo con la misma universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('001', '002', 'CD', '002', 'María López', 'Medicina', 'maria@example.com', TO_DATE('28-03-2024', 'DD-MM-YYYY'), 0);
+
+-- Actualizar la universidad para establecer representantes
+UPDATE UNIVERSIDADES
+SET representanteU = '001', representanteC = '001'
+WHERE codigoUn = '001';
 
 
----------------------------- hasta aquí funciona pero hay que relacionarlo -----------------------------------
+-- Insertar una nueva universidad
+INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
+VALUES ('002', 'Otra Universidad', 'Avenida Principal #456');
 
--------------------- idea para automatizarlo con un trigger --------------------
--- Implementando una función --
-CREATE OR REPLACE FUNCTION actualizar_representantes()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Actualizar representanteU si es NULL
-    IF NEW.universidadC IS NOT NULL AND NEW.codigo IS NOT NULL THEN
-        UPDATE UNIVERSIDADES
-        SET representanteU = NEW.nombre
-        WHERE codigoUn = NEW.universidadC AND representanteU IS NULL;
-    END IF;
+-- Insertar un usuario y relacionarlo con una universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('002', '001', 'CC', '003', 'Carlos García', 'Arquitectura', 'carlos@example.com', TO_DATE('15-04-2024', 'DD-MM-YYYY'), 0);
 
-    -- Actualizar representanteC si es NULL
-    IF NEW.universidadC IS NOT NULL AND NEW.codigo IS NOT NULL THEN
-        UPDATE UNIVERSIDADES
-        SET representanteC = NEW.nombre
-        WHERE codigoUn = NEW.universidadC AND representanteC IS NULL;
-    END IF;
+-- Insertar otro usuario y relacionarlo con la misma universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('002', '002', 'CC', '004', 'Ana Martínez', 'Derecho', 'ana@example.com', TO_DATE('20-04-2024', 'DD-MM-YYYY'), 0);
 
-    RETURN NEW;
-END;
-CREATE TRIGGER trigger_actualizar_representantes
-AFTER INSERT ON USUARIOS
-FOR EACH ROW
-EXECUTE FUNCTION actualizar_representantes();
+-- Actualizar la universidad para establecer representantes
+UPDATE UNIVERSIDADES
+SET representanteU = '002', representanteC = '001'
+WHERE codigoUn = '002';
 
 
+-- Insertar otra nueva universidad
+INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
+VALUES ('003', 'Universidad Tercera', 'Calle Secundaria #789');
+
+-- Insertar un usuario y relacionarlo con una universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('003', '001', 'CC', '005', 'Pedro Rodríguez', 'Biología', 'pedro@example.com', TO_DATE('25-05-2024', 'DD-MM-YYYY'), 0);
+
+-- Insertar otro usuario y relacionarlo con la misma universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('003', '002', 'CD', '006', 'Laura Ramírez', 'Psicología', 'laura@example.com', TO_DATE('30-05-2024', 'DD-MM-YYYY'), 0);
+
+-- Actualizar la universidad para establecer representantes
+UPDATE UNIVERSIDADES
+SET representanteU = '003', representanteC = '002'
+WHERE codigoUn = '003';
+
+-- Insertar una nueva universidad
+INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
+VALUES ('004', 'Universidad Cuarta', 'Avenida Cuarta #101');
+
+-- Insertar un usuario y relacionarlo con una universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('004', '001', 'CC', '007', 'Sofía Hernández', 'Economía', 'sofia@example.com', TO_DATE('10-06-2024', 'DD-MM-YYYY'), 0);
+
+-- Insertar otro usuario y relacionarlo con la misma universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('004', '002', 'CC', '008', 'Diego Fernández', 'Historia', 'diego@example.com', TO_DATE('15-06-2024', 'DD-MM-YYYY'), 0);
+
+-- Actualizar la universidad para establecer representantes
+UPDATE UNIVERSIDADES
+SET representanteU = '004', representanteC = '001'
+WHERE codigoUn = '004';
+
+-- Insertar otra nueva universidad
+INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
+VALUES ('005', 'Universidad Quinta', 'Calle Quinta #202');
+
+-- Insertar un usuario y relacionarlo con una universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('005', '001', 'CC', '009', 'Andrés Pérez', 'Química', 'andres@example.com', TO_DATE('20-07-2024', 'DD-MM-YYYY'), 0);
+
+-- Insertar otro usuario y relacionarlo con la misma universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('005', '010', 'CD', '010', 'Lucía Gómez', 'Matemáticas', 'lucia@example.com', TO_DATE('25-07-2024', 'DD-MM-YYYY'), 0);
+
+-- Actualizar la universidad para establecer representantes
+UPDATE UNIVERSIDADES
+SET representanteU = '005', representanteC = '010'
+WHERE codigoUn = '005';
+
+-- Insertar otra nueva universidad
+INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
+VALUES ('006', 'Universidad Sexta', 'Avenida Sexta #303');
+
+-- Insertar un usuario y relacionarlo con una universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('006', '012', 'CC', '011', 'Marta Martínez', 'Física', 'marta@example.com', TO_DATE('30-08-2024', 'DD-MM-YYYY'), 0);
+
+-- Insertar otro usuario y relacionarlo con la misma universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('006', '002', 'CD', '012', 'Javier López', 'Ciencias Políticas', 'javier@example.com', TO_DATE('05-09-2024', 'DD-MM-YYYY'), 0);
+
+-- Actualizar la universidad para establecer representantes
+UPDATE UNIVERSIDADES
+SET representanteU = '006', representanteC = '012'
+WHERE codigoUn = '006';
+
+-- Insertar una nueva universidad
+INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
+VALUES ('007', 'Universidad Séptima', 'Calle Séptima #404');
+
+-- Insertar un usuario y relacionarlo con una universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('007', '001', 'CD', '013', 'Luisa Sánchez', 'Ingeniería Civil', 'luisa@example.com', TO_DATE('10-10-2024', 'DD-MM-YYYY'), 0);
+
+-- Insertar otro usuario y relacionarlo con la misma universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('007', '002', 'CC', '014', 'Roberto Gutiérrez', 'Arquitectura', 'roberto@example.com', TO_DATE('15-10-2024', 'DD-MM-YYYY'), 0);
+
+-- Actualizar la universidad para establecer representantes
+UPDATE UNIVERSIDADES
+SET representanteU = '007', representanteC = '002'
+WHERE codigoUn = '007';
 
 
---- POBLANDO USUARIOS ---
-INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('1', '123', 'CC1', '1', 'Usuario 1', 'Programa 1', 'usuario1@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+-- Insertar otra nueva universidad
+INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
+VALUES ('008', 'Universidad Octava', 'Avenida Octava #505');
 
-INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('2', '124', 'CC2', '2', 'Usuario 2', 'Programa 2', 'usuario2@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+-- Insertar un usuario y relacionarlo con una universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('008', '001', 'CC', '015', 'Elena López', 'Biomedicina', 'elena@example.com', TO_DATE('20-11-2024', 'DD-MM-YYYY'), 0);
 
-INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('3', '125', 'CC3', '3', 'Usuario 3', 'Programa 3', 'usuario3@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+-- Insertar otro usuario y relacionarlo con la misma universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('008', '002', 'CD', '016', 'Mario García', 'Psicología', 'mario@example.com', TO_DATE('25-11-2024', 'DD-MM-YYYY'), 0);
 
-INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('4', '126', 'CC4', '4', 'Usuario 4', 'Programa 4', 'usuario4@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
-
-INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('5', '127', 'CD5', '5', 'Usuario 5', 'Programa 5', 'usuario5@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
-
-INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('6', '128', 'CD6', '6', 'Usuario 6', 'Programa 6', 'usuario6@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
-
-INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('7', '129', 'CD7', '7', 'Usuario 7', 'Programa 7', 'usuario7@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
-
-INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('8', '130', 'CD8', '8', 'Usuario 8', 'Programa 8', 'usuario8@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
-
-INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('9', '131', 'CD9', '9', 'Usuario 9', 'Programa 9', 'usuario9@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
-
-INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
-VALUES ('10', '132', 'CD10', '10', 'Usuario 10', 'Programa 10', 'usuarin1@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
+-- Actualizar la universidad para establecer representantes
+UPDATE UNIVERSIDADES
+SET representanteU = '008', representanteC = '002'
+WHERE codigoUn = '008';
 
 
+-- Insertar otra nueva universidad
+INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
+VALUES ('009', 'Universidad Novena', 'Calle Novena #606');
 
+-- Insertar un usuario y relacionarlo con una universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('009', '001', 'CC', '017', 'Laura Martínez', 'Medicina', 'laura@example.com', TO_DATE('30-12-2024', 'DD-MM-YYYY'), 0);
 
+-- Insertar otro usuario y relacionarlo con la misma universidad existente
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('009', '002', 'CC', '018', 'Carlos Rodríguez', 'Derecho', 'carlos@example.com', TO_DATE('05-01-2025', 'DD-MM-YYYY'), 0);
 
+-- Actualizar la universidad para establecer representantes
+UPDATE UNIVERSIDADES
+SET representanteU = '009', representanteC = '002'
+WHERE codigoUn = '009';
 
---- POBLANDO UNIVERSIDADES ---
-
-INSERT INTO UNIVERSIDADES (codigoUn, representanteU, representanteC, nombre, direccion)
-VALUES ('1', 'Rep1', 'Uni1', 'Direccion1');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('2', 'Rep2', 'Uni2', 'Direccion2');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('3', 'Rep3', 'Uni3', 'Direccion3');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('4', 'Rep4', 'Uni4', 'Direccion4');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('5', 'Rep5', 'Uni5', 'Direccion5');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('6', 'Rep6', 'Uni6', 'Direccion6');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('7', 'Rep7', 'Uni7', 'Direccion7');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('8', 'Rep8', 'Uni8', 'Direccion8');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('9', 'Rep9', 'Uni9', 'Direccion9');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('10', 'Rep10', 'Uni10', 'Direccion10');
-
---- POBLANDO AUDITORIAS ---
+---------------------------------------------------- POBLANDO AUDITORIAS ----------------------------------------------------
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
 VALUES (1, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'Auditoria 1');
@@ -600,7 +659,7 @@ DELETE FROM UNIVERSIDADES WHERE codigoUn= '1';
 
 ---Si se trata de insertar un id (primary key)en la tabla ARTICULOS con valor nulo, genera error ya que las llaves principales no pueden ser nulas
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (NULL, '11', '140', 'CAT11', 'Descripcion 11', 'USADO', 'foto11.png', 210.00, 'Y')
+VALUES (NULL, '11', '140', 'CAT11', 'Descripcion 11', 'USADO', 'foto11.png', 210.00, 'Y');
 
 ------------------------------------------ XPoblar ------------------------------------------
 
@@ -615,6 +674,8 @@ DELETE FROM RESPUESTAS;
 DELETE FROM ROPAS;
 DELETE FROM UNIVERSIDADES;
 DELETE FROM USUARIOS;
+
+
 
 
 
