@@ -1,6 +1,7 @@
 
 ------------------------------------------ TABLAS------------------------------------------
-CREATE TABLE USUARIOS(
+-- Si hubo cambios --
+CREATE TABLE USUARIOS( 
     universidadC    VARCHAR(3) NOT NULL,
     codigo          VARCHAR(3) NOT NULL,
     tid             VARCHAR(50)NOT NULL,
@@ -9,14 +10,15 @@ CREATE TABLE USUARIOS(
     programa        VARCHAR(20)NOT NULL,
     correo          VARCHAR(50)NOT NULL,
     registro        DATE NOT NULL,
-    suspension      DATE,
+    suspension      DATE, -- Agregamos que esta podría ser nula -- 
     nSuspensiones   INTEGER NOT NULL
 );
 
+-- Si hubo cambios --
 CREATE TABLE UNIVERSIDADES(
-    codigoUn        VARCHAR(3)NOT NULL,
-    representanteU   VARCHAR(10),
-    representanteC   VARCHAR(10),
+    codigoUn        VARCHAR(3) NOT NULL,
+    representanteU   VARCHAR(10),-- Agregamos que esta podría ser nula -- 
+    representanteC   VARCHAR(10),-- Agregamos que esta podría ser nula -- 
     nombre          VARCHAR(20)NOT NULL,
     direccion       VARCHAR(50) NOT NULL
 );
@@ -28,12 +30,13 @@ CREATE TABLE CALIFICACIONES(
     estrellas    INTEGER NOT NULL
 );
 
+ -- Si hubo cambios --
 CREATE TABLE ARTICULOS(
     id          INTEGER NOT NULL,
     usuarioU    VARCHAR(3)NOT NULL,
     usuarioC    VARCHAR(3)NOT NULL,
     categoriaC  VARCHAR(5)NOT NULL,
-    descripcion VARCHAR(20)NOT NULL,
+    descripcion VARCHAR(20),-- Agregamos que esta podría ser nula -- 
     estado      VARCHAR(20)NOT NULL,
     foto        VARCHAR(255)NOT NULL,
     precio      DECIMAL(10, 2)NOT NULL,
@@ -57,19 +60,18 @@ CREATE TABLE CARACTERISTICAS(
     caracteristica VARCHAR(20) NOT NULL
 );
 
+-- Si hubo cambios --
 CREATE TABLE CATEGORIAS(
     codigo      VARCHAR(5) NOT NULL,
     nombre      VARCHAR(20) NOT NULL,
     tipo        VARCHAR(20) NOT NULL,
     minimo      DECIMAL(10, 2) NOT NULL,
     maximo      DECIMAL(10, 2) NOT NULL,
-    perteneceC VARCHAR(20) 
+    perteneceC VARCHAR(20) -- Agregamos que esta podría ser nula -- 
 );
 
-
-
 CREATE TABLE AUDITORIAS(
-    id      INTEGER NOT NULL, -- Reemplazado por INTEGER
+    id      INTEGER NOT NULL,
     fecha   DATE NOT NULL,
     accion  VARCHAR(20) NOT NULL,
     nombre  VARCHAR(20) NOT NULL,
@@ -77,24 +79,23 @@ CREATE TABLE AUDITORIAS(
     evaluacionA VARCHAR(20) NOT NULL
 );
 
-CREATE TABLE EVALUACIONES(
+-- Si hubo cambios --
+CREATE TABLE EVALUACIONES( 
     a_omes      VARCHAR(20) NOT NULL,
     tid         VARCHAR(50) NOT NULL,
     nid         VARCHAR(10) NOT NULL,
     fecha       DATE  NOT NULL,
-    descripcion VARCHAR(255),
+    descripcion VARCHAR(255), -- Agregamos que esta podría ser nula -- 
     reporte     VARCHAR(255) NOT NULL,
     resultado   VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE RESPUESTAS(
     evaluacionA    VARCHAR(20) NOT NULL,
-    respuesta      VARCHAR(50)
+    respuesta      VARCHAR(50) NOT NULL -- Agregamos que esta NO podría ser nula -- 
 );
 
-
 --- Los conceptos Grandes son --
-
 ---Universidad YA
 ---Categorias YA
 ---Usuario YA
@@ -103,12 +104,22 @@ CREATE TABLE RESPUESTAS(
 ---Auditorias YA
 ---Evaluacion YA
 
+-------------------------------- XTABLAS --------------------------------
 
-
+drop table "BD1000095256"."ARTICULOS" cascade constraints PURGE;
+drop table "BD1000095256"."AUDITORIAS" cascade constraints PURGE;
+drop table "BD1000095256"."CALIFICACIONES" cascade constraints PURGE;
+drop table "BD1000095256"."CARACTERISTICAS" cascade constraints PURGE;
+drop table "BD1000095256"."CATEGORIAS" cascade constraints PURGE;
+drop table "BD1000095256"."EVALUACIONES" cascade constraints PURGE;
+drop table "BD1000095256"."PERECEDERO" cascade constraints PURGE;
+drop table "BD1000095256"."RESPUESTAS" cascade constraints PURGE;
+drop table "BD1000095256"."ROPAS" cascade constraints PURGE;
+drop table "BD1000095256"."UNIVERSIDADES" cascade constraints PURGE;
+drop table "BD1000095256"."USUARIOS" cascade constraints PURGE;
 
 
 ------------------------------------------ ATRIBUTOS ------------------------------------------
-
 ALTER TABLE USUARIOS ADD CONSTRAINT CHECK_CORREO CHECK (CORREO LIKE ('%@%'));
 ALTER TABLE CALIFICACIONES ADD CONSTRAINT CHECK_ESTRELLAS CHECK (estrellas BETWEEN 1 AND 5);
 ALTER TABLE ARTICULOS ADD CONSTRAINT CHECK_TESTADO_ARTICULO CHECK (ESTADO IN ('NUEVO', 'USADO'));
@@ -122,7 +133,6 @@ ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TRESULTADO CHECK(RESULTADO IN ('AP
 ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TID_E CHECK (TID IN ('CC', 'CD')); 
 ALTER TABLE CATEGORIAS 
 ADD CONSTRAINT CHECK_TMONEDA_C1 CHECK (MINIMO > 0);
-
 ALTER TABLE CATEGORIAS 
 ADD CONSTRAINT CHECK_TMONEDA_C2 CHECK (MAXIMO > 0);
 
@@ -156,7 +166,7 @@ ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TURL_E CHECK (
 
 ALTER TABLE UNIVERSIDADES ADD CONSTRAINT PK_UNIVERSIDAD_
 PRIMARY KEY (codigoUn);
-
+-- Error --
 ALTER TABLE USUARIOS ADD CONSTRAINT PK_USUARIOS_
 PRIMARY KEY (universidadC, codigo);
 
@@ -250,6 +260,7 @@ FOREIGN KEY(perteneceC) REFERENCES CATEGORIAS(codigo);
 ALTER TABLE RESPUESTAS ADD CONSTRAINT FK_RESPUESTAS_EVALUACION_evaluacionA
 FOREIGN KEY(evaluacionA) REFERENCES EVALUACIONES(a_omes);
 ------------------------------------------ XTABLAS------------------------------------------
+
 drop table "BD1000095983"."ARTICULOS" cascade constraints PURGE;
 drop table "BD1000095983"."AUDITORIAS" cascade constraints PURGE;
 drop table "BD1000095983"."CALIFICACIONES" cascade constraints PURGE;
@@ -285,39 +296,44 @@ JOIN AUDITORIAS b ON b.id = a.auditoriaI
 ORDER BY b.fecha;
 
 ------------------------------------------ PoblarOK ------------------------------------------
+-------- Probando ---------
+INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
+VALUES ('001', 'Universidad Ejemplo', 'Calle Ejemplo #123');
 
---- POBLANDO UNIVERSIDADES ---
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+VALUES ('001', '001', 'TID001', '001', 'Juan Pérez', 'Ing. Informática', 'juan@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), 0);
 
 
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('1', 'Rep1', 'Uni1', 'Direccion1');
+---------------------------- hasta aquí funciona pero hay que relacionarlo -----------------------------------
 
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('2', 'Rep2', 'Uni2', 'Direccion2');
+-------------------- idea para automatizarlo con un trigger --------------------
+-- Implementando una función --
+CREATE OR REPLACE FUNCTION actualizar_representantes()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Actualizar representanteU si es NULL
+    IF NEW.universidadC IS NOT NULL AND NEW.codigo IS NOT NULL THEN
+        UPDATE UNIVERSIDADES
+        SET representanteU = NEW.nombre
+        WHERE codigoUn = NEW.universidadC AND representanteU IS NULL;
+    END IF;
 
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('3', 'Rep3', 'Uni3', 'Direccion3');
+    -- Actualizar representanteC si es NULL
+    IF NEW.universidadC IS NOT NULL AND NEW.codigo IS NOT NULL THEN
+        UPDATE UNIVERSIDADES
+        SET representanteC = NEW.nombre
+        WHERE codigoUn = NEW.universidadC AND representanteC IS NULL;
+    END IF;
 
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('4', 'Rep4', 'Uni4', 'Direccion4');
+    RETURN NEW;
+END;
+CREATE TRIGGER trigger_actualizar_representantes
+AFTER INSERT ON USUARIOS
+FOR EACH ROW
+EXECUTE FUNCTION actualizar_representantes();
 
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('5', 'Rep5', 'Uni5', 'Direccion5');
 
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('6', 'Rep6', 'Uni6', 'Direccion6');
 
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('7', 'Rep7', 'Uni7', 'Direccion7');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('8', 'Rep8', 'Uni8', 'Direccion8');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('9', 'Rep9', 'Uni9', 'Direccion9');
-
-INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
-VALUES ('10', 'Rep10', 'Uni10', 'Direccion10');
 
 --- POBLANDO USUARIOS ---
 INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
@@ -350,6 +366,42 @@ VALUES ('9', '131', 'CD9', '9', 'Usuario 9', 'Programa 9', 'usuario9@example.com
 INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
 VALUES ('10', '132', 'CD10', '10', 'Usuario 10', 'Programa 10', 'usuarin1@example.com', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
 
+
+
+
+
+
+--- POBLANDO UNIVERSIDADES ---
+
+INSERT INTO UNIVERSIDADES (codigoUn, representanteU, representanteC, nombre, direccion)
+VALUES ('1', 'Rep1', 'Uni1', 'Direccion1');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('2', 'Rep2', 'Uni2', 'Direccion2');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('3', 'Rep3', 'Uni3', 'Direccion3');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('4', 'Rep4', 'Uni4', 'Direccion4');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('5', 'Rep5', 'Uni5', 'Direccion5');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('6', 'Rep6', 'Uni6', 'Direccion6');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('7', 'Rep7', 'Uni7', 'Direccion7');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('8', 'Rep8', 'Uni8', 'Direccion8');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('9', 'Rep9', 'Uni9', 'Direccion9');
+
+INSERT INTO UNIVERSIDADES (codigoUn, representante, nombre, direccion)
+VALUES ('10', 'Rep10', 'Uni10', 'Direccion10');
 
 --- POBLANDO AUDITORIAS ---
 
@@ -523,7 +575,7 @@ VALUES('001', NULL, NULL, 'Rep1', 'Universidad55', 'Calle 17A # 75 ');
 
 
 ---El caso del insert en la tabla USUARIOS donde la PK de tid y nid se repiten debería ser protegido por las restricciones de unicidad de las 
-PK UK_USUARIO_tid y UK_USUARIO_nid.
+-- PK UK_USUARIO_tid y UK_USUARIO_nid. -- 
 
 INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, suspension, nSuspensiones) 
 VALUES ('Uni', '001', '001', '001', 'MismasPK', 'Nodeberia', 'repetirse', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
