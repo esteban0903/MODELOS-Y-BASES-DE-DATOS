@@ -74,7 +74,7 @@ CREATE TABLE AUDITORIAS(
     id      INTEGER NOT NULL,
     fecha   DATE NOT NULL,
     accion  VARCHAR(20) NOT NULL,
-    nombre  VARCHAR(20) NOT NULL,
+    nombre  VARCHAR(40) NOT NULL,
     categoriaC VARCHAR(5) NOT NULL,
     evaluacionA VARCHAR(20) -- Agregamos que esta podría ser nula -- 
 );
@@ -104,7 +104,7 @@ CREATE TABLE RESPUESTAS(
 ---Auditorias YA
 ---Evaluacion YA
 -------------------------------- XTABLAS --------------------------------
-
+/*
 drop table "BD1000095256"."ARTICULOS" cascade constraints PURGE;
 drop table "BD1000095256"."AUDITORIAS" cascade constraints PURGE;
 drop table "BD1000095256"."CALIFICACIONES" cascade constraints PURGE;
@@ -116,7 +116,7 @@ drop table "BD1000095256"."RESPUESTAS" cascade constraints PURGE;
 drop table "BD1000095256"."ROPAS" cascade constraints PURGE;
 drop table "BD1000095256"."UNIVERSIDADES" cascade constraints PURGE;
 drop table "BD1000095256"."USUARIOS" cascade constraints PURGE;
-
+*/
 ------------------------------------------ ATRIBUTOS ------------------------------------------
 ALTER TABLE USUARIOS ADD CONSTRAINT CHECK_CORREO CHECK (CORREO LIKE ('%@%'));
 ALTER TABLE CALIFICACIONES ADD CONSTRAINT CHECK_ESTRELLAS CHECK (estrellas BETWEEN 1 AND 5);
@@ -269,8 +269,156 @@ FOREIGN KEY(perteneceC) REFERENCES CATEGORIAS(codigo);
 ALTER TABLE RESPUESTAS ADD CONSTRAINT FK_RESPUESTAS_EVALUACION_evaluacionA
 FOREIGN KEY(evaluacionA) REFERENCES EVALUACIONES(a_omes)
 ON DELETE CASCADE;
------------------------------------------- XTABLAS------------------------------------------
 
+------------------------------------------ ACCIONES ------------------------------------------
+-- Adicionar --
+-- Los códigos deben iniciar con una letra mayúscula, en el caso de empezar por una letra minúscula, la cambia a mayúscula --
+CREATE OR REPLACE TRIGGER trg_codigo_uppercase
+BEFORE INSERT ON CATEGORIAS
+FOR EACH ROW
+BEGIN
+    IF REGEXP_LIKE(:new.codigo, '^[a-z].*') THEN
+        :new.codigo := UPPER(SUBSTR(:new.codigo, 1, 1)) || SUBSTR(:new.codigo, 2);
+    ELSIF NOT REGEXP_LIKE(:new.codigo, '^[A-Z].*') THEN
+        RAISE_APPLICATION_ERROR(-20001, 'El código debe comenzar con una letra mayúscula.');
+    END IF;
+END;
+/
+
+-- Si no se indica el nombre se le asigna. ‘Nombre de ‘<codigo> --
+CREATE OR REPLACE TRIGGER trg_assign_codigo
+BEFORE INSERT ON CATEGORIAS
+FOR EACH ROW 
+BEGIN
+	IF :new.nombre IS NULL THEN
+    	:new.nombre := 'Nombre de ' || :new.codigo;
+    END IF;
+END;
+/
+
+-- El precio mínimo debe ser menor que el máximo -- 
+CREATE OR REPLACE TRIGGER trg_precio_minimo_maximo
+BEFORE INSERT OR UPDATE ON CATEGORIAS
+FOR EACH ROW
+BEGIN
+    IF :new.minimo >= :new.maximo THEN
+        RAISE_APPLICATION_ERROR(-20002, 'El precio mínimo debe ser menor que el precio máximo.');
+    END IF;
+END;
+/
+
+-- Si no se indica el precio máximo se supone que es el doble del mínimo -- 
+CREATE OR REPLACE TRIGGER trg_precio_maximo_predeterminado
+BEFORE INSERT ON CATEGORIAS
+FOR EACH ROW
+BEGIN
+    IF :new.maximo IS NULL THEN
+        :new.maximo := :new.minimo * 2;
+    END IF;
+END;
+/
+
+
+-- MODIFICAR --
+-- Los únicos datos que se pueden modificar son el mínimo y el máximo. Únicamente pueden aumentar. --
+CREATE OR REPLACE TRIGGER trg_inmutabilidad_datos
+BEFORE UPDATE ON CATEGORIAS
+FOR EACH ROW
+BEGIN
+    IF :old.codigo != :new.codigo OR :old.nombre != :new.nombre OR :old.tipo != :new.tipo OR :old.perteneceC != :new.perteneceC THEN
+        RAISE_APPLICATION_ERROR(-20004, 'Los únicos datos que se pueden modificar son el mínimo y el máximo.');
+    ELSIF :new.minimo >= :new.maximo THEN
+        RAISE_APPLICATION_ERROR(-20005, 'El precio mínimo debe ser menor que el precio máximo.');
+	END IF;
+END;
+/
+
+
+-- Si se modifica el mínimo, el máximo debe modificarse en el mismo valor. -- 
+CREATE OR REPLACE TRIGGER trg_actualizar_maximo
+BEFORE UPDATE ON CATEGORIAS
+FOR EACH ROW
+BEGIN
+    IF :old.minimo != :new.minimo THEN
+        :new.maximo := :old.maximo + :new.minimo - :old.minimo;
+    END IF;
+END;
+/
+-- ELIMINAR --
+-- Únicamente se pueden eliminar los que no tienen artículos asociados.--
+CREATE OR REPLACE TRIGGER trg_eliminar_categoria
+BEFORE DELETE ON CATEGORIAS
+FOR EACH ROW
+DECLARE
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_count
+    FROM ARTICULOS
+    WHERE categoriaC = :old.codigo;
+    IF v_count > 0 THEN
+        RAISE_APPLICATION_ERROR(-20005, 'No se puede eliminar la categoría porque tiene artículos asociados.');
+    END IF;
+END;
+/
+
+-- CREAR AUDITORIAS --
+CREATE OR REPLACE TRIGGER trg_creacion_categoria_auditoria
+AFTER INSERT ON CATEGORIAS
+FOR EACH ROW
+DECLARE 
+    v_id NUMBER;
+BEGIN
+    SELECT MAX(id) INTO v_id FROM AUDITORIAS;
+    INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, evaluacionA)
+    VALUES (v_id+1, SYSDATE, 'ACCION PENDIENTE', 'Nombre ' || :new.nombre, :new.codigo, NULL);
+END;
+/
+
+
+------------------------------------------ ACCIONESOK ------------------------------------------
+
+-- Insertar una nueva fila en la tabla CATEGORIAS con un código en minúscula
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC)
+VALUES ('a001', 'Categoría de prueba', 'Tipo Ejemplo', 50.00, 100.00, NULL);
+
+-- Insertar una nueva fila en la tabla CATEGORIAS con un código que no es letra
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC)
+VALUES ('#001', 'Categoría de prueba', 'Tipo Ejemplo', 50.00, 100.00, NULL);
+
+-- Insertar una nueva fila en la tabla CATEGORIAS sin nombre
+INSERT INTO CATEGORIAS (codigo, tipo, minimo, maximo, perteneceC)
+VALUES ('A002', 'Tipo Ejemplo', 60.00, 120.00, NULL);
+
+-- Insertar una nueva fila en la tabla CATEGORIAS con precio CORRECTO
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC)
+VALUES ('A003', 'Categoría de prueba', 'Tipo Ejemplo', 100.00, 180.00, NULL);
+
+-- Insertar una nueva fila en la tabla CATEGORIAS con precio mínimo mayor o igual al precio máximo
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC)
+VALUES ('A0031', 'Categoría de prueba', 'Tipo Ejemplo', 100.00, 80.00, NULL);
+
+-- Insertar una nueva fila en la tabla CATEGORIAS sin precio máximo
+INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC)
+VALUES ('A004', 'Categoría de prueba', 'Tipo Ejemplo', 70.00, NULL, NULL);
+
+-- Intentar modificar otros datos que no sean el mínimo o el máximo
+UPDATE CATEGORIAS
+SET nombre = 'Nueva Categoría', tipo = 'Nuevo Tipo'
+WHERE codigo = 'A001';
+
+-- Intentar modificar el mínimo para que el trigger actualice automáticamente el máximo
+UPDATE CATEGORIAS
+SET minimo = 80.00
+WHERE codigo = 'A004';
+SELECT * FROM CATEGORIAS WHERE CODIGO = 'A004';
+
+-- Intentar eliminar una categoría que tiene artículos asociados
+DELETE FROM CATEGORIAS
+WHERE codigo = 'A001';
+
+------------------------------------------ XTABLAS------------------------------------------
+/*
 drop table "BD1000095983"."ARTICULOS" cascade constraints PURGE;
 drop table "BD1000095983"."AUDITORIAS" cascade constraints PURGE;
 drop table "BD1000095983"."CALIFICACIONES" cascade constraints PURGE;
@@ -282,10 +430,10 @@ drop table "BD1000095983"."RESPUESTAS" cascade constraints PURGE;
 drop table "BD1000095983"."ROPAS" cascade constraints PURGE;
 drop table "BD1000095983"."UNIVERSIDADES" cascade constraints PURGE;
 drop table "BD1000095983"."USUARIOS" cascade constraints PURGE;
-
+*/
 ------------------------------------------ CONSULTAS------------------------------------------
 -- Consultar las categorías con mas artículos: 
-
+/*
 SELECT c.nombre AS categoria, COUNT(*) AS cantidad_articulos
 FROM ARTICULOS a
 JOIN CATEGORIAS c ON a.categoriac = c.codigo
@@ -305,7 +453,7 @@ SELECT a.reporte, b.fecha
 FROM EVALUACIONES a 
 JOIN AUDITORIAS b ON b.id = a.auditoriaI 
 ORDER BY b.fecha;
-
+*/
 ---------------------------------------------------- PoblarOK ---------------------------------------------------
 --------------------------------------- Poblando Universidades y Usuarios ---------------------------------------
 /*
