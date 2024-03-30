@@ -36,7 +36,7 @@ CREATE TABLE ARTICULOS(
     usuarioU    VARCHAR(3)NOT NULL,
     usuarioC    VARCHAR(3)NOT NULL,
     categoriaC  VARCHAR(5)NOT NULL,
-    descripcion VARCHAR(20),-- Agregamos que esta podría ser nula -- 
+    descripcion VARCHAR(20) NOT NULL,
     estado      VARCHAR(20)NOT NULL,
     foto        VARCHAR(255)NOT NULL,
     precio      DECIMAL(10, 2)NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE AUDITORIAS(
     accion  VARCHAR(20) NOT NULL,
     nombre  VARCHAR(20) NOT NULL,
     categoriaC VARCHAR(5) NOT NULL,
-    evaluacionA VARCHAR(20) NOT NULL
+    evaluacionA VARCHAR(20) -- Agregamos que esta podría ser nula -- 
 );
 
 -- Si hubo cambios --
@@ -663,6 +663,7 @@ DELETE FROM UNIVERSIDADES WHERE codigoUn= '1';
 ---Si se trata de insertar un id (primary key)en la tabla ARTICULOS con valor nulo, genera error ya que las llaves principales no pueden ser nulas
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
 VALUES (NULL, '11', '140', 'CAT11', 'Descripcion 11', 'USADO', 'foto11.png', 210.00, 'Y');
+
 ------------------------------------------ XPoblar ------------------------------------------
 DELETE FROM ARTICULOS;
 DELETE FROM AUDITORIAS;
