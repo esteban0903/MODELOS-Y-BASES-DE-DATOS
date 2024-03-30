@@ -103,7 +103,6 @@ CREATE TABLE RESPUESTAS(
 ---Calificacion YA 
 ---Auditorias YA
 ---Evaluacion YA
-
 -------------------------------- XTABLAS --------------------------------
 
 drop table "BD1000095256"."ARTICULOS" cascade constraints PURGE;
@@ -117,7 +116,6 @@ drop table "BD1000095256"."RESPUESTAS" cascade constraints PURGE;
 drop table "BD1000095256"."ROPAS" cascade constraints PURGE;
 drop table "BD1000095256"."UNIVERSIDADES" cascade constraints PURGE;
 drop table "BD1000095256"."USUARIOS" cascade constraints PURGE;
-
 
 ------------------------------------------ ATRIBUTOS ------------------------------------------
 ALTER TABLE USUARIOS ADD CONSTRAINT CHECK_CORREO CHECK (CORREO LIKE ('%@%'));
@@ -166,9 +164,6 @@ ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TURL_E CHECK (
     SUBSTR(REPORTE, 1, 8) = 'https://'
     AND LENGTH(REPORTE) <= 100
 );
-
-
-
 
 ------------------------------------------ PRIMARIAS ------------------------------------------
 
@@ -220,12 +215,7 @@ UNIQUE (nid);
 
 ALTER TABLE EVALUACIONES ADD CONSTRAINT UK_EVALUACION
 UNIQUE (reporte);
-
-
-
-
 ------------------------------------------ FORANEAS ------------------------------------------
-
 
 ALTER TABLE USUARIOS ADD CONSTRAINT FK_USUARIOS_UNIVERSIDADES_universidadC
 FOREIGN KEY(universidadC) REFERENCES UNIVERSIDADES(codigoUn)
@@ -318,6 +308,10 @@ ORDER BY b.fecha;
 
 ---------------------------------------------------- PoblarOK ---------------------------------------------------
 --------------------------------------- Poblando Universidades y Usuarios ---------------------------------------
+/*
+    En este caso tenemos que crear la universidad con un representante nulo, después de eso se crea el estudiante referenciando
+    la universidad, para posteriormente actualizar el representante de la universidad.
+*/
 INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
 VALUES ('001', 'Universidad Ejemplo', 'Calle Ejemplo #123');
 
@@ -350,7 +344,6 @@ VALUES ('002', '002', 'CC', '004', 'Ana Martínez', 'Derecho', 'ana@example.com',
 UPDATE UNIVERSIDADES
 SET representanteU = '002', representanteC = '001'
 WHERE codigoUn = '002';
-
 
 -- Insertar otra nueva universidad
 INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
@@ -437,7 +430,6 @@ UPDATE UNIVERSIDADES
 SET representanteU = '007', representanteC = '002'
 WHERE codigoUn = '007';
 
-
 -- Insertar otra nueva universidad
 INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
 VALUES ('008', 'Universidad Octava', 'Avenida Octava #505');
@@ -454,7 +446,6 @@ VALUES ('008', '002', 'CD', '016', 'Mario García', 'Psicología', 'mario@example.
 UPDATE UNIVERSIDADES
 SET representanteU = '008', representanteC = '002'
 WHERE codigoUn = '008';
-
 
 -- Insertar otra nueva universidad
 INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
@@ -652,15 +643,15 @@ INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, 
 VALUES ('Uni', '001', '001', '001', 'MismasPK', 'Nodeberia', 'repetirse', TO_DATE('14-03-2024', 'DD-MM-YYYY'), NULL, 0);
 
 
-
----El caso del insert en la tabla EVALUACIONES donde se hacen referencias a tid y nid inexistentes, debería ser protegido por la 
----restricción de integridad referencial FK_EVALUACIONES_AUDITORIAS_auditoriaI. Aunque esta restricción no verifica directamente la 
----existencia de tid y nid, protege la integridad referencial entre las tablas EVALUACIONES y AUDITORIAS, lo que indirectamente podría ayudar 
----a prevenir este tipo de errores.
+/*
+    El caso del insert en la tabla EVALUACIONES donde se hacen referencias a tid y nid inexistentes, debería ser protegido por la 
+    restricción de integridad referencial FK_EVALUACIONES_AUDITORIAS_auditoriaI. Aunque esta restricción no verifica directamente la 
+    existencia de tid y nid, protege la integridad referencial entre las tablas EVALUACIONES y AUDITORIAS, lo que indirectamente podría ayudar 
+    a prevenir este tipo de errores.
+*/
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI)
 VALUES ('Administrativo', '001', '999', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Descripcion evaluacion 3', 'reporte44.pdf', 'Por hacer', 'Respuestas evaluacion 3', 3);
-
 
 ---Si se intenta insertar en la tabla articulo un dato en el atributo foto que sea NULL, generar error ya que es UNIQUE
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
@@ -672,9 +663,7 @@ DELETE FROM UNIVERSIDADES WHERE codigoUn= '1';
 ---Si se trata de insertar un id (primary key)en la tabla ARTICULOS con valor nulo, genera error ya que las llaves principales no pueden ser nulas
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
 VALUES (NULL, '11', '140', 'CAT11', 'Descripcion 11', 'USADO', 'foto11.png', 210.00, 'Y');
-
 ------------------------------------------ XPoblar ------------------------------------------
-
 DELETE FROM ARTICULOS;
 DELETE FROM AUDITORIAS;
 DELETE FROM CALIFICACIONES;
@@ -686,8 +675,4 @@ DELETE FROM RESPUESTAS;
 DELETE FROM ROPAS;
 DELETE FROM UNIVERSIDADES;
 DELETE FROM USUARIOS;
-
-
-
-
 
