@@ -70,8 +70,6 @@ CREATE TABLE CATEGORIAS(
     perteneceC VARCHAR(20) -- Agregamos que esta podría ser nula -- 
 );
 
-DESCRIBE CATEGORIAS;
-
 CREATE TABLE AUDITORIAS(
     id      INTEGER NOT NULL,
     fecha   DATE NOT NULL,
@@ -508,139 +506,137 @@ INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC)
 VALUES ('CAT10', 'Categoria 10', 'Instrumentos ', 80.00, 700.00, 'CAT09');
 
 
+---------------------------------------------------- POBLANDO EVALUACIONES ----------------------------------------------------
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
+VALUES ('InstituciOn', 'CC', 'nid001', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte1.pdf', 'AP');
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
+VALUES ('Instituci1n', 'CC', 'nid002', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'A', 'https://reporte2.pdf', 'PE');
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
+VALUES ('Institucin2', 'CC', 'nid003', TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'A', 'https://reporte3.pdf', 'AP');
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
+VALUES ('Instituci3', 'CD', 'nid004', TO_DATE('2024-03-18', 'YYYY-MM-DD'), 'M', 'https://reporte4.pdf', 'PE');
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
+VALUES ('Instituci4', 'CD', 'nid005', TO_DATE('2024-03-19', 'YYYY-MM-DD'), 'M', 'https://reporte5.pdf', 'AP');
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
+VALUES ('Instituci5', 'CC', 'nid006', TO_DATE('2024-03-20', 'YYYY-MM-DD'), 'M', 'https://reporte6.pdf', 'PE');
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
+VALUES ('Instituci6', 'CD', 'nid007', TO_DATE('2024-03-21', 'YYYY-MM-DD'), 'M', 'https://reporte7.pdf', 'PE');
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
+VALUES ('Instituci7', 'CD', 'nid008', TO_DATE('2024-03-22', 'YYYY-MM-DD'), 'B', 'https://reporte8.pdf', 'AP');
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
+VALUES ('Instituci8', 'CC', 'nid009', TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'B', 'https://reporte9.pdf', 'AP');
+
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
+VALUES ('Instituci9', 'CC', 'nid010', TO_DATE('2024-03-24', 'YYYY-MM-DD'), 'B', 'https://reporte10.pdf', 'AP');
+
 
 ---------------------------------------------------- POBLANDO AUDITORIAS ----------------------------------------------------
 
-INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
-VALUES (1, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'Auditoria 1');
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA) 
+VALUES (1, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'Auditoria 1','CAT01','Instituci1n');
 
-INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
-VALUES (2, TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Modificar', 'Auditoria 2');
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
+VALUES (2, TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Crear', 'Auditoria 2', 'CAT02', 'Instituci3');
 
-INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
-VALUES (3, TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Eliminar', 'Auditoria 3');
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
+VALUES (3, TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Crear', 'Auditoria 3', 'CAT03', 'Instituci4');
 
-INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
-VALUES (4, TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Crear', 'Auditoria 4');
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
+VALUES (4, TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Crear', 'Auditoria 4', 'CAT04', 'Instituci5');
 
-INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
-VALUES (5, TO_DATE('2024-03-18', 'YYYY-MM-DD'), 'Modificar', 'Auditoria 5');
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
+VALUES (5, TO_DATE('2024-03-18', 'YYYY-MM-DD'), 'Crear', 'Auditoria 5', 'CAT05', 'Instituci6');
 
-INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
-VALUES (6, TO_DATE('2024-03-19', 'YYYY-MM-DD'), 'Eliminar', 'Auditoria 6');
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
+VALUES (6, TO_DATE('2024-03-19', 'YYYY-MM-DD'), 'Crear', 'Auditoria 6', 'CAT06', 'Instituci7');
 
-INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
-VALUES (7, TO_DATE('2024-03-20', 'YYYY-MM-DD'), 'Crear', 'Auditoria 7');
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
+VALUES (7, TO_DATE('2024-03-20', 'YYYY-MM-DD'), 'Crear', 'Auditoria 7', 'CAT07', 'Instituci8');
 
-INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
-VALUES (8, TO_DATE('2024-03-21', 'YYYY-MM-DD'), 'Modificar', 'Auditoria 8');
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
+VALUES (8, TO_DATE('2024-03-21', 'YYYY-MM-DD'), 'Crear', 'Auditoria 8', 'CAT08', 'Instituci9');
 
-INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
-VALUES (9, TO_DATE('2024-03-22', 'YYYY-MM-DD'), 'Eliminar', 'Auditoria 9');
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
+VALUES (9, TO_DATE('2024-03-22', 'YYYY-MM-DD'), 'Crear', 'Auditoria 9', 'CAT09', 'InstituciOn');
 
-INSERT INTO AUDITORIAS (id, fecha, accion, nombre) 
-VALUES (10, TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'Crear', 'Auditoria 10');
-
-
-
---- POBLANDO EVALUACIONES ---
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
-VALUES ('Instituci n', 'CC', 'nid001', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte1.pdf', 'AP', 'Respuestas evaluacion 1', 1);
-
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
-VALUES ('Instituci1n', 'CC', 'nid002', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'A', 'https://reporte2.pdf', 'PE', 'Respuestas evaluacion 2', 2);
-
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
-VALUES ('Institucin2', 'CC', 'nid003', TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'A', 'https://reporte3.pdf', 'AP', 'Respuestas evaluacion 3', 3);
-
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
-VALUES ('Instituci3', 'CD', 'nid004', TO_DATE('2024-03-18', 'YYYY-MM-DD'), 'M', 'https://reporte4.pdf', 'PE', 'Respuestas evaluacion 4', 4);
-
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
-VALUES ('Instituci4', 'CD', 'nid005', TO_DATE('2024-03-19', 'YYYY-MM-DD'), 'M', 'https://reporte5.pdf', 'AP', 'Respuestas evaluacion 5', 5);
-
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
-VALUES ('Instituci5', 'CC', 'nid006', TO_DATE('2024-03-20', 'YYYY-MM-DD'), 'M', 'https://reporte6.pdf', 'PE', 'Respuestas evaluacion 6', 6);
-
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
-VALUES ('Instituci6', 'CD', 'nid007', TO_DATE('2024-03-21', 'YYYY-MM-DD'), 'M', 'https://reporte7.pdf', 'PE', 'Respuestas evaluacion 7', 7);
-
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
-VALUES ('Instituci7', 'CD', 'nid008', TO_DATE('2024-03-22', 'YYYY-MM-DD'), 'B', 'https://reporte8.pdf', 'AP', 'Respuestas evaluacion 8', 8);
-
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
-VALUES ('Instituci8', 'CC', 'nid009', TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'B', 'https://reporte9.pdf', 'AP', 'Respuestas evaluacion 9', 9);
-
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado, respuestas, auditoriaI) 
-VALUES ('Instituci9', 'CC', 'nid010', TO_DATE('2024-03-24', 'YYYY-MM-DD'), 'B', 'https://reporte10.pdf', 'AP', 'Respuestas evaluacion 10', 10);
+INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
+VALUES (10, TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'Crear', 'Auditoria 10', 'CAT10', 'Institucin2');
 
 
---- POBLANDO ARTICULOS ---
-
+---------------------------------------------------- POBLANDO ARTICULOS ----------------------------------------------------
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (1, '1', '123', 'CAT01', 'Descripcion 1', 'NUEVO', 'foto1.jpg', 100.00, 'Y');
+VALUES (1, '001', '001', 'CAT01', 'Descripcion 1', 'NUEVO', 'foto1.jpg', 100.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (2, '2', '124', 'CAT02', 'Descripcion 2', 'NUEVO', 'foto2.jpg', 150.00, 'Y');
+VALUES (2, '001', '002', 'CAT02', 'Descripción 2', 'NUEVO', 'foto2.jpg', 120.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (3, '3', '125', 'CAT03', 'Descripcion 3', 'NUEVO', 'foto3.jpg', 50.00, 'Y');
+VALUES (3, '002', '001', 'CAT03', 'Descripción 3', 'NUEVO', 'foto3.jpg', 150.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (4, '4', '126', 'CAT04', 'Descripcion 4', 'NUEVO', 'foto4.png', 200.00, 'Y');
+VALUES (4, '002', '002', 'CAT04', 'Descripción 4', 'NUEVO', 'foto4.jpg', 200.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (5, '5', '127', 'CAT05', 'Descripcion 5', 'NUEVO', 'foto5.jpg', 120.00, 'Y');
+VALUES (5, '003', '001', 'CAT05', 'Descripción 5', 'NUEVO', 'foto5.jpg', 80.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (6, '6', '128', 'CAT06', 'Descripcion 6', 'USADO', 'foto6.jpeg', 80.00, 'Y');
+VALUES (6, '003', '002', 'CAT06', 'Descripción 6', 'NUEVO', 'foto6.jpg', 90.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (7, '7', '129', 'CAT07', 'Descripcion 7', 'USADO', 'foto7.jpeg', 90.00, 'Y');
+VALUES (7, '004', '001', 'CAT07', 'Descripción 7', 'NUEVO', 'foto7.jpg', 110.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (8, '8', '130', 'CAT08', 'Descripcion 8', 'USADO', 'foto8.png', 180.00, 'Y');
+VALUES (8, '004', '002', 'CAT08', 'Descripción 8', 'NUEVO', 'foto8.jpg', 130.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (9, '9', '131', 'CAT09', 'Descripcion 9', 'USADO', 'foto9.png', 70.00, 'Y');
+VALUES (9, '005', '001', 'CAT09', 'Descripción 9', 'NUEVO', 'foto9.jpg', 180.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (10, '10', '132', 'CAT10', 'Descripcion 10', 'USADO', 'foto10.jpg', 160.00, 'Y');
+VALUES (10, '005', '010', 'CAT10', 'Descripción 10', 'NUEVO', 'foto10.jpg', 250.00, 'Y');
 
-
-
---- POBLANDO CALIFICACIONES ---
+---------------------------------------------------- POBLANDO CALIFICACIONES ----------------------------------------------------
 
 INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
-VALUES ('1', 123, '1', 4);
+VALUES ('001', '001', 1, 4);
 
 INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
-VALUES ('2', 124, '2', 5);
+VALUES ('001', '002', 2, 3);
 
 INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
-VALUES ('3', 125, '3', 3);
+VALUES ('002', '001', 3, 5);
 
 INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
-VALUES ('4', 126, '4', 4);
+VALUES ('002', '002', 4, 4);
 
 INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
-VALUES ('5', 127, '5', 2);
+VALUES ('003', '001', 5, 4);
 
 INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
-VALUES ('6', 128, '6', 4);
+VALUES ('003', '002', 6, 5);
 
 INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
-VALUES ('7', 129, '7', 5);
+VALUES ('004', '001', 7, 3);
 
 INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
-VALUES ('8', 130, '8', 3);
+VALUES ('004', '002', 8, 4);
 
 INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
-VALUES ('9', 131, '9', 4);
+VALUES ('005', '001', 9, 5);
 
 INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
-VALUES ('10', 132, '10', 5);
+VALUES ('005', '010', 10, 3);
+
+
 ------------------------------------------ PoblarNoOk ------------------------------------------
 
 ---El caso del insert en la tabla UNIVERSIDADES donde la PK se repite debería ser protegido por la restricción de unicidad de la PK PK_UNIVERSIDAD_.
