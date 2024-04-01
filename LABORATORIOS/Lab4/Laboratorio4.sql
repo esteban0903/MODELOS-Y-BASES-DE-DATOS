@@ -103,28 +103,12 @@ CREATE TABLE RESPUESTAS(
 ---Calificacion YA 
 ---Auditorias YA
 ---Evaluacion YA
--------------------------------- XTABLAS --------------------------------
-/*
-drop table "BD1000095256"."ARTICULOS" cascade constraints PURGE;
-drop table "BD1000095256"."AUDITORIAS" cascade constraints PURGE;
-drop table "BD1000095256"."CALIFICACIONES" cascade constraints PURGE;
-drop table "BD1000095256"."CARACTERISTICAS" cascade constraints PURGE;
-drop table "BD1000095256"."CATEGORIAS" cascade constraints PURGE;
-drop table "BD1000095256"."EVALUACIONES" cascade constraints PURGE;
-drop table "BD1000095256"."PERECEDERO" cascade constraints PURGE;
-drop table "BD1000095256"."RESPUESTAS" cascade constraints PURGE;
-drop table "BD1000095256"."ROPAS" cascade constraints PURGE;
-drop table "BD1000095256"."UNIVERSIDADES" cascade constraints PURGE;
-drop table "BD1000095256"."USUARIOS" cascade constraints PURGE;
-*/
+
 ------------------------------------------ ATRIBUTOS ------------------------------------------
 ALTER TABLE USUARIOS ADD CONSTRAINT CHECK_CORREO CHECK (CORREO LIKE ('%@%'));
 ALTER TABLE CALIFICACIONES ADD CONSTRAINT CHECK_ESTRELLAS CHECK (estrellas BETWEEN 1 AND 5);
 ALTER TABLE ARTICULOS ADD CONSTRAINT CHECK_TESTADO_ARTICULO CHECK (ESTADO IN ('NUEVO', 'USADO'));
-ALTER TABLE ARTICULOS ADD CONSTRAINT CHECK_TURL CHECK (FOTO LIKE ('%.jpg') OR 
-FOTO LIKE ('%.jpg') 
-OR FOTO LIKE ('%.jpeg') 
-OR FOTO LIKE ('%.png'));
+ALTER TABLE ARTICULOS ADD CONSTRAINT CHECK_TURL CHECK (FOTO LIKE ('%.jpg') OR FOTO LIKE ('%.jpg')  OR FOTO LIKE ('%.jpeg') OR FOTO LIKE ('%.png'));
 ALTER TABLE ROPAS ADD CONSTRAINT CHECK_TALLA CHECK (TALLA IN ('S', 'M', 'L', 'XL', 'XS', 'XXL'));
 ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TDESCRIPTION CHECK (DESCRIPCION IN ('A', 'M', 'B')); 
 ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TRESULTADO CHECK(RESULTADO IN ('AP', 'PE'));
@@ -269,8 +253,21 @@ FOREIGN KEY(perteneceC) REFERENCES CATEGORIAS(codigo);
 ALTER TABLE RESPUESTAS ADD CONSTRAINT FK_RESPUESTAS_EVALUACION_evaluacionA
 FOREIGN KEY(evaluacionA) REFERENCES EVALUACIONES(a_omes)
 ON DELETE CASCADE;
+-------------------------------- XTABLAS --------------------------------
 
+drop table "BD1000095983"."ARTICULOS" cascade constraints PURGE;
+drop table "BD1000095983"."AUDITORIAS" cascade constraints PURGE;
+drop table "BD1000095983"."CALIFICACIONES" cascade constraints PURGE;
+drop table "BD1000095983"."CARACTERISTICAS" cascade constraints PURGE;
+drop table "BD1000095983"."CATEGORIAS" cascade constraints PURGE;
+drop table "BD1000095983"."EVALUACIONES" cascade constraints PURGE;
+drop table "BD1000095983"."PERECEDERO" cascade constraints PURGE;
+drop table "BD1000095983"."RESPUESTAS" cascade constraints PURGE;
+drop table "BD1000095983"."ROPAS" cascade constraints PURGE;
+drop table "BD1000095983"."UNIVERSIDADES" cascade constraints PURGE;
+drop table "BD1000095983"."USUARIOS" cascade constraints PURGE;
 ------------------------------------------ ACCIONES ------------------------------------------
+-----CICLO 1 -----
 -- Adicionar --
 -- Los códigos deben iniciar con una letra mayúscula, en el caso de empezar por una letra minúscula, la cambia a mayúscula --
 CREATE OR REPLACE TRIGGER trg_codigo_uppercase
@@ -375,9 +372,94 @@ BEGIN
 END;
 /
 
+---- CICLO 2 ----
+---ADICIONAR---
+-- La fecha de la evaluación se genera automáticamente y debe ser posterior al año-mes evaluado
+CREATE OR REPLACE TRIGGER TR_EVALUACIONES_fecha
+BEFORE INSERT ON EVALUACIONES
+FOR EACH ROW
+DECLARE
+    año_aomes INT;
+    mes_aomes INT;
+    año_fecha INT;
+    mes_fecha INT;
+BEGIN
+    :NEW.fecha := CURRENT_DATE;
 
+    año_aomes := TO_NUMBER(SUBSTR(:NEW.a_omes, 1, 4));
+    mes_aomes := TO_NUMBER(SUBSTR(:NEW.a_omes, 5, 2));
+    
+    año_fecha := EXTRACT(YEAR FROM :NEW.fecha);
+    mes_fecha := EXTRACT(MONTH FROM :NEW.fecha);
+
+    IF año_fecha < año_aomes OR (año_fecha = año_aomes AND mes_fecha <= mes_aomes) THEN
+        RAISE_APPLICATION_ERROR(-1, 'La fecha de evaluación debe ser posterior al año-mes evaluado');
+    END IF;
+END;
+/
+
+-- El tipo de documento por defecto de los auditores de no informarse es: CC --
+CREATE OR REPLACE TRIGGER TR_EVALUACIONES_tipo
+BEFORE INSERT ON EVALUACIONES
+FOR EACH ROW
+BEGIN 
+    IF :new.tid IS NULL THEN :new.tid :='CC';
+    END IF;
+END;
+/
+
+
+---Los registros asociados son los correspondientes al año-mes definido.---
+
+---MODIFICAR---
+---El único dato que se puede modificar es el resultado de las auditorías.
+CREATE OR REPLACE TRIGGER TR_CATEGORIAS_resultado
+BEFORE UPDATE ON EVALUACIONES
+FOR EACH ROW
+BEGIN
+    IF :old.a_omes != :new.a_omes OR :old.tid != :new.tid OR :old.nid != :new.nid OR :old.fecha != :new.fecha OR :old.descripcion != :new.descripcion
+        OR :old.reporte != :new.reporte THEN
+        RAISE_APPLICATION_ERROR(20004, 'El unico dato que se puede modificar son el resultado');
+	END IF;
+END;
+/
+---Solo es posible adicionar respuestas de las anomalías si el estado de la auditoría es pendiente
+CREATE TRIGGER TR_EVALUACIONES_respuestas
+BEFORE UPDATE ON RESPUESTAS 
+FOR EACH ROW
+DECLARE
+    v_estado EVALUACIONES.resultado%TYPE;
+BEGIN
+    SELECT resultado into v_estado FROM EVALUACIONES WHERE a_omes= :new.evaluacionA ;
+    IF v_estado <> 'pendiente' THEN
+        RAISE_APPLICATION_ERROR(-20005, 'No se puede modificar el resultado de la auditoría si el estado no es pendiente');
+    END IF;
+END;
+
+---ELIMINAR---
+---Las evaluaciones se pueden eliminar si no tienen anomalías. 
+CREATE OR REPLACE TRIGGER TR_EVALUACIONES_respuesta
+BEFORE DELETE ON EVALUACIONES 
+FOR EACH ROW
+DECLARE
+    v_respuestas_existen NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_respuestas_existen FROM RESPUESTAS WHERE evaluacionA= :new.a_omes;
+    
+    IF v_respuestas_existen = 0 THEN
+        NULL; 
+    ELSE
+        RAISE_APPLICATION_ERROR(-20005, 'No se puede eliminar la evaluación si existen respuestas asociadas');
+    END IF;
+END;
+------------------------------------------ XTRIGGERS ------------------------------------------
+DROP TRIGGER TR_EVALUACIONES_fecha;
+DROP TRIGGER TR_EVALUACIONES_tipo;
+DROP TRIGGER TR_CATEGORIAS_resultado;
+DROP TRIGGER TR_EVALUACIONES_RESPUESTAS;
+DROP TRIGGER TR_EVALUACIONES_respuesta;
 ------------------------------------------ ACCIONESOK ------------------------------------------
-
+--------------------------CICLO 1 --------------------------
 -- Insertar una nueva fila en la tabla CATEGORIAS con un código en minúscula
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC)
 VALUES ('a001', 'Categoría de prueba', 'Tipo Ejemplo', 50.00, 100.00, NULL);
@@ -416,9 +498,9 @@ SELECT * FROM CATEGORIAS WHERE CODIGO = 'A004';
 -- Intentar eliminar una categoría que tiene artículos asociados
 DELETE FROM CATEGORIAS
 WHERE codigo = 'A001';
-
+--------------------------CICLO 2--------------------------
 ------------------------------------------ XTABLAS------------------------------------------
-/*
+
 drop table "BD1000095983"."ARTICULOS" cascade constraints PURGE;
 drop table "BD1000095983"."AUDITORIAS" cascade constraints PURGE;
 drop table "BD1000095983"."CALIFICACIONES" cascade constraints PURGE;
@@ -430,7 +512,7 @@ drop table "BD1000095983"."RESPUESTAS" cascade constraints PURGE;
 drop table "BD1000095983"."ROPAS" cascade constraints PURGE;
 drop table "BD1000095983"."UNIVERSIDADES" cascade constraints PURGE;
 drop table "BD1000095983"."USUARIOS" cascade constraints PURGE;
-*/
+
 ------------------------------------------ CONSULTAS------------------------------------------
 -- Consultar las categorías con mas artículos: 
 /*
