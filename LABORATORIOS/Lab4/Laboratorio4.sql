@@ -381,22 +381,18 @@ FOR EACH ROW
 DECLARE
     año_aomes INT;
     mes_aomes INT;
-    año_fecha INT;
-    mes_fecha INT;
 BEGIN
-    :NEW.fecha := CURRENT_DATE;
-
     año_aomes := TO_NUMBER(SUBSTR(:NEW.a_omes, 1, 4));
     mes_aomes := TO_NUMBER(SUBSTR(:NEW.a_omes, 5, 2));
     
-    año_fecha := EXTRACT(YEAR FROM :NEW.fecha);
-    mes_fecha := EXTRACT(MONTH FROM :NEW.fecha);
-
-    IF año_fecha < año_aomes OR (año_fecha = año_aomes AND mes_fecha <= mes_aomes) THEN
-        RAISE_APPLICATION_ERROR(-1, 'La fecha de evaluación debe ser posterior al año-mes evaluado');
+    IF EXTRACT(YEAR FROM :NEW.fecha) < año_aomes OR 
+       (EXTRACT(YEAR FROM :NEW.fecha) = año_aomes AND EXTRACT(MONTH FROM :NEW.fecha) <= mes_aomes) THEN
+        RAISE_APPLICATION_ERROR(-20001, 'La fecha de evaluación debe ser posterior al año-mes evaluado');
     END IF;
 END;
 /
+
+
 
 -- El tipo de documento por defecto de los auditores de no informarse es: CC --
 CREATE OR REPLACE TRIGGER TR_EVALUACIONES_tipo
@@ -419,23 +415,22 @@ FOR EACH ROW
 BEGIN
     IF :old.a_omes != :new.a_omes OR :old.tid != :new.tid OR :old.nid != :new.nid OR :old.fecha != :new.fecha OR :old.descripcion != :new.descripcion
         OR :old.reporte != :new.reporte THEN
-        RAISE_APPLICATION_ERROR(20004, 'El unico dato que se puede modificar son el resultado');
-	END IF;
+        RAISE_APPLICATION_ERROR(-20004, 'El único dato que se puede modificar es el resultado');
+    END IF;
 END;
 /
 ---Solo es posible adicionar respuestas de las anomalías si el estado de la auditoría es pendiente
-CREATE TRIGGER TR_EVALUACIONES_respuestas
+CREATE OR REPLACE TRIGGER TR_EVALUACIONES_RESPUESTAS
 BEFORE UPDATE ON RESPUESTAS 
 FOR EACH ROW
 DECLARE
     v_estado EVALUACIONES.resultado%TYPE;
 BEGIN
     SELECT resultado into v_estado FROM EVALUACIONES WHERE a_omes= :new.evaluacionA ;
-    IF v_estado <> 'pendiente' THEN
-        RAISE_APPLICATION_ERROR(-20005, 'No se puede modificar el resultado de la auditoría si el estado no es pendiente');
+    IF v_estado <> 'PE' THEN
+        RAISE_APPLICATION_ERROR(-20008, 'No se puede modificar el resultado de la auditoría si el estado no es pendiente');
     END IF;
 END;
-
 ---ELIMINAR---
 ---Las evaluaciones se pueden eliminar si no tienen anomalías. 
 CREATE OR REPLACE TRIGGER TR_EVALUACIONES_respuesta
@@ -444,14 +439,16 @@ FOR EACH ROW
 DECLARE
     v_respuestas_existen NUMBER;
 BEGIN
-    SELECT COUNT(*) INTO v_respuestas_existen FROM RESPUESTAS WHERE evaluacionA= :new.a_omes;
+    SELECT COUNT(*) INTO v_respuestas_existen FROM RESPUESTAS WHERE evaluacionA = :old.a_omes;
     
     IF v_respuestas_existen = 0 THEN
         NULL; 
     ELSE
-        RAISE_APPLICATION_ERROR(-20005, 'No se puede eliminar la evaluación si existen respuestas asociadas');
+        RAISE_APPLICATION_ERROR(-20009, 'No se puede eliminar la evaluación si existen respuestas asociadas');
     END IF;
 END;
+/
+
 ------------------------------------------ XTRIGGERS ------------------------------------------
 DROP TRIGGER TR_EVALUACIONES_fecha;
 DROP TRIGGER TR_EVALUACIONES_tipo;
@@ -499,6 +496,38 @@ SELECT * FROM CATEGORIAS WHERE CODIGO = 'A004';
 DELETE FROM CATEGORIAS
 WHERE codigo = 'A001';
 --------------------------CICLO 2--------------------------
+--- Insertar una fecha correcta que no sea posterior, una fecha igual ---
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado)
+VALUES ('202305', 'CC', 'EjemNID', TO_DATE('2023-05-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo.com', 'AP');
+
+--- Insertar correctamente, sin proporcionar valor para tid---
+INSERT INTO EVALUACIONES (a_omes, nid, fecha, descripcion, reporte, resultado)
+VALUES ('202306', 'EjemNID2', TO_DATE('2023-07-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo2.com', 'AP');
+
+--- Comprobar que no se puede modificar nada aparte de resultado ---
+UPDATE EVALUACIONES
+SET descripcion = 'M'
+WHERE a_omes = '202306';
+
+UPDATE EVALUACIONES
+SET resultado = 'PE'
+WHERE a_omes = '202306';
+--- Insertar respuestas con aprobacion que no sea pendiente ---
+INSERT INTO RESPUESTAS (evaluacionA,respuesta)
+VALUES ('202306', 'Resp1');
+
+UPDATE RESPUESTAS
+SET respuesta = 'Esta es una respuesta modificada'
+WHERE evaluacionA = '202306';
+
+--- Intentar eliminar una evaluacion que tiene anomalias
+INSERT INTO EVALUACIONES (a_omes, nid, fecha, descripcion, reporte, resultado)
+VALUES ('202307', 'EjemNID3', TO_DATE('2023-08-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo3.com', 'AP');
+
+INSERT INTO RESPUESTAS (evaluacionA,respuesta)
+VALUES ('202307', 'Resp1');
+
+DELETE FROM EVALUACIONES WHERE a_omes = '202307';
 ------------------------------------------ XTABLAS------------------------------------------
 
 drop table "BD1000095983"."ARTICULOS" cascade constraints PURGE;
