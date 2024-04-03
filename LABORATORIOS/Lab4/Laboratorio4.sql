@@ -530,17 +530,17 @@ VALUES ('202307', 'Resp1');
 DELETE FROM EVALUACIONES WHERE a_omes = '202307';
 ------------------------------------------ XTABLAS------------------------------------------
 
-drop table "BD1000095983"."ARTICULOS" cascade constraints PURGE;
-drop table "BD1000095983"."AUDITORIAS" cascade constraints PURGE;
-drop table "BD1000095983"."CALIFICACIONES" cascade constraints PURGE;
-drop table "BD1000095983"."CARACTERISTICAS" cascade constraints PURGE;
-drop table "BD1000095983"."CATEGORIAS" cascade constraints PURGE;
-drop table "BD1000095983"."EVALUACIONES" cascade constraints PURGE;
-drop table "BD1000095983"."PERECEDERO" cascade constraints PURGE;
-drop table "BD1000095983"."RESPUESTAS" cascade constraints PURGE;
-drop table "BD1000095983"."ROPAS" cascade constraints PURGE;
-drop table "BD1000095983"."UNIVERSIDADES" cascade constraints PURGE;
-drop table "BD1000095983"."USUARIOS" cascade constraints PURGE;
+drop table "BD1000095256"."ARTICULOS" cascade constraints PURGE;
+drop table "BD1000095256"."AUDITORIAS" cascade constraints PURGE;
+drop table "BD1000095256"."CALIFICACIONES" cascade constraints PURGE;
+drop table "BD1000095256"."CARACTERISTICAS" cascade constraints PURGE;
+drop table "BD1000095256"."CATEGORIAS" cascade constraints PURGE;
+drop table "BD1000095256"."EVALUACIONES" cascade constraints PURGE;
+drop table "BD1000095256"."PERECEDERO" cascade constraints PURGE;
+drop table "BD1000095256"."RESPUESTAS" cascade constraints PURGE;
+drop table "BD1000095256"."ROPAS" cascade constraints PURGE;
+drop table "BD1000095256"."UNIVERSIDADES" cascade constraints PURGE;
+drop table "BD1000095256"."USUARIOS" cascade constraints PURGE;
 
 ------------------------------------------ CONSULTAS------------------------------------------
 -- Consultar las categorías con mas artículos: 
