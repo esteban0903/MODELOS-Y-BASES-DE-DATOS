@@ -254,7 +254,7 @@ ALTER TABLE RESPUESTAS ADD CONSTRAINT FK_RESPUESTAS_EVALUACION_evaluacionA
 FOREIGN KEY(evaluacionA) REFERENCES EVALUACIONES(a_omes)
 ON DELETE CASCADE;
 -------------------------------- XTABLAS --------------------------------
-
+------- ESTEBAN-------
 drop table "BD1000095983"."ARTICULOS" cascade constraints PURGE;
 drop table "BD1000095983"."AUDITORIAS" cascade constraints PURGE;
 drop table "BD1000095983"."CALIFICACIONES" cascade constraints PURGE;
@@ -266,8 +266,103 @@ drop table "BD1000095983"."RESPUESTAS" cascade constraints PURGE;
 drop table "BD1000095983"."ROPAS" cascade constraints PURGE;
 drop table "BD1000095983"."UNIVERSIDADES" cascade constraints PURGE;
 drop table "BD1000095983"."USUARIOS" cascade constraints PURGE;
+------- MIGUEL -------
+drop table "BD1000095256"."ARTICULOS" cascade constraints PURGE;
+drop table "BD1000095256"."AUDITORIAS" cascade constraints PURGE;
+drop table "BD1000095256"."CALIFICACIONES" cascade constraints PURGE;
+drop table "BD1000095256"."CARACTERISTICAS" cascade constraints PURGE;
+drop table "BD1000095256"."CATEGORIAS" cascade constraints PURGE;
+drop table "BD1000095256"."EVALUACIONES" cascade constraints PURGE;
+drop table "BD1000095256"."PERECEDERO" cascade constraints PURGE;
+drop table "BD1000095256"."RESPUESTAS" cascade constraints PURGE;
+drop table "BD1000095256"."ROPAS" cascade constraints PURGE;
+drop table "BD1000095256"."UNIVERSIDADES" cascade constraints PURGE;
+drop table "BD1000095256"."USUARIOS" cascade constraints PURGE;
+
+------------------------------------------ CONSULTAS------------------------------------------
+-- Consultar las categorías con mas artículos: 
+/*
+SELECT c.nombre AS categoria, COUNT(*) AS cantidad_articulos
+FROM ARTICULOS a
+JOIN CATEGORIAS c ON a.categoriac = c.codigo
+GROUP BY c.nombre
+ORDER BY cantidad_articulos DESC;
+-- Consultar las calificaciones de los articulos del último mes
+SELECT a.id, c.estrellas, d.fecha
+FROM ARTICULOS a
+JOIN CALIFICACIONES c ON a.id = c.articuloI
+JOIN CATEGORIAS b ON a.categoriac = b.codigo
+JOIN AUDITORIAS d ON b.auditoriaI = d.id
+WHERE EXTRACT(YEAR FROM d.fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
+AND EXTRACT(MONTH FROM d.fecha) = EXTRACT(MONTH FROM CURRENT_DATE);
+-- Consulta inventada:
+-- Mirar los reportes por fechas y ordenarlos de menor a mayor
+SELECT a.reporte, b.fecha 
+FROM EVALUACIONES a 
+JOIN AUDITORIAS b ON b.id = a.auditoriaI 
+ORDER BY b.fecha;
+*/
+------------------------------------------ TUPLAS ------------------------------------------
+-----CASO DE USO 2 -----
+---ADICIONAR---
+-- La fecha de la evaluación se genera automáticamente y debe ser posterior al año-mes evaluado
+CREATE OR REPLACE TRIGGER TR_EVALUACIONES_fecha
+BEFORE INSERT ON EVALUACIONES
+FOR EACH ROW
+DECLARE
+    año_aomes INT;
+    mes_aomes INT;
+BEGIN
+    año_aomes := TO_NUMBER(SUBSTR(:NEW.a_omes, 1, 4));
+    mes_aomes := TO_NUMBER(SUBSTR(:NEW.a_omes, 5, 2));
+    
+    IF EXTRACT(YEAR FROM :NEW.fecha) < año_aomes OR 
+       (EXTRACT(YEAR FROM :NEW.fecha) = año_aomes AND EXTRACT(MONTH FROM :NEW.fecha) <= mes_aomes) THEN
+        RAISE_APPLICATION_ERROR(-20001, 'La fecha de evaluación debe ser posterior al año-mes evaluado');
+    END IF;
+END;
+/
+
+---Los registros asociados son los correspondientes al año-mes definido.---
+
+---MODIFICAR---
+---El único dato que se puede modificar es el resultado de las auditorías.
+CREATE OR REPLACE TRIGGER TR_EVALUACIONES_resultado
+BEFORE UPDATE ON EVALUACIONES
+FOR EACH ROW
+BEGIN
+    IF :old.a_omes != :new.a_omes OR :old.tid != :new.tid OR :old.nid != :new.nid OR :old.fecha != :new.fecha OR :old.descripcion != :new.descripcion
+        OR :old.reporte != :new.reporte THEN
+        RAISE_APPLICATION_ERROR(-20004, 'El único dato que se puede modificar es el resultado');
+    END IF;
+END;
+/
+---Solo es posible adicionar respuestas de las anomalías si el estado de la auditoría es pendiente
+CREATE OR REPLACE TRIGGER TR_EVALUACIONES_RESPUESTAS
+BEFORE UPDATE ON RESPUESTAS 
+FOR EACH ROW
+DECLARE
+    v_estado EVALUACIONES.resultado%TYPE;
+BEGIN
+    SELECT resultado into v_estado FROM EVALUACIONES WHERE a_omes= :new.evaluacionA ;
+    IF v_estado <> 'PE' THEN
+        RAISE_APPLICATION_ERROR(-20008, 'No se puede modificar el resultado de la auditoría si el estado no es pendiente');
+    END IF;
+END;
+---ELIMINAR---
+---Las evaluaciones se pueden eliminar si no tienen anomalías. 
+CREATE OR REPLACE TRIGGER TR_EVALUACIONES_descripcion
+BEFORE DELETE ON EVALUACIONES 
+FOR EACH ROW
+BEGIN
+    IF :old.descripcion IS NOT NULL THEN
+        RAISE_APPLICATION_ERROR(-20009, 'No se puede eliminar la evaluación si existen respuestas asociadas');
+    END IF;
+END;
+/
+
 ------------------------------------------ ACCIONES ------------------------------------------
------CICLO 1 -----
+--------------------------CASO DE USO 1--------------------------
 -- Adicionar --
 -- Los códigos deben iniciar con una letra mayúscula, en el caso de empezar por una letra minúscula, la cambia a mayúscula --
 CREATE OR REPLACE TRIGGER trg_codigo_uppercase
@@ -372,28 +467,8 @@ BEGIN
 END;
 /
 
----- CICLO 2 ----
+--------------------------CASO DE USO 2--------------------------
 ---ADICIONAR---
--- La fecha de la evaluación se genera automáticamente y debe ser posterior al año-mes evaluado
-CREATE OR REPLACE TRIGGER TR_EVALUACIONES_fecha
-BEFORE INSERT ON EVALUACIONES
-FOR EACH ROW
-DECLARE
-    año_aomes INT;
-    mes_aomes INT;
-BEGIN
-    año_aomes := TO_NUMBER(SUBSTR(:NEW.a_omes, 1, 4));
-    mes_aomes := TO_NUMBER(SUBSTR(:NEW.a_omes, 5, 2));
-    
-    IF EXTRACT(YEAR FROM :NEW.fecha) < año_aomes OR 
-       (EXTRACT(YEAR FROM :NEW.fecha) = año_aomes AND EXTRACT(MONTH FROM :NEW.fecha) <= mes_aomes) THEN
-        RAISE_APPLICATION_ERROR(-20001, 'La fecha de evaluación debe ser posterior al año-mes evaluado');
-    END IF;
-END;
-/
-
-
-
 -- El tipo de documento por defecto de los auditores de no informarse es: CC --
 CREATE OR REPLACE TRIGGER TR_EVALUACIONES_tipo
 BEFORE INSERT ON EVALUACIONES
@@ -405,58 +480,48 @@ END;
 /
 
 
----Los registros asociados son los correspondientes al año-mes definido.---
 
----MODIFICAR---
----El único dato que se puede modificar es el resultado de las auditorías.
-CREATE OR REPLACE TRIGGER TR_CATEGORIAS_resultado
-BEFORE UPDATE ON EVALUACIONES
-FOR EACH ROW
-BEGIN
-    IF :old.a_omes != :new.a_omes OR :old.tid != :new.tid OR :old.nid != :new.nid OR :old.fecha != :new.fecha OR :old.descripcion != :new.descripcion
-        OR :old.reporte != :new.reporte THEN
-        RAISE_APPLICATION_ERROR(-20004, 'El único dato que se puede modificar es el resultado');
-    END IF;
-END;
-/
----Solo es posible adicionar respuestas de las anomalías si el estado de la auditoría es pendiente
-CREATE OR REPLACE TRIGGER TR_EVALUACIONES_RESPUESTAS
-BEFORE UPDATE ON RESPUESTAS 
-FOR EACH ROW
-DECLARE
-    v_estado EVALUACIONES.resultado%TYPE;
-BEGIN
-    SELECT resultado into v_estado FROM EVALUACIONES WHERE a_omes= :new.evaluacionA ;
-    IF v_estado <> 'PE' THEN
-        RAISE_APPLICATION_ERROR(-20008, 'No se puede modificar el resultado de la auditoría si el estado no es pendiente');
-    END IF;
-END;
----ELIMINAR---
----Las evaluaciones se pueden eliminar si no tienen anomalías. 
-CREATE OR REPLACE TRIGGER TR_EVALUACIONES_respuesta
-BEFORE DELETE ON EVALUACIONES 
-FOR EACH ROW
-DECLARE
-    v_respuestas_existen NUMBER;
-BEGIN
-    SELECT COUNT(*) INTO v_respuestas_existen FROM RESPUESTAS WHERE evaluacionA = :old.a_omes;
-    
-    IF v_respuestas_existen = 0 THEN
-        NULL; 
-    ELSE
-        RAISE_APPLICATION_ERROR(-20009, 'No se puede eliminar la evaluación si existen respuestas asociadas');
-    END IF;
-END;
-/
+
 
 ------------------------------------------ XTRIGGERS ------------------------------------------
 DROP TRIGGER TR_EVALUACIONES_fecha;
 DROP TRIGGER TR_EVALUACIONES_tipo;
-DROP TRIGGER TR_CATEGORIAS_resultado;
+DROP TRIGGER TR_EVALUACIONES_resultado;
 DROP TRIGGER TR_EVALUACIONES_RESPUESTAS;
-DROP TRIGGER TR_EVALUACIONES_respuesta;
+DROP TRIGGER TR_EVALUACIONES_descripcion;
+------------------------------------------ TUPLASOK ------------------------------------------
+--------------------------CASO DE USO 2--------------------------
+--- Insertar una fecha correcta que no sea posterior, una fecha igual ---
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado)
+
+VALUES ('202305', 'CC', 'EjemNID', TO_DATE('2023-05-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo.com', 'AP');
+--- Comprobar que no se puede modificar nada aparte de resultado ---
+UPDATE EVALUACIONES
+SET descripcion = 'M'
+WHERE a_omes = '202306';
+
+UPDATE EVALUACIONES
+SET resultado = 'PE'
+WHERE a_omes = '202306';
+--- Insertar respuestas con aprobacion que no sea pendiente ---
+INSERT INTO RESPUESTAS (evaluacionA,respuesta)
+VALUES ('202306', 'Resp1');
+
+UPDATE RESPUESTAS
+SET respuesta = 'Esta es una respuesta modificada'
+WHERE evaluacionA = '202306';
+
+--- Intentar eliminar una evaluacion que tiene anomalias
+INSERT INTO EVALUACIONES (a_omes, nid, fecha, descripcion, reporte, resultado)
+VALUES ('202307', 'EjemNID3', TO_DATE('2023-08-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo3.com', 'AP');
+
+INSERT INTO RESPUESTAS (evaluacionA,respuesta)
+VALUES ('202307', 'Resp1');
+
+DELETE FROM EVALUACIONES WHERE a_omes = '202307';
+
 ------------------------------------------ ACCIONESOK ------------------------------------------
---------------------------CICLO 1 --------------------------
+--------------------------CASO DE USO 1 --------------------------
 -- Insertar una nueva fila en la tabla CATEGORIAS con un código en minúscula
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC)
 VALUES ('a001', 'Categoría de prueba', 'Tipo Ejemplo', 50.00, 100.00, NULL);
@@ -495,76 +560,10 @@ SELECT * FROM CATEGORIAS WHERE CODIGO = 'A004';
 -- Intentar eliminar una categoría que tiene artículos asociados
 DELETE FROM CATEGORIAS
 WHERE codigo = 'A001';
---------------------------CICLO 2--------------------------
---- Insertar una fecha correcta que no sea posterior, una fecha igual ---
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado)
-VALUES ('202305', 'CC', 'EjemNID', TO_DATE('2023-05-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo.com', 'AP');
-
+--------------------------CASO DE USO 2--------------------------
 --- Insertar correctamente, sin proporcionar valor para tid---
 INSERT INTO EVALUACIONES (a_omes, nid, fecha, descripcion, reporte, resultado)
 VALUES ('202306', 'EjemNID2', TO_DATE('2023-07-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo2.com', 'AP');
-
---- Comprobar que no se puede modificar nada aparte de resultado ---
-UPDATE EVALUACIONES
-SET descripcion = 'M'
-WHERE a_omes = '202306';
-
-UPDATE EVALUACIONES
-SET resultado = 'PE'
-WHERE a_omes = '202306';
---- Insertar respuestas con aprobacion que no sea pendiente ---
-INSERT INTO RESPUESTAS (evaluacionA,respuesta)
-VALUES ('202306', 'Resp1');
-
-UPDATE RESPUESTAS
-SET respuesta = 'Esta es una respuesta modificada'
-WHERE evaluacionA = '202306';
-
---- Intentar eliminar una evaluacion que tiene anomalias
-INSERT INTO EVALUACIONES (a_omes, nid, fecha, descripcion, reporte, resultado)
-VALUES ('202307', 'EjemNID3', TO_DATE('2023-08-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo3.com', 'AP');
-
-INSERT INTO RESPUESTAS (evaluacionA,respuesta)
-VALUES ('202307', 'Resp1');
-
-DELETE FROM EVALUACIONES WHERE a_omes = '202307';
------------------------------------------- XTABLAS------------------------------------------
-
-drop table "BD1000095256"."ARTICULOS" cascade constraints PURGE;
-drop table "BD1000095256"."AUDITORIAS" cascade constraints PURGE;
-drop table "BD1000095256"."CALIFICACIONES" cascade constraints PURGE;
-drop table "BD1000095256"."CARACTERISTICAS" cascade constraints PURGE;
-drop table "BD1000095256"."CATEGORIAS" cascade constraints PURGE;
-drop table "BD1000095256"."EVALUACIONES" cascade constraints PURGE;
-drop table "BD1000095256"."PERECEDERO" cascade constraints PURGE;
-drop table "BD1000095256"."RESPUESTAS" cascade constraints PURGE;
-drop table "BD1000095256"."ROPAS" cascade constraints PURGE;
-drop table "BD1000095256"."UNIVERSIDADES" cascade constraints PURGE;
-drop table "BD1000095256"."USUARIOS" cascade constraints PURGE;
-
------------------------------------------- CONSULTAS------------------------------------------
--- Consultar las categorías con mas artículos: 
-/*
-SELECT c.nombre AS categoria, COUNT(*) AS cantidad_articulos
-FROM ARTICULOS a
-JOIN CATEGORIAS c ON a.categoriac = c.codigo
-GROUP BY c.nombre
-ORDER BY cantidad_articulos DESC;
--- Consultar las calificaciones de los articulos del último mes
-SELECT a.id, c.estrellas, d.fecha
-FROM ARTICULOS a
-JOIN CALIFICACIONES c ON a.id = c.articuloI
-JOIN CATEGORIAS b ON a.categoriac = b.codigo
-JOIN AUDITORIAS d ON b.auditoriaI = d.id
-WHERE EXTRACT(YEAR FROM d.fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
-AND EXTRACT(MONTH FROM d.fecha) = EXTRACT(MONTH FROM CURRENT_DATE);
--- Consulta inventada:
--- Mirar los reportes por fechas y ordenarlos de menor a mayor
-SELECT a.reporte, b.fecha 
-FROM EVALUACIONES a 
-JOIN AUDITORIAS b ON b.id = a.auditoriaI 
-ORDER BY b.fecha;
-*/
 ---------------------------------------------------- PoblarOK ---------------------------------------------------
 --------------------------------------- Poblando Universidades y Usuarios ---------------------------------------
 /*
