@@ -349,6 +349,7 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20008, 'No se puede modificar el resultado de la auditoría si el estado no es pendiente');
     END IF;
 END;
+/
 ---ELIMINAR---
 ---Las evaluaciones se pueden eliminar si no tienen anomalías. 
 CREATE OR REPLACE TRIGGER TR_EVALUACIONES_descripcion
@@ -492,9 +493,10 @@ DROP TRIGGER TR_EVALUACIONES_descripcion;
 ------------------------------------------ TUPLASOK ------------------------------------------
 --------------------------CASO DE USO 2--------------------------
 --- Insertar una fecha correcta que no sea posterior, una fecha igual ---
-INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado)
 
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado)
 VALUES ('202305', 'CC', 'EjemNID', TO_DATE('2023-05-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo.com', 'AP');
+
 --- Comprobar que no se puede modificar nada aparte de resultado ---
 UPDATE EVALUACIONES
 SET descripcion = 'M'
