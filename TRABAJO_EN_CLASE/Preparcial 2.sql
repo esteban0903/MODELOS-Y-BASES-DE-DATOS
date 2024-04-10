@@ -1,5 +1,5 @@
 /*
-En SQL Estándar
+En SQL Estandar
 
 ------------------------------- INTEGRIDAD DECLARATIVA -------------------------------
 1)
@@ -21,32 +21,32 @@ SELECT COUNT(*) FROM EPISODIOS >= 1
 ------------------------------- INTEGRIDAD PROCEDIMENTAL -------------------------------
 ADICIONAR:
 1)
-TR_NOTIFICACIONINCUMPLIMIENTO 
+TR_NOTIFICACIONES
 BEFORE INSERT
-Este trigger verifica las fechas de factura de Nofiticación Incumplimiento,
-comprobando que la diferencia de las fechas sea mayor o igual a 5 días, además
-también comprueba que el estado de factura sea pendiente.
+Este trigger verifica las fechas de factura de Nofiticacion Incumplimiento,
+comprobando que la diferencia de las fechas sea mayor o igual a 5 dias, ademas
+tambien comprueba que el estado de factura sea pendiente.
 2)
-TR_BONOPROMOCIONAL
+TR_BONOS_PROMOCIONALES
 BEFORE INSERT
-Este trigger realiza una concatenación donde la primera posición es el número de meses
-sin notificación y la segunda y tercera posición son los últimos dígitos del año en curso.
+Este trigger realiza una concatenaciï¿½n donde la primera posicion es el numero de meses
+sin notificacion y la segunda y tercera posicion son los ultimos digitos del agno en curso.
 3)
 TR_OYENTEPAGO
 BEFORE INSERT
-Este trigger verifica si hay una notificación de incumplimiento y en caso de que lo haya 
-reinicia el número de meses del oyente pago a cero.
+Este trigger verifica si hay una notificacion de incumplimiento y en caso de que lo haya 
+reinicia el numero de meses del oyente pago a cero.
 
 MODIFICAR:
 1)
 TR_FACTURA
 BEFORE UPDATE
-Este trigger verifica el estado de la factura y si está en aprobado 
-o en proceso no permite que se modifique, además, solo permite modificar el estado y url.
+Este trigger verifica el estado de la factura y si esta en aprobado 
+o en proceso no permite que se modifique, ademas, solo permite modificar el estado y url.
 2)
 TR_NOTIFICACIONINCUMPLIMIENTO_UPDATE
 BEFORE UPDATE
-Este trigger no permite modificar una notificación de incumplimiento.
+Este trigger no permite modificar una notificaciï¿½n de incumplimiento.
 3)
 TR_BONOPROMOCIONAL_UPDATE
 BEFORE UPDATE
@@ -66,7 +66,6 @@ Este trigger no permite que se eliminen notificaciones de incumplimiento y factu
 
 
 CREATE TABLE CANCIONES(
-    
     nombre VARCHAR(50) NOT NULL,
     bibliotecaI NUMBER NOT NULL,
     bibliotecaN NUMBER(15) NOT NULL,
@@ -80,7 +79,7 @@ CREATE TABLE EPISODIOS(
     titulo VARCHAR(50) NOT NULL,
     bibliotecaI NUMBER NOT NULL,
     bibliotecaN NUMBER(15) NOT NULL,
-    bibliotecaT VARCHAR(2) NOT NULL,
+    bibliotecaT VARCHAR(2) NOT NULL
 );
 
 CREATE TABLE BIBLIOTECAS(
@@ -89,14 +88,277 @@ CREATE TABLE BIBLIOTECAS(
     oyenteT VARCHAR(2) NOT NULL, 
     nombre VARCHAR(59) NOT NULL, 
     clienteN NUMBER(15) NOT NULL, 
-    clienteT VARCHAR(2) NOT NULL,
+    clienteT VARCHAR(2) NOT NULL
 );
     
 CREATE TABLE CLIENTES(
     numDoc  NUMBER(15)  NOT NULL,
     tipoDoc VARCHAR(2)  NOT NULL,
     nombreApellido  VARCHAR(200) NOT NULL,
-    correoElectronico   VARCHAR(150)    NOT NULL
+    correoElectronico   VARCHAR(150) NOT NULL
     
 );
+
+CREATE TABLE OYENTES_PAGOS(
+    clienteN  NUMBER(15)  NOT NULL,
+    clienteT VARCHAR(2)  NOT NULL,
+    numMesesNoNotif NUMBER NOT NULL
+);
+
+CREATE TABLE OYENTES_GRATUITOS(
+    clienteN  NUMBER(15)  NOT NULL,
+    clienteT VARCHAR(2)  NOT NULL,
+    academia VARCHAR(200) NOT NULL
+);
+
+CREATE TABLE TARJETAS_CREDITO(
+    oyenteN  NUMBER(15)  NOT NULL,
+    oyenteT VARCHAR(2)  NOT NULL,
+    tarjetaCredito  VARCHAR(19) NOT NULL
+);
+
+CREATE TABLE BONOS_PROMOCIONALES(
+    mensaje VARCHAR(100),
+    iniciativa VARCHAR(3) NOT NULL,
+    porcentaje NUMBER(2,2) NOT NULL,
+    oyenteN  NUMBER(15)  NOT NULL,
+    oyenteT VARCHAR(2)  NOT NULL,
+    facturaN  NUMBER(15)  NOT NULL,
+    facturaT VARCHAR(2)  NOT NULL
+);
+
+CREATE TABLE FACTURAS(
+    oyenteN  NUMBER(15)  NOT NULL,
+    oyenteT VARCHAR(2)  NOT NULL,
+    fecha   DATE NOT NULL,
+    montoSuscripcion NUMBER(5,2) NOT NULL,
+    montoPagar NUMBER(5,2) NOT NULL,
+    url VARCHAR(100) NOT NULL,
+    estado VARCHAR(1) NOT NULL
+);
+
+CREATE TABLE NOTIFICACIONES(
+    id  NUMBER  NOT NULL,
+    facturaN  NUMBER(15)  NOT NULL,
+    facturaT VARCHAR(2)  NOT NULL,
+    fechaTransaccion DATE NOT NULL,
+    tarjetaCredito  VARCHAR(19) NOT NULL,
+    monto NUMBER(5,2) NOT NULL,
+    descripcion VARCHAR(100) NOT NULL
+);
+
+
+
+-------------------------------------------- PK'S --------------------------------------------
+
+ALTER TABLE CANCIONES ADD CONSTRAINT PK_CANCIONES_NOMBRE PRIMARY KEY (nombre) ON DELETE CASCADE;
+ALTER TABLE EPISODIOS ADD CONSTRAINT PK_EPISODIOS_TITULO PRIMARY KEY (titulo) ON DELETE CASCADE;
+ALTER TABLE BIBLIOTECAS ADD CONSTRAINT PK_BIBLIOTECAS_ID_OYENTEN_OYENTET PRIMARY KEY (id, oyenteN, oyenteT) ON DELETE CASCADE;
+ALTER TABLE CLIENTES ADD CONSTRAINT PK_CLIENTES_NUMDOC_TIPODOC PRIMARY KEY (numDoc, tipoDoc) ON DELETE CASCADE;
+ALTER TABLE OYENTES_PAGOS ADD CONSTRAINT PK_OYENTES_PAGOS_CLIENTEN_CLIENTET PRIMARY KEY (clienteN, clienteT) ON DELETE CASCADE;
+ALTER TABLE OYENTES_GRATUITOS ADD CONSTRAINT PK_OYENTES_GRATUITOS_CLIENTEN_CLIENTET PRIMARY KEY (clienteN, clienteT) ON DELETE CASCADE;
+ALTER TABLE TARJETAS_CREDITO ADD CONSTRAINT PK_TARJETAS_CREDITO_OYENTEN_OYENTET_TARJETACREDITO PRIMARY KEY (oyenteN, oyenteT, tarjetaCredito) ON DELETE CASCADE;
+ALTER TABLE BONOS_PROMOCIONALES ADD CONSTRAINT PK_BONOS_PROMOCIONALES_INICIATIVA PRIMARY KEY (iniciativa) ON DELETE CASCADE;
+ALTER TABLE FACTURAS ADD CONSTRAINT PK_FACTURAS_OYENTEN_OYENTET PRIMARY KEY (oyenteN, oyenteT) ON DELETE CASCADE;
+ALTER TABLE NOTIFICACIONES ADD CONSTRAINT PK_NOTIFICACIONES_ID PRIMARY KEY (id) ON DELETE CASCADE;
+
+
+-------------------------------------------- FK'S --------------------------------------------
+
+
+
+ALTER TABLE OYENTES_GRATUITOS ADD CONSTRAINT FK_OYENTES_GRATUITOS_CLIENTES
+FOREIGN KEY (clienteN, clienteT)
+REFERENCES CLIENTES(numDoc, tipoDoc) ON DELETE CASCADE;
+
+ALTER TABLE OYENTES_PAGOS ADD CONSTRAINT FK_OYENTES_PAGOS_CLIENTES
+FOREIGN KEY (clienteN, clienteT)
+REFERENCES CLIENTES(numDoc, tipoDoc) ON DELETE CASCADE;
+
+ALTER TABLE TARJETAS_CREDITO ADD CONSTRAINT FK_TARJETAS_CREDITO_OYENTES_PAGOS
+FOREIGN KEY (oyenteN, oyenteT)
+REFERENCES OYENTES_PAGOS(clienteN, clienteT) ON DELETE CASCADE;
+
+ALTER TABLE BIBLIOTECAS ADD CONSTRAINT FK_BIBLIOTECAS_CLIENTES
+FOREIGN KEY (clienteN, clienteT)
+REFERENCES CLIENTES(numDoc, tipoDoc) ON DELETE CASCADE;
+
+ALTER TABLE BIBLIOTECAS ADD CONSTRAINT FK_BIBLIOTECAS_OYENTES_PAGOS 
+FOREIGN KEY (oyenteN, oyenteT)
+REFERENCES OYENTES_PAGOS (clienteN, clienteT) ON DELETE CASCADE;
+
+ALTER TABLE CANCIONES ADD CONSTRAINT FK_CANCIONES_BIBLIOTECAS
+FOREIGN KEY (bibliotecaI, bibliotecaN, bibliotecaT)
+REFERENCES BIBLIOTECAS(id, oyenteN, oyenteT) ON DELETE CASCADE;
+
+ALTER TABLE EPISODIOS ADD CONSTRAINT FK_EPISODIOS_BIBLIOTECAS
+FOREIGN KEY (bibliotecaI, bibliotecaN, bibliotecaT)
+REFERENCES BIBLIOTECAS(id, oyenteN, oyenteT) ON DELETE CASCADE;
+
+ALTER TABLE FACTURAS ADD CONSTRAINT FK_FACTURAS_OYENTES_PAGOS 
+FOREIGN KEY (oyenteN, oyenteT)
+REFERENCES OYENTES_PAGOS (clienteN, clienteT) ON DELETE CASCADE;
+
+ALTER TABLE BONOS_PROMOCIONALES ADD CONSTRAINT FK_BONOS_PROMOCIONALES_OYENTES_PAGOS 
+FOREIGN KEY (oyenteN, oyenteT)
+REFERENCES OYENTES_PAGOS (clienteN, clienteT) ON DELETE CASCADE;
+
+ALTER TABLE BONOS_PROMOCIONALES ADD CONSTRAINT FK_BONOS_PROMOCIONALES_FACTURAS
+FOREIGN KEY (facturaN, facturaT)
+REFERENCES FACTURAS (oyenteN, oyenteT) ON DELETE CASCADE;
+
+ALTER TABLE NOTIFICACIONES ADD CONSTRAINT FK_NOTIFICACIONES_FACTURAS
+FOREIGN KEY (facturaN, facturaT)
+REFERENCES FACTURAS (oyenteN, oyenteT) ON DELETE CASCADE;
+
+-------------------------------------------- UK'S --------------------------------------------
+
+ALTER TABLE BIBLIOTECAS ADD CONSTRAINT UK_BIBLIOTECAS_NOMRE UNIQUE (nombre);
+ALTER TABLE CLIENTES ADD CONSTRAINT UK_CLIENTES_CORREO_ELECTRONICO UNIQUE (correoElectronico);
+ALTER TABLE FACTURAS ADD CONSTRAINT UK_FACTURAS_URL UNIQUE (url);
+
+-------------------------------------------- RESTRICCIONES DE TABLAS  --------------------------------------------
+-- ALTER TABLE CLIENTES ADD CONSTRAINT CK_CLIENTES_tid_Ttid CHECK (tid IN ('CC', 'CE', 'NT')); --
+ALTER TABLE OYENTES_PAGOS ADD CONSTRAINT  CK_OYENTES_PAGOS_TARJETA_CREDITO_TCREDITO CHECK (REGEXP_LIKE(tarjetaCredito, '^\d{6}x+\d{4}$'));
+ALTER TABLE NOTIFICACIONES ADD CONSTRAINT  CK_NOTIFICACIONES_TARJETA_CREDITO_TCREDITO CHECK (REGEXP_LIKE(tarjetaCredito, '^\d{6}x+\d{4}$'));
+ALTER TABLE FACTURAS ADD CONSTRAINT  CK_FACTURAS_ESTADO_TESTADO CHECK (estado IN ('A','R','P'));
+
+
+ALTER TABLE OYENTES_PAGOS ADD CONSTRAINT  CK_OYENTES_PAGOS_TARJETA_CREDITO_TCREDITO CHECK (REGEXP_LIKE(tarjetaCredito, '^\d{6}x+\d{4}$'));
+
+CREATE OR REPLACE TRIGGER TR_FACTURAS_NOTIFICACIONES
+BEFORE INSERT ON FACTURAS
+FOR EACH ROW
+DECLARE 
+    nNoti NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO nNoti FROM NOTIFICACIONES WHERE 
+    :NEW.oyenteN = facturaN AND :NEW.oyenteT = facturaT;
+    IF nNoti > 20 THEN 
+        RAISE_APPLICATION_ERROR(2000,'La factura no puede tener mas de 20 notificaciones');
+    END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER TR_BIBLIOTECAS_EPISODIOS_CANCIONES
+BEFORE INSERT ON BIBLIOTECAS
+FOR EACH ROW
+BEGIN
+    IF NOT (
+        EXISTS (SELECT 1 FROM CANCIONES WHERE :new.id = bibliotecaI AND :new.oyenteN = bibliotecaN AND :new.oyenteT = bibliotecaT) OR
+        EXISTS (SELECT 1 FROM EPISODIOS WHERE :new.id = bibliotecaI AND :new.oyenteN = bibliotecaN AND :new.oyenteT = bibliotecaT)
+    ) THEN
+        RAISE_APPLICATION_ERROR(2001,'La biblioteca tiene que estar asociada a canciones o a episodios');
+    END IF;
+END;
+/
+
+-------------------------------------------- RESTRICCIONES DE TABLAS  --------------------------------------------
+CREATE OR REPLACE TRIGGER TR_NOTIFICACIONES
+BEFORE INSERT ON NOTIFICACIONES
+FOR EACH ROW
+BEGIN 
+    IF NOT (
+        EXISTS (SELECT 1 FROM FACTURAS
+        WHERE :new.facturaN=oyenteN :new.facturaT=oyenteT AND :new.fechaTransaccion-fecha>5 AND estado='P')) THEN:
+        RAISE_APPLICATION_ERROR(2001,'La notificacion no puede ser antes de 5 dias y con un estado diferente a pendiente');
+    END IF;
+END;
+/      
+
+CREATE OR REPLACE TRIGGER TR_BONOS_PROMOCIONALES
+BEFORE INSERT ON BONOS_PROMOCIONALES
+FOR EACH ROW 
+DECLARE
+    nmeses NUMBER;
+BEGIN
+    SELECT numMesesNoNotif INTO NMESES FROM OYENTES_PAGOS WHERE :new.oyenteN=clienteN AND :new.oyenteT=clienteT
     
+    :new.iniciativa:= nmeses  || SUBSTR(TO_CHAR(EXTRACT(YEAR,CURRENT_DATE)),3)
+    END IF;
+END;
+/      
+
+CREATE OR REPLACE TRIGGER TR_OYENTE_PAGO
+BEFORE INSERT ON BONOS_PROMOCIONALES
+FOR EACH ROW
+DEClARE
+    nnotis NUMBER;
+BEGIN
+    SELECT COUNT(*) FROM FACTURAS f
+        JOIN NOTIFICACIONES n WHERE f.oyenteN=n.facturaN AND f.oyenteT=n.facturaT
+        WHERE :old.clienteN=f.oyenteN :old.clienteT=a.oyenteT
+    if nnotis>0 THEN
+        :new.numMesesNoNotif:=0;
+    END IF;
+END;
+/   
+
+CREATE OR REPLACE TR_FACTURA
+BEFORE UPDATE ON FACTURAS
+FOR EACH ROW
+BEGIN
+    IF :new.estado IN('A','P')  AND (
+    :old.fecha != :new.fecha
+    OR :old.montoSuscripcion != :new.montoSuscripcion 
+    OR :old.montoPagar != :new.montoSuscripcion  
+    )
+    THEN 
+        RAISE_APPLICATION_ERROR(2001,'No se puede actualizar la factura si esta en estado aprobado o pendiente');
+END;
+/
+            
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------- XTABLAS --------------------------------------------
+-- Tabla CANCIONES
+DROP TABLE "BD1000095256"."CANCIONES" CASCADE CONSTRAINTS PURGE;
+
+-- Tabla EPISODIOS
+DROP TABLE "BD1000095256"."EPISODIOS" CASCADE CONSTRAINTS PURGE;
+
+-- Tabla BIBLIOTECAS
+DROP TABLE "BD1000095256"."BIBLIOTECAS" CASCADE CONSTRAINTS PURGE;
+
+-- Tabla CLIENTES
+DROP TABLE "BD1000095256"."CLIENTES" CASCADE CONSTRAINTS PURGE;
+
+-- Tabla OYENTES_PAGOS
+DROP TABLE "BD1000095256"."OYENTES_PAGOS" CASCADE CONSTRAINTS PURGE;
+
+-- Tabla OYENTES_GRATUITOS
+DROP TABLE "BD1000095256"."OYENTES_GRATUITOS" CASCADE CONSTRAINTS PURGE;
+
+-- Tabla TARJETAS_CREDITO
+DROP TABLE "BD1000095256"."TARJETAS_CREDITO" CASCADE CONSTRAINTS PURGE;
+
+-- Tabla BONOS_PROMOCIONALES
+DROP TABLE "BD1000095256"."BONOS_PROMOCIONALES" CASCADE CONSTRAINTS PURGE;
+
+-- Tabla FACTURAS
+DROP TABLE "BD1000095256"."FACTURAS" CASCADE CONSTRAINTS PURGE;
+
+-- Tabla NOTIFICACIONES
+DROP TABLE "BD1000095256"."NOTIFICACIONES" CASCADE CONSTRAINTS PURGE;
+
+
+
+
