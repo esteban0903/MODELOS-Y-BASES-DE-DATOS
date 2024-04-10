@@ -342,10 +342,10 @@ CREATE OR REPLACE TRIGGER TR_EVALUACIONES_RESPUESTAS
 BEFORE UPDATE ON RESPUESTAS 
 FOR EACH ROW
 DECLARE
-    v_estado EVALUACIONES.resultado%TYPE;
+    v_estado VARCHAR(20);
 BEGIN
     SELECT resultado into v_estado FROM EVALUACIONES WHERE a_omes= :new.evaluacionA ;
-    IF v_estado <> 'PE' THEN
+    IF v_estado <> 'PE' THEN    
         RAISE_APPLICATION_ERROR(-20008, 'No se puede modificar el resultado de la auditoría si el estado no es pendiente');
     END IF;
 END;
@@ -366,7 +366,7 @@ END;
 --------------------------CASO DE USO 1--------------------------
 -- Adicionar --
 -- Los códigos deben iniciar con una letra mayúscula, en el caso de empezar por una letra minúscula, la cambia a mayúscula --
-CREATE OR REPLACE TRIGGER trg_codigo_uppercase
+CREATE OR REPLACE TRIGGER TR_codigo_uppercase
 BEFORE INSERT ON CATEGORIAS
 FOR EACH ROW
 BEGIN
@@ -379,7 +379,7 @@ END;
 /
 
 -- Si no se indica el nombre se le asigna. ‘Nombre de ‘<codigo> --
-CREATE OR REPLACE TRIGGER trg_assign_codigo
+CREATE OR REPLACE TRIGGER TR_assign_codigo
 BEFORE INSERT ON CATEGORIAS
 FOR EACH ROW 
 BEGIN
@@ -390,7 +390,7 @@ END;
 /
 
 -- El precio mínimo debe ser menor que el máximo -- 
-CREATE OR REPLACE TRIGGER trg_precio_minimo_maximo
+CREATE OR REPLACE TRIGGER TR_precio_minimo_maximo
 BEFORE INSERT OR UPDATE ON CATEGORIAS
 FOR EACH ROW
 BEGIN
@@ -401,7 +401,7 @@ END;
 /
 
 -- Si no se indica el precio máximo se supone que es el doble del mínimo -- 
-CREATE OR REPLACE TRIGGER trg_precio_maximo_predeterminado
+CREATE OR REPLACE TRIGGER TR_precio_maximo_predeterminado
 BEFORE INSERT ON CATEGORIAS
 FOR EACH ROW
 BEGIN
@@ -414,7 +414,7 @@ END;
 
 -- MODIFICAR --
 -- Los únicos datos que se pueden modificar son el mínimo y el máximo. Únicamente pueden aumentar. --
-CREATE OR REPLACE TRIGGER trg_inmutabilidad_datos
+CREATE OR REPLACE TRIGGER TR_inmutabilidad_datos
 BEFORE UPDATE ON CATEGORIAS
 FOR EACH ROW
 BEGIN
@@ -428,7 +428,7 @@ END;
 
 
 -- Si se modifica el mínimo, el máximo debe modificarse en el mismo valor. -- 
-CREATE OR REPLACE TRIGGER trg_actualizar_maximo
+CREATE OR REPLACE TRIGGER TR_actualizar_maximo
 BEFORE UPDATE ON CATEGORIAS
 FOR EACH ROW
 BEGIN
@@ -439,7 +439,7 @@ END;
 /
 -- ELIMINAR --
 -- Únicamente se pueden eliminar los que no tienen artículos asociados.--
-CREATE OR REPLACE TRIGGER trg_eliminar_categoria
+CREATE OR REPLACE TRIGGER TR_eliminar_categoria
 BEFORE DELETE ON CATEGORIAS
 FOR EACH ROW
 DECLARE
@@ -456,7 +456,7 @@ END;
 /
 
 -- CREAR AUDITORIAS --
-CREATE OR REPLACE TRIGGER trg_creacion_categoria_auditoria
+CREATE OR REPLACE TRIGGER TR_creacion_categoria_auditoria
 AFTER INSERT ON CATEGORIAS
 FOR EACH ROW
 DECLARE 
@@ -485,6 +485,16 @@ END;
 
 
 ------------------------------------------ XTRIGGERS ------------------------------------------
+--------------------------CASO DE USO 1--------------------------
+DROP TRIGGER TR_codigo_uppercase;
+DROP TRIGGER TR_assign_codigo;
+DROP TRIGGER TR_precio_minimo_maximo;
+DROP TRIGGER TR_precio_maximo_predeterminado;
+DROP TRIGGER TR_inmutabilidad_datos;
+DROP TRIGGER TR_actualizar_maximo;
+DROP TRIGGER TR_eliminar_categoria;
+DROP TRIGGER TR_creacion_categoria_auditoria;
+--------------------------CASO DE USO 2--------------------------
 DROP TRIGGER TR_EVALUACIONES_fecha;
 DROP TRIGGER TR_EVALUACIONES_tipo;
 DROP TRIGGER TR_EVALUACIONES_resultado;
@@ -498,16 +508,23 @@ INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resulta
 VALUES ('202305', 'CC', 'EjemNID', TO_DATE('2023-05-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo.com', 'AP');
 
 --- Comprobar que no se puede modificar nada aparte de resultado ---
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado)
+VALUES ('202304', 'CC', 'EjemNID', TO_DATE('2023-05-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo.com', 'AP');
+
 UPDATE EVALUACIONES
 SET descripcion = 'M'
-WHERE a_omes = '202306';
+WHERE a_omes = '202304';
 
 UPDATE EVALUACIONES
 SET resultado = 'PE'
-WHERE a_omes = '202306';
---- Insertar respuestas con aprobacion que no sea pendiente ---
-INSERT INTO RESPUESTAS (evaluacionA,respuesta)
-VALUES ('202306', 'Resp1');
+WHERE a_omes = '202304';
+
+--- Actualizar respuestas con aprobacion que no sea pendiente ---
+INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado)
+VALUES ('202306', 'CC', 'EjemNID', TO_DATE('2023-07-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo1.com', 'AP');
+
+INSERT INTO RESPUESTAS (evaluacionA, respuesta)
+VALUES ('202306','rta');
 
 UPDATE RESPUESTAS
 SET respuesta = 'Esta es una respuesta modificada'
@@ -565,7 +582,7 @@ WHERE codigo = 'A001';
 --------------------------CASO DE USO 2--------------------------
 --- Insertar correctamente, sin proporcionar valor para tid---
 INSERT INTO EVALUACIONES (a_omes, nid, fecha, descripcion, reporte, resultado)
-VALUES ('202306', 'EjemNID2', TO_DATE('2023-07-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo2.com', 'AP');
+VALUES ('202308', 'EjemNID2', TO_DATE('2023-09-01', 'YYYY-MM-DD'), 'A', 'https://www.ejemplo2.com', 'AP');
 ---------------------------------------------------- PoblarOK ---------------------------------------------------
 --------------------------------------- Poblando Universidades y Usuarios ---------------------------------------
 /*
@@ -727,133 +744,133 @@ WHERE codigoUn = '009';
 ---------------------------------------------------- POBLANDO CATEGORIAS ----------------------------------------------------
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
-VALUES ('CAT01', 'Categoria 1', 'Electronica', 50.00, 200.00, 'CAT01');
+VALUES ('A1', 'Categoria 1', 'Electronica', 50.00, 200.00, 'A1');
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
-VALUES ('CAT02', 'Categoria 2', 'Moda', 20.00, 150.00, 'CAT02');
+VALUES ('B1', 'Categoria 2', 'Moda', 20.00, 150.00, 'B1');
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
-VALUES ('CAT03', 'Categoria 3', 'Hogar', 30.00, 300.00, 'CAT01');
+VALUES ('C1', 'Categoria 3', 'Hogar', 30.00, 300.00, 'C1');
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
-VALUES ('CAT04', 'Categoria 4', 'Electrodomesticos', 100.00, 500.00, 'CAT03');
+VALUES ('D1', 'Categoria 4', 'Electrodomesticos', 100.00, 500.00, 'D1');
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
-VALUES ('CAT05', 'Categoria 5', 'Deporte', 10.00, 250.00, 'CAT03');
+VALUES ('E1', 'Categoria 5', 'Deporte', 10.00, 250.00, 'E1');
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
-VALUES ('CAT06', 'Categoria 6', 'Libros', 5.00, 100.00, NULL);
+VALUES ('F1', 'Categoria 6', 'Libros', 5.00, 100.00, 'F1');
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
-VALUES ('CAT07', 'Categoria 7', 'Juguetes', 2.00, 50.00, NULL);
+VALUES ('G1', 'Categoria 7', 'Juguetes', 2.00, 50.00, 'G1');
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
-VALUES ('CAT08', 'Categoria 8', 'Muebles', 150.00, 1000.00, 'CAT01');
+VALUES ('H1', 'Categoria 8', 'Muebles', 150.00, 1000.00, 'H1');
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
-VALUES ('CAT09', 'Categoria 9', 'Arte', 50.00, 500.00, 'CAT09');
+VALUES ('I1', 'Categoria 9', 'Arte', 50.00, 500.00, 'I1');
 
 INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC) 
-VALUES ('CAT10', 'Categoria 10', 'Instrumentos ', 80.00, 700.00, 'CAT09');
+VALUES ('J1', 'Categoria 10', 'Instrumentos ', 80.00, 700.00, 'J1');
 
 
 ---------------------------------------------------- POBLANDO EVALUACIONES ----------------------------------------------------
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
-VALUES ('InstituciOn', 'CC', 'nid001', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte1.pdf', 'AP');
+VALUES ('202301', 'CC', 'nid001', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte1.pdf', 'AP');
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
-VALUES ('Instituci1n', 'CC', 'nid002', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'A', 'https://reporte2.pdf', 'PE');
+VALUES ('202302', 'CC', 'nid002', TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'A', 'https://reporte2.pdf', 'PE');
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
-VALUES ('Institucin2', 'CC', 'nid003', TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'A', 'https://reporte3.pdf', 'AP');
+VALUES ('202303', 'CC', 'nid003', TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'A', 'https://reporte3.pdf', 'AP');
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
-VALUES ('Instituci3', 'CD', 'nid004', TO_DATE('2024-03-18', 'YYYY-MM-DD'), 'M', 'https://reporte4.pdf', 'PE');
+VALUES ('202304', 'CD', 'nid004', TO_DATE('2024-03-18', 'YYYY-MM-DD'), 'M', 'https://reporte4.pdf', 'PE');
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
-VALUES ('Instituci4', 'CD', 'nid005', TO_DATE('2024-03-19', 'YYYY-MM-DD'), 'M', 'https://reporte5.pdf', 'AP');
+VALUES ('202305', 'CD', 'nid005', TO_DATE('2024-03-19', 'YYYY-MM-DD'), 'M', 'https://reporte5.pdf', 'AP');
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
-VALUES ('Instituci5', 'CC', 'nid006', TO_DATE('2024-03-20', 'YYYY-MM-DD'), 'M', 'https://reporte6.pdf', 'PE');
+VALUES ('202306', 'CC', 'nid006', TO_DATE('2024-03-20', 'YYYY-MM-DD'), 'M', 'https://reporte6.pdf', 'PE');
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
-VALUES ('Instituci6', 'CD', 'nid007', TO_DATE('2024-03-21', 'YYYY-MM-DD'), 'M', 'https://reporte7.pdf', 'PE');
+VALUES ('202307', 'CD', 'nid007', TO_DATE('2024-03-21', 'YYYY-MM-DD'), 'M', 'https://reporte7.pdf', 'PE');
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
-VALUES ('Instituci7', 'CD', 'nid008', TO_DATE('2024-03-22', 'YYYY-MM-DD'), 'B', 'https://reporte8.pdf', 'AP');
+VALUES ('202308', 'CD', 'nid008', TO_DATE('2024-03-22', 'YYYY-MM-DD'), 'B', 'https://reporte8.pdf', 'AP');
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
-VALUES ('Instituci8', 'CC', 'nid009', TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'B', 'https://reporte9.pdf', 'AP');
+VALUES ('202309', 'CC', 'nid009', TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'B', 'https://reporte9.pdf', 'AP');
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
-VALUES ('Instituci9', 'CC', 'nid010', TO_DATE('2024-03-24', 'YYYY-MM-DD'), 'B', 'https://reporte10.pdf', 'AP');
+VALUES ('202310', 'CC', 'nid010', TO_DATE('2024-03-24', 'YYYY-MM-DD'), 'B', 'https://reporte10.pdf', 'AP');
 
 
 ---------------------------------------------------- POBLANDO AUDITORIAS ----------------------------------------------------
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA) 
-VALUES (1, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'Auditoria 1','CAT01','Instituci1n');
+VALUES (1, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'Auditoria 1','A1','202301');
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
-VALUES (2, TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Crear', 'Auditoria 2', 'CAT02', 'Instituci3');
+VALUES (2, TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Crear', 'Auditoria 2', 'B1', '202302');
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
-VALUES (3, TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Crear', 'Auditoria 3', 'CAT03', 'Instituci4');
+VALUES (3, TO_DATE('2024-03-16', 'YYYY-MM-DD'), 'Crear', 'Auditoria 3', 'C1', '202303');
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
-VALUES (4, TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Crear', 'Auditoria 4', 'CAT04', 'Instituci5');
+VALUES (4, TO_DATE('2024-03-17', 'YYYY-MM-DD'), 'Crear', 'Auditoria 4', 'D1', '202304');
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
-VALUES (5, TO_DATE('2024-03-18', 'YYYY-MM-DD'), 'Crear', 'Auditoria 5', 'CAT05', 'Instituci6');
+VALUES (5, TO_DATE('2024-03-18', 'YYYY-MM-DD'), 'Crear', 'Auditoria 5', 'E1', '202305');
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
-VALUES (6, TO_DATE('2024-03-19', 'YYYY-MM-DD'), 'Crear', 'Auditoria 6', 'CAT06', 'Instituci7');
+VALUES (6, TO_DATE('2024-03-19', 'YYYY-MM-DD'), 'Crear', 'Auditoria 6', 'F1', '202306');
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
-VALUES (7, TO_DATE('2024-03-20', 'YYYY-MM-DD'), 'Crear', 'Auditoria 7', 'CAT07', 'Instituci8');
+VALUES (7, TO_DATE('2024-03-20', 'YYYY-MM-DD'), 'Crear', 'Auditoria 7', 'G1', '202307');
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
-VALUES (8, TO_DATE('2024-03-21', 'YYYY-MM-DD'), 'Crear', 'Auditoria 8', 'CAT08', 'Instituci9');
+VALUES (8, TO_DATE('2024-03-21', 'YYYY-MM-DD'), 'Crear', 'Auditoria 8', 'H1', '202308');
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
-VALUES (9, TO_DATE('2024-03-22', 'YYYY-MM-DD'), 'Crear', 'Auditoria 9', 'CAT09', 'InstituciOn');
+VALUES (9, TO_DATE('2024-03-22', 'YYYY-MM-DD'), 'Crear', 'Auditoria 9', 'I1', '202309');
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA)
-VALUES (10, TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'Crear', 'Auditoria 10', 'CAT10', 'Institucin2');
+VALUES (10, TO_DATE('2024-03-23', 'YYYY-MM-DD'), 'Crear', 'Auditoria 10', 'J1', '202310');
 
 
 ---------------------------------------------------- POBLANDO ARTICULOS ----------------------------------------------------
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (1, '001', '001', 'CAT01', 'Descripcion 1', 'NUEVO', 'foto1.jpg', 100.00, 'Y');
+VALUES (1, '001', '001', 'A1', 'Descripcion 1', 'NUEVO', 'foto1.jpg', 100.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (2, '001', '002', 'CAT02', 'Descripción 2', 'NUEVO', 'foto2.jpg', 120.00, 'Y');
+VALUES (2, '001', '002', 'B1', 'Descripción 2', 'NUEVO', 'foto2.jpg', 120.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (3, '002', '001', 'CAT03', 'Descripción 3', 'NUEVO', 'foto3.jpg', 150.00, 'Y');
+VALUES (3, '002', '001', 'C1', 'Descripción 3', 'NUEVO', 'foto3.jpg', 150.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (4, '002', '002', 'CAT04', 'Descripción 4', 'NUEVO', 'foto4.jpg', 200.00, 'Y');
+VALUES (4, '002', '002', 'D1', 'Descripción 4', 'NUEVO', 'foto4.jpg', 200.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (5, '003', '001', 'CAT05', 'Descripción 5', 'NUEVO', 'foto5.jpg', 80.00, 'Y');
+VALUES (5, '003', '001', 'E1', 'Descripción 5', 'NUEVO', 'foto5.jpg', 80.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (6, '003', '002', 'CAT06', 'Descripción 6', 'NUEVO', 'foto6.jpg', 90.00, 'Y');
+VALUES (6, '003', '002', 'F1', 'Descripción 6', 'NUEVO', 'foto6.jpg', 90.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (7, '004', '001', 'CAT07', 'Descripción 7', 'NUEVO', 'foto7.jpg', 110.00, 'Y');
+VALUES (7, '004', '001', 'G1', 'Descripción 7', 'NUEVO', 'foto7.jpg', 110.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (8, '004', '002', 'CAT08', 'Descripción 8', 'NUEVO', 'foto8.jpg', 130.00, 'Y');
+VALUES (8, '004', '002', 'H1', 'Descripción 8', 'NUEVO', 'foto8.jpg', 130.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (9, '005', '001', 'CAT09', 'Descripción 9', 'NUEVO', 'foto9.jpg', 180.00, 'Y');
+VALUES (9, '005', '001', 'I1', 'Descripción 9', 'NUEVO', 'foto9.jpg', 180.00, 'Y');
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
-VALUES (10, '005', '010', 'CAT10', 'Descripción 10', 'NUEVO', 'foto10.jpg', 250.00, 'Y');
+VALUES (10, '005', '010', 'J1', 'Descripción 10', 'NUEVO', 'foto10.jpg', 250.00, 'Y');
 
 ---------------------------------------------------- POBLANDO CALIFICACIONES ----------------------------------------------------
 
