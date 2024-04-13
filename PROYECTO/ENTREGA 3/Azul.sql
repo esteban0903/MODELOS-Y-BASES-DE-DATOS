@@ -105,8 +105,6 @@ ALTER TABLE SUSCRITOS ADD CONSTRAINT CK_SUSCRITOS_metodoPago_TmetodoPago CHECK (
 ALTER TABLE VENTAS ADD CONSTRAINT CK_VENTAS_metodoPago_TmetodoPago CHECK (metodoPago in ('T','E','C','TB'));
 ALTER TABLE FACTURAS ADD CONSTRAINT CK_FACTURAS_metodoPago_TmetodoPago CHECK (metodoPago in ('T','E','C','TB'));
 
----ALTER TABLE nombreUsuario ADD CONSTRAINT CK_SUSCRITOS_nombreUsuario_Tcredencial;
-
 ALTER TABLE FISICOS ADD CONSTRAINT CK_FISICOS_disponible_Tbooleano CHECK (disponible in ('Y','N'));
 
 ALTER TABLE DIGITALES ADD CONSTRAINT CK_DIGITALES_formato_Tformato CHECK (formato in ('PDF','EPUB','MOBI'));
@@ -116,15 +114,7 @@ ALTER TABLE DEVOLUCIONES ADD CONSTRAINT CK_DEVOLUCIONES_estado_Testado CHECK(est
 ALTER TABLE FACTURAS ADD CONSTRAINT CK_FACTURAS_estado_Testado CHECK(estado in('A','D'));
 
 
-CREATE OR REPLACE TRIGGER TR_SUSCRITOS_nombreUsuario
-BEFORE INSERT ON SUSCRITOS
-FOR EACH ROW
-BEGIN
-    :new.nombreUsuario := :new.nombre || '_' || :new.apellido || '_' || :new.clienteI;
-END;
-/
 
-DROP TRIGGER TR_SUSCRITOS_nombreUsuario;
 ---------------------------------------PRIMARY KEYS---------------------------------------
 
 ALTER TABLE CLIENTES ADD CONSTRAINT PK_CLIENTES
@@ -234,7 +224,7 @@ FOREIGN KEY(prestamoI) REFERENCES PRESTAMOS(idPrestamo)
 ON DELETE CASCADE; 
 
 ALTER TABLE MULTAS ADD CONSTRAINT FK_MULTAS_FACTURAS_facturaI
-FOREIGN KEY(facturaI) REFERENCES FACTURAS(idFactura)
+FOREIGN KEY(facturaI) REFERENCES FACTURAS(idFactura) 
 ON DELETE CASCADE; 
 
 ---------------------------------------XTABLAS---------------------------------------
@@ -292,7 +282,7 @@ VALUES('C003','TI');
 
 
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C001','CC','Nom1_Ape1_C001','T','Nom1','Ape1');
+VALUES('C001','CC','NomUs1','T','Nom1','Ape1');
 
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
 VALUES('C002','CE','NomUs2','E','Nom2','Ape2');
@@ -674,3 +664,6 @@ DELETE FROM PROVEEDORES;
 DELETE FROM RESERVAS;
 DELETE FROM SUSCRITOS;
 DELETE FROM VENTAS;
+
+
+
