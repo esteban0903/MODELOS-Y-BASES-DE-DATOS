@@ -228,19 +228,19 @@ FOREIGN KEY(facturaI) REFERENCES FACTURAS(idFactura)
 ON DELETE CASCADE; 
 
 ---------------------------------------XTABLAS---------------------------------------
-drop table "BD1000095983"."ARTICULOS" cascade constraints PURGE;
-drop table "BD1000095983"."AUTORES" cascade constraints PURGE;
-drop table "BD1000095983"."CLIENTES" cascade constraints PURGE;
-drop table "BD1000095983"."DEVOLUCIONES" cascade constraints PURGE;
-drop table "BD1000095983"."DIGITALES" cascade constraints PURGE;
-drop table "BD1000095983"."FACTURAS" cascade constraints PURGE;
-drop table "BD1000095983"."MULTAS" cascade constraints PURGE;
-drop table "BD1000095983"."PRESTAMOS" cascade constraints PURGE;
-drop table "BD1000095983"."PROVEEDORES" cascade constraints PURGE;
-drop table "BD1000095983"."RESERVAS" cascade constraints PURGE;
-drop table "BD1000095983"."SUSCRITOS" cascade constraints PURGE;
-drop table "BD1000095983"."VENTAS" cascade constraints PURGE;
-drop table "BD1000095983"."FISICOS" cascade constraints PURGE;
+drop table "ARTICULOS" cascade constraints PURGE;
+drop table "AUTORES" cascade constraints PURGE;
+drop table "CLIENTES" cascade constraints PURGE;
+drop table "DEVOLUCIONES" cascade constraints PURGE;
+drop table "DIGITALES" cascade constraints PURGE;
+drop table "FACTURAS" cascade constraints PURGE;
+drop table "MULTAS" cascade constraints PURGE;
+drop table "PRESTAMOS" cascade constraints PURGE;
+drop table "PROVEEDORES" cascade constraints PURGE;
+drop table "RESERVAS" cascade constraints PURGE;
+drop table "SUSCRITOS" cascade constraints PURGE;
+drop table "VENTAS" cascade constraints PURGE;
+drop table "FISICOS" cascade constraints PURGE;
 
 ---------------------------------------CONSULTAS---------------------------------------
 ---Consultar prestamo---
