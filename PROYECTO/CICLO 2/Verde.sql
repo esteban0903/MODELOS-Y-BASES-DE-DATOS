@@ -1,4 +1,17 @@
 ----------------------------TUPLAS----------------------------
+-- Secuencia de automatizacion --
+CREATE SEQUENCE secuencia_codigo
+  START WITH 1
+  INCREMENT BY 1;
+-- Automatizacion de indices --
+CREATE OR REPLACE TRIGGER TR_VENTAS_generar_idCompra
+BEFORE INSERT ON VENTAS
+FOR EACH ROW
+BEGIN
+    :new.idCompra := TO_CHAR(secuencia_codigo.NEXTVAL);
+END;
+/
+
 --Tipo Tcredencial---
 CREATE OR REPLACE TRIGGER TR_SUSCRITOS_nombreUsuario
 BEFORE INSERT ON SUSCRITOS
@@ -19,8 +32,8 @@ DECLARE
 BEGIN
     v_diferencia_dias := ABS(:NEW.fechaDevolucionEstimada - :OLD.fechaEntrega);
     
-    IF v_diferencia_dias > 15 THEN
-        RAISE_APPLICATION_ERROR(-20001, 'La fecha de devolución debe ser al menos 15 días después de la fecha de entrega.');
+    IF v_diferencia_dias < 15 OR v_diferencia_dias > 30 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'La fecha de devolución debe ser al menos 15 días después de la fecha de entrega y no mas de 30 dias.');
     END IF;
 END;
 /
@@ -70,9 +83,9 @@ INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido
 VALUES('C004','CC','NomUs4','T','Nom4','Ape4');
 
 ---FECHA ENTREGA---
--- Dentro del rango estimado de 15 dias, pues su fecha original es: 03/01/24 --
+-- Dentro del rango estimado de 15 dias, pues su fecha original es: 03/01/2024 --
 UPDATE PRESTAMOS
-SET FechaDevolucionEstimada = TO_DATE('2024-05-20', 'YYYY-MM-DD')
+SET FechaDevolucionEstimada = TO_DATE('2024-01-20', 'YYYY-MM-DD')
 WHERE idPrestamo = 'P003';
 
 ---MODIFICAR FACTURA ---
