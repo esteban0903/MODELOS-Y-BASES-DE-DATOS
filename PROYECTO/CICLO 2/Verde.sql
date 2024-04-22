@@ -158,4 +158,27 @@ BEGIN
     :new.idFactura := 'F'|| TO_CHAR(secuencia_facturas.NEXTVAL);
 END;
 /
+---------------------------- XDISPARADORES ----------------------------
+--------------------------- DISPARADORESOK ---------------------------
+-------------------------- DISPARADORESNoOK --------------------------
+
+---------------------------- VISTAS ----------------------------
+-- Solo consultar los clientes --
+CREATE VIEW CLIENTES_SUSCRITOS AS SELECT nombre, apellido, clienteI, clienteT FROM SUSCRITOS;
+
+-- Solo consultar las ventas --
+CREATE VIEW COMPRAS AS 
+SELECT ARTICULOS.nombreArticulo, VENTAS.articuloI, VENTAS.clienteI, VENTAS.total, VENTAS.fechaCompra 
+FROM VENTAS 
+JOIN ARTICULOS ON VENTAS.articuloI = ARTICULOS.idArticulo;
+
+-- Consultar las facturas de los clientes con multa --
+CREATE VIEW FACTURAS_CON_MULTA AS 
+SELECT SUSCRITOS.nombre, SUSCRITOS.apellido, FACTURAS.total AS "Total a Pagar", MULTAS.monto AS 'Total de multa', MULTAS.idMulta
+FROM FACTURAS 
+JOIN PRESTAMOS ON FACTURAS.prestamoI = PRESTAMOS.idPrestamo 
+JOIN SUSCRITOS ON SUSCRITOS.clienteI = PRESTAMOS.clienteI AND SUSCRITOS.clienteT = PRESTAMOS.clienteT 
+JOIN MULTAS ON MULTAS.facturaI = FACTURAS.idFactura;
+
+CREATE VIEW CLIENTES_SUSCRITOS AS SELECT nombre, apellido, clienteI, clienteT FROM SUSCRITOS;
 
