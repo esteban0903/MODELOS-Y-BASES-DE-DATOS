@@ -269,7 +269,7 @@ WHERE a.fechaDevolucionEstimada<b.fechaDevolucion
 ;
 ---------------------------------------POBLAROK---------------------------------------
 INSERT INTO CLIENTES(idCliente,  tidCliente)
-VALUES('C001','CC');
+VALUES('C00D1','CC');
 
 INSERT INTO CLIENTES(idCliente,  tidCliente)
 VALUES('C002','CE');
@@ -279,281 +279,281 @@ VALUES('C003','TI');
 
 
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C001','CC','NomUs1','T','Nom1','Ape1');
+VALUES('C1','CC','NomUs1','T','Nom1','Ape1');
 
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C002','CE','NomUs2','E','Nom2','Ape2');
+VALUES('C2','CE','NomUs2','E','Nom2','Ape2');
 
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C003','TI','NomUs3','C','Nom3','Ape3');
+VALUES('C3','TI','NomUs3','C','Nom3','Ape3');
 
 
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva,  estado)
-VALUES ('C001','CC','R001','A');
+VALUES ('C1','CC','R001','A');
 
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva,  estado)
-VALUES ('C002','CE','R002','D');
+VALUES ('C2','CE','R002','D');
 
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva,  estado)
-VALUES ('C003','TI','R003','A');
+VALUES ('C3','TI','R003','A');
 
 
 INSERT INTO PRESTAMOS(clienteI,clienteT,idPrestamo,reservaI,fechaEntrega,FechaDevolucionEstimada)
-VALUES ('C001', 'CC','P001', 'R001',TO_DATE('2024-01-01', 'YYYY-MM-DD'), TO_DATE('2024-03-20', 'YYYY-MM-DD'));
+VALUES ('C1', 'CC','P001', 'R001',TO_DATE('2024-01-01', 'YYYY-MM-DD'), TO_DATE('2024-03-20', 'YYYY-MM-DD'));
 
 INSERT INTO PRESTAMOS(clienteI,clienteT,idPrestamo,reservaI,fechaEntrega,FechaDevolucionEstimada)
-VALUES ('C002', 'CE','P002', 'R002',TO_DATE('2024-01-02', 'YYYY-MM-DD'),TO_DATE('2024-02-02', 'YYYY-MM-DD'));
+VALUES ('C2', 'CE','P002', 'R002',TO_DATE('2024-01-02', 'YYYY-MM-DD'),TO_DATE('2024-02-02', 'YYYY-MM-DD'));
 
 INSERT INTO PRESTAMOS(clienteI,clienteT,idPrestamo,reservaI,fechaEntrega,FechaDevolucionEstimada)
-VALUES ('C003', 'TI','P003', 'R003',TO_DATE('2024-01-03', 'YYYY-MM-DD'),TO_DATE('2024-02-03', 'YYYY-MM-DD'));
+VALUES ('C3', 'TI','P003', 'R003',TO_DATE('2024-01-03', 'YYYY-MM-DD'),TO_DATE('2024-02-03', 'YYYY-MM-DD'));
 
 
 INSERT INTO DEVOLUCIONES(prestamoI, estado,fechaDevolucion)
-VALUES ('P001', 'A',TO_DATE('2024-03-01', 'YYYY-MM-DD'));
+VALUES ('P1', 'A',TO_DATE('2024-03-01', 'YYYY-MM-DD'));
 
 INSERT INTO DEVOLUCIONES(prestamoI, estado,fechaDevolucion)
-VALUES ('P002', 'D',TO_DATE('2024-03-02', 'YYYY-MM-DD'));
+VALUES ('P2', 'D',TO_DATE('2024-03-02', 'YYYY-MM-DD'));
 
 INSERT INTO DEVOLUCIONES(prestamoI, estado,fechaDevolucion)
-VALUES ('P003', 'A',TO_DATE('2024-03-03', 'YYYY-MM-DD'));
+VALUES ('P3', 'A',TO_DATE('2024-03-03', 'YYYY-MM-DD'));
 
 
 INSERT INTO FACTURAS(prestamoI, idFactura,metodoPago,fecha,total,estado)
-VALUES ('P001', 'F001','T',TO_DATE('2024-04-01', 'YYYY-MM-DD'),1,'A');
+VALUES ('P1', 'F001','T',TO_DATE('2024-04-01', 'YYYY-MM-DD'),1,'A');
 
 INSERT INTO FACTURAS(prestamoI, idFactura,metodoPago,fecha,total,estado)
-VALUES ('P002', 'F002','E',TO_DATE('2024-04-02', 'YYYY-MM-DD'),2,'D');
+VALUES ('P2', 'F002','E',TO_DATE('2024-04-02', 'YYYY-MM-DD'),2,'D');
 
 INSERT INTO FACTURAS(prestamoI, idFactura,metodoPago,fecha,total,estado)
-VALUES ('P003', 'F003','C',TO_DATE('2024-04-03', 'YYYY-MM-DD'),3,'A');
+VALUES ('P3', 'F003','C',TO_DATE('2024-04-03', 'YYYY-MM-DD'),3,'A');
 
 
 INSERT INTO MULTAS(facturaI,idMulta,monto,descripcion)
-VALUES ('F001', 'M001',1,'Des1');
+VALUES ('F1', 'M001',1,'Des1');
 
 INSERT INTO MULTAS(facturaI,idMulta,monto,descripcion)
-VALUES ('F002', 'M002',1,'Des2');
+VALUES ('F2', 'M002',1,'Des2');
 
 INSERT INTO MULTAS(facturaI,idMulta,monto,descripcion)
-VALUES ('F003', 'M003',1,'Des3');
+VALUES ('F3', 'M003',1,'Des3');
 
 
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A001', 'P001', 'GEN1','DES1',TO_DATE('2024-03-20', 'YYYY-MM-DD'),'GOT');
+VALUES ('A001', 'P1', 'GEN1','DES1',TO_DATE('2024-03-20', 'YYYY-MM-DD'),'GOT');
 
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A002', 'P002', 'GEN2','DES2',TO_DATE('2024-03-21', 'YYYY-MM-DD'),'Boulevard');
+VALUES ('A002', 'P2', 'GEN2','DES2',TO_DATE('2024-03-21', 'YYYY-MM-DD'),'Boulevard');
 
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A003', 'P003', 'GEN3','DES3',TO_DATE('2024-03-22', 'YYYY-MM-DD'),'El principe');
+VALUES ('A003', 'P3', 'GEN3','DES3',TO_DATE('2024-03-22', 'YYYY-MM-DD'),'El principe');
 
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
 VALUES ('A004', NULL, 'GEN3','DES3',TO_DATE('2024-03-22', 'YYYY-MM-DD'),'El principe');
 
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A001','Autores1');
+VALUES('A1','Autores1');
 
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A002','Autores2');
+VALUES('A2','Autores2');
 
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A003','Autores3');
+VALUES('A3','Autores3');
 
 
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A001','Est1','Y');
+VALUES('A1','Est1','Y');
 
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A002','Est2','N');
+VALUES('A2','Est2','N');
 
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A003','Est3','Y');
+VALUES('A3','Est3','Y');
 
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A004','Est4','N');
+VALUES('A4','Est4','N');
 
 INSERT INTO DIGITALES(articuloI,formato)
-VALUES('A001','PDF');
+VALUES('A1','PDF');
 
 INSERT INTO DIGITALES(articuloI,formato)
-VALUES('A002','EPUB');
+VALUES('A2','EPUB');
 
 INSERT INTO DIGITALES(articuloI,formato)
-VALUES('A003','MOBI');
+VALUES('A3','MOBI');
 
 
 INSERT INTO PROVEEDORES(nombreP,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('Jaun','C001','CC','Cat1','Correo1');
+VALUES('Jaun','C1','CC','Cat1','Correo1');
 
 INSERT INTO PROVEEDORES(nombreP,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('Carlos','C002','CE','Cat2','Correo2');
+VALUES('Carlos','C2','CE','Cat2','Correo2');
 
 INSERT INTO PROVEEDORES(nombreP,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('Samuel','C003','TI','Cat3','Correo3');
+VALUES('Samuel','C3','TI','Cat3','Correo3');
 
 
 INSERT INTO VENTAS(articuloI, clienteI,clienteT, idCompra,metodoPago,total,fechaCompra)
-VALUES('A001','C001','CC','IC001','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
+VALUES('A1','C1','CC','IC1','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
 
 INSERT INTO VENTAS(articuloI, clienteI,clienteT, idCompra,metodoPago,total,fechaCompra)
-VALUES('A002','C002','CE','IC002','E',1,TO_DATE('2024-09-16', 'YYYY-MM-DD'));
+VALUES('A2','C2','CE','IC2','E',1,TO_DATE('2024-09-16', 'YYYY-MM-DD'));
 
 INSERT INTO VENTAS(articuloI, clienteI,clienteT, idCompra,metodoPago,total,fechaCompra)
-VALUES('A003','C003','TI','IC003','C',1,TO_DATE('2024-09-17', 'YYYY-MM-DD'));
+VALUES('A3','C3','TI','IC3','C',1,TO_DATE('2024-09-17', 'YYYY-MM-DD'));
 
 ---------------------------------------POBLARNOOK---------------------------------------
 -- Tabla CLIENTES (Primary Key) --
 -- Deber�a fallar porque se est� intentando insertar un cliente con una clave primaria que ya existe --
 INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C001','CC');
+VALUES('C1','CC');
 
 -- Deber�a fallar porque se est� intentando insertar un cliente con una clave primaria que ya existe --
 INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C001','CC');
+VALUES('C1','CC');
 
 -- Deber�a fallar porque se est� intentando insertar un cliente con una clave primaria que ya existe --
 INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C001','CC');
+VALUES('C1','CC');
 
 -- Deber�a fallar porque se est� intentando insertar un cliente con una clave primaria que ya existe --
 INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C001','CC');
+VALUES('C1','CC');
 
 -- Tabla CLIENTES (Check Constraint) --
 -- Deber�a fallar porque el tipo de documento especificado no est� en la lista de valores permitidos --
 INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C004','OT');
+VALUES('C4','OT');
 
 -- Deber�a fallar porque el tipo de documento especificado no est� en la lista de valores permitidos --
 INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C004','OT');
+VALUES('C4','OT');
 
 -- Deber�a fallar porque el tipo de documento especificado no est� en la lista de valores permitidos --
 INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C004','OT');
+VALUES('C4','OT');
 
 -- Deber�a fallar porque el tipo de documento especificado no est� en la lista de valores permitidos --
 INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C004','OT');
+VALUES('C4','OT');
 
 -- Tabla SUSCRITOS (Unique Key) --
 -- Deber�a fallar porque se est� intentando insertar un usuario con un nombre de usuario que ya existe --
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C004','CE','NomUs3','C','Nom3','Ape3');
+VALUES('C4','CE','NomUs3','C','Nom3','Ape3');
 
 -- Deber�a fallar porque se est� intentando insertar un usuario con un nombre de usuario que ya existe --
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C004','CE','NomUs3','C','Nom3','Ape3');
+VALUES('C4','CE','NomUs3','C','Nom3','Ape3');
 
 -- Deber�a fallar porque se est� intentando insertar un usuario con un nombre de usuario que ya existe --
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C004','CE','NomUs3','C','Nom3','Ape3');
+VALUES('C4','CE','NomUs3','C','Nom3','Ape3');
 
 -- Deber�a fallar porque se est� intentando insertar un usuario con un nombre de usuario que ya existe --
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C004','CE','NomUs3','C','Nom3','Ape3');
+VALUES('C4','CE','NomUs3','C','Nom3','Ape3');
 
 -- Tabla RESERVAS (Primary Key) --
 -- Deber�a fallar porque se est� intentando insertar una reserva con un ID que ya existe --
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva, estado)
-VALUES ('C001','CC','R001','A');
+VALUES ('C1','CC','R001','A');
 
 -- Deber�a fallar porque se est� intentando insertar una reserva con un ID que ya existe --
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva, estado)
-VALUES ('C001','CC','R001','A');
+VALUES ('C1','CC','R001','A');
 
 -- Deber�a fallar porque se est� intentando insertar una reserva con un ID que ya existe --
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva, estado)
-VALUES ('C001','CC','R001','A');
+VALUES ('C1','CC','R001','A');
 
 -- Deber�a fallar porque se est� intentando insertar una reserva con un ID que ya existe --
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva, estado)
-VALUES ('C001','CC','R001','A');
+VALUES ('C1','CC','R001','A');
 
 -- Tabla RESERVAS (Check Constraint) --
 -- Deber�a fallar porque se est� intentando insertar una reserva con un estado que no est� permitido --
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva, estado)
-VALUES ('C001','CC','R005','Z');
+VALUES ('C1','CC','R005','Z');
 
 -- Deber�a fallar porque se est� intentando insertar una reserva con un estado que no est� permitido --
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva, estado)
-VALUES ('C001','CC','R005','Z');
+VALUES ('C1','CC','R005','Z');
 
 -- Deber�a fallar porque se est� intentando insertar una reserva con un estado que no est� permitido --
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva, estado)
-VALUES ('C001','CC','R005','Z');
+VALUES ('C1','CC','R005','Z');
 
 -- Deber�a fallar porque se est� intentando insertar una reserva con un estado que no est� permitido --
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva, estado)
-VALUES ('C001','CC','R005','Z');
+VALUES ('C1','CC','R005','Z');
 
 -- Tabla PROVEEDORES (Unique Key) --
 -- Deber�a fallar porque se est� intentando insertar un proveedor con un correo electr�nico que ya existe --
 INSERT INTO PROVEEDORES(nombreP,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('Lex Corp','C004','TI','Cat4','Correo3');
+VALUES('Lex Corp','C4','TI','Cat4','Correo3');
 
 -- Deber�a fallar porque se est� intentando insertar un proveedor con un correo electr�nico que ya existe --
 INSERT INTO PROVEEDORES(nombreP,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('Injustice','C004','TI','Cat4','Correo3');
+VALUES('Injustice','C4','TI','Cat4','Correo3');
 
 -- Deber�a fallar porque se est� intentando insertar un proveedor con un correo electr�nico que ya existe --
 INSERT INTO PROVEEDORES(nombreP,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('BTS','C004','TI','Cat4','Correo3');
+VALUES('BTS','C4','TI','Cat4','Correo3');
 
 -- Deber�a fallar porque se est� intentando insertar un proveedor con un correo electr�nico que ya existe --
 INSERT INTO PROVEEDORES(nombreP,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('Tesla','C004','TI','Cat4','Correo3');
+VALUES('Tesla','C4','TI','Cat4','Correo3');
 
 -- Tabla PROVEEDORES (Foreign Key) --
 -- Deber�a fallar porque se est� intentando insertar un proveedor con un cliente que no existe --
 INSERT INTO PROVEEDORES(nombreP,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('A004','C009','TI','Cat4','Correo3');
+VALUES('A4','C9','TI','Cat4','Correo3');
 
 -- Deber�a fallar porque se est� intentando insertar un proveedor con un cliente que no existe --
 INSERT INTO PROVEEDORES(articuloI,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('A004','C009','TI','Cat4','Correo3');
+VALUES('A4','C9','TI','Cat4','Correo3');
 
 -- Deber�a fallar porque se est� intentando insertar un proveedor con un cliente que no existe --
 INSERT INTO PROVEEDORES(articuloI,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('A004','C009','TI','Cat4','Correo3');
+VALUES('A4','C9','TI','Cat4','Correo3');
 
 -- Deber�a fallar porque se est� intentando insertar un proveedor con un cliente que no existe --
 INSERT INTO PROVEEDORES(articuloI,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('A004','C009','TI','Cat4','Correo3');
+VALUES('A4','C9','TI','Cat4','Correo3');
 
 
 -- Tabla VENTAS (Foreign Key) --
 -- Deber�a fallar porque se est� intentando insertar una venta con un art�culo que no existe --
 INSERT INTO VENTAS(articuloI, clienteI,clienteT, idCompra,metodoPago,total,fechaCompra)
-VALUES('A009','C005','CC','IC005','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
+VALUES('A9','C5','CC','IC5','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
 
 -- Deber�a fallar porque se est� intentando insertar una venta con un cliente que no existe --
 INSERT INTO VENTAS(articuloI, clienteI,clienteT, idCompra,metodoPago,total,fechaCompra)
-VALUES('A005','C009','TI','IC009','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
+VALUES('A5','C9','TI','IC9','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
 
 -- Deber�a fallar porque se est� intentando insertar una venta con un cliente que no existe --
 INSERT INTO VENTAS(articuloI, clienteI,clienteT, idCompra,metodoPago,total,fechaCompra)
-VALUES('A006','C010','TI','IC010','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
+VALUES('A6','C010','TI','IC010','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
 
 -- Deber�a fallar porque se est� intentando insertar una venta con un cliente que no existe --
 INSERT INTO VENTAS(articuloI, clienteI,clienteT, idCompra,metodoPago,total,fechaCompra)
-VALUES('A007','C011','TI','IC011','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
+VALUES('A7','C011','TI','IC011','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
 -- Tabla PRESTAMOS (Primary Key) --
 -- Deber�a fallar porque se est� intentando insertar un pr�stamo con una ID que ya existe --
 INSERT INTO PRESTAMOS(clienteI,clienteT,idPrestamo,reservaI,fechaEntrega,FechaDevolucionEstimada)
-VALUES ('C001', 'CC','P001', 'R001',TO_DATE('2024-01-01', 'YYYY-MM-DD'), TO_DATE('2024-03-20', 'YYYY-MM-DD'));
+VALUES ('C1', 'CC','P001', 'R001',TO_DATE('2024-01-01', 'YYYY-MM-DD'), TO_DATE('2024-03-20', 'YYYY-MM-DD'));
 
 -- Deber�a fallar porque se est� intentando insertar un pr�stamo con una ID que ya existe --
 INSERT INTO PRESTAMOS(clienteI,clienteT,idPrestamo,reservaI,fechaEntrega,FechaDevolucionEstimada)
-VALUES ('C002', 'CE','P002', 'R002',TO_DATE('2024-01-02', 'YYYY-MM-DD'),TO_DATE('2024-02-02', 'YYYY-MM-DD'));
+VALUES ('C2', 'CE','P002', 'R002',TO_DATE('2024-01-02', 'YYYY-MM-DD'),TO_DATE('2024-02-02', 'YYYY-MM-DD'));
 
 -- Deber�a fallar porque se est� intentando insertar un pr�stamo con una ID que ya existe --
 INSERT INTO PRESTAMOS(clienteI,clienteT,idPrestamo,reservaI,fechaEntrega,FechaDevolucionEstimada)
-VALUES ('C003', 'TI','P003', 'R003',TO_DATE('2024-01-03', 'YYYY-MM-DD'),TO_DATE('2024-02-03', 'YYYY-MM-DD'));
+VALUES ('C3', 'TI','P003', 'R003',TO_DATE('2024-01-03', 'YYYY-MM-DD'),TO_DATE('2024-02-03', 'YYYY-MM-DD'));
 
 -- Deber�a fallar porque se est� intentando insertar un pr�stamo con una ID que ya existe --
 INSERT INTO PRESTAMOS(clienteI,clienteT,idPrestamo,reservaI,fechaEntrega,FechaDevolucionEstimada)
-VALUES ('C004', 'CC','P001', 'R001',TO_DATE('2024-01-01', 'YYYY-MM-DD'), TO_DATE('2024-03-20', 'YYYY-MM-DD'));
+VALUES ('C4', 'CC','P001', 'R001',TO_DATE('2024-01-01', 'YYYY-MM-DD'), TO_DATE('2024-03-20', 'YYYY-MM-DD'));
 
 -- Tabla MULTAS (Primary Key) --
 -- Deber�a fallar porque se est� intentando insertar una multa con una ID que ya existe --
@@ -575,19 +575,19 @@ VALUES ('F004', 'M001',1,'Des4');
 -- Tabla FISICOS (Check Constraint) --
 -- Deber�a fallar porque se est� intentando insertar un libro f�sico con un estado que no es v�lido --
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A001','EstadoInvalido','Y');
+VALUES('A1','EstadoInvalido','Y');
 
 -- Deber�a fallar porque se est� intentando insertar un libro f�sico con un estado que no es v�lido --
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A002','EstadoInvalido','Y');
+VALUES('A2','EstadoInvalido','Y');
 
 -- Deber�a fallar porque se est� intentando insertar un libro f�sico con un estado que no es v�lido --
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A003','EstadoInvalido','Y');
+VALUES('A3','EstadoInvalido','Y');
 
 -- Deber�a fallar porque se est� intentando insertar un libro f�sico con un estado que no es v�lido --
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A004','EstadoInvalido','Y');
+VALUES('A4','EstadoInvalido','Y');
 
 -- Tabla FACTURAS (Check Constraint) --
 -- Deber�a fallar porque se est� intentando insertar una factura con un m�todo de pago que no es v�lido --
@@ -609,49 +609,49 @@ VALUES ('P004', 'F004','MetodoInvalido',TO_DATE('2024-04-04', 'YYYY-MM-DD'),4,'A
 -- Tabla DIGITALES (Check Constraint) --
 -- Deber�a fallar porque se est� intentando insertar un libro digital con un formato que no es v�lido --
 INSERT INTO DIGITALES(articuloI,formato)
-VALUES('A001','FormatoInvalido');
+VALUES('A1','FormatoInvalido');
 
 -- Deber�a fallar porque se est� intentando insertar un libro digital con un formato que no es v�lido --
 INSERT INTO DIGITALES(articuloI,formato)
-VALUES('A002','FormatoInvalido');
+VALUES('A2','FormatoInvalido');
 
 -- Deber�a fallar porque se est� intentando insertar un libro digital con un formato que no es v�lido --
 INSERT INTO DIGITALES(articuloI,formato)
-VALUES('A003','FormatoInvalido');
+VALUES('A3','FormatoInvalido');
 
 -- Deber�a fallar porque se est� intentando insertar un libro digital con un formato que no es v�lido --
 INSERT INTO DIGITALES(articuloI,formato)
-VALUES('A004','FormatoInvalido');
+VALUES('A4','FormatoInvalido');
 
 -- Tabla AUTORES (Primary Key) --
 -- Deber�a fallar porque se est� intentando insertar un autor para un art�culo que ya tiene ese autor --
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A001','Autor1');
+VALUES('A1','Autor1');
 
 -- Deber�a fallar porque se est� intentando insertar un autor para un art�culo que ya tiene ese autor --
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A001','Autor2');
+VALUES('A1','Autor2');
 
 -- Deber�a fallar porque se est� intentando insertar un autor para un art�culo que ya tiene ese autor --
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A004','Autor2');
+VALUES('A4','Autor2');
 
 -- Tabla ARTICULOS (Primary Key) --
 -- Deber�a fallar porque se est� intentando insertar un art�culo con una ID que ya existe --
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A001', 'P001', 'Genero1','Descripcion1',TO_DATE('2024-03-20', 'YYYY-MM-DD'),'El extranjero');
+VALUES ('A1', 'P001', 'Genero1','Descripcion1',TO_DATE('2024-03-20', 'YYYY-MM-DD'),'El extranjero');
 
 -- Deber�a fallar porque se est� intentando insertar un art�culo con una ID que ya existe --
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A002', 'P002', 'Genero2','Descripcion2',TO_DATE('2024-03-21', 'YYYY-MM-DD'),'La divina comedia');
+VALUES ('A2', 'P002', 'Genero2','Descripcion2',TO_DATE('2024-03-21', 'YYYY-MM-DD'),'La divina comedia');
 
 -- Deber�a fallar porque se est� intentando insertar un art�culo con una ID que ya existe --
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A003', 'P003', 'Genero3','Descripcion3',TO_DATE('2024-03-22', 'YYYY-MM-DD'),'Pet Sematary');
+VALUES ('A3', 'P003', 'Genero3','Descripcion3',TO_DATE('2024-03-22', 'YYYY-MM-DD'),'Pet Sematary');
 
 -- Deber�a fallar porque se est� intentando insertar un art�culo con una ID que ya existe --
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A004', 'P004', 'Genero4','Descripcion4',TO_DATE('2024-03-23', 'YYYY-MM-DD'),'Revival');
+VALUES ('A4', 'P004', 'Genero4','Descripcion4',TO_DATE('2024-03-23', 'YYYY-MM-DD'),'Revival');
 ---------------------------------------XPOBLAR---------------------------------------
 
 DELETE FROM CLIENTES;
@@ -665,6 +665,6 @@ DELETE FROM PROVEEDORES;
 DELETE FROM RESERVAS;
 DELETE FROM SUSCRITOS;
 DELETE FROM VENTAS;
-
+DELETE FROM ARTICULOS;
 
 
