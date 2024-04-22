@@ -47,7 +47,7 @@ BEFORE UPDATE ON FACTURAS
 FOR EACH ROW
 BEGIN
     IF :NEW.estado!='D' THEN
-       RAISE_APPLICATION_ERROR(-20001,'Si el estado de la factura no es denegado, no se puede modificar'); 
+        RAISE_APPLICATION_ERROR(-20001,'Si el estado de la factura no es denegado, no se puede modificar'); 
     END IF;
 END;
 /
@@ -115,7 +115,7 @@ CREATE SEQUENCE secuencia_facturas START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE secuencia_clientes START WITH 1 INCREMENT BY 1;
 
 -- Generar indices de idClientes en Clientes --
-CREATE OR REPLACE TRIGGER TR_VENTAS_generar_idCliente
+CREATE OR REPLACE TRIGGER TR_CLIENTES_generar_idCliente
 BEFORE INSERT ON CLIENTES
 FOR EACH ROW
 BEGIN
@@ -159,7 +159,19 @@ BEGIN
 END;
 /
 ---------------------------- XDISPARADORES ----------------------------
+DROP SEQUENCE secuencia_ventas;
+DROP SEQUENCE secuencia_articulos;
+DROP SEQUENCE secuencia_facturas;
+DROP SEQUENCE secuencia_prestamos;
+DROP SEQUENCE secuencia_clientes;
+
+DROP TRIGGER TR_CLIENTES_generar_idCliente;
+DROP TRIGGER TR_VENTAS_generar_idCompra;
+DROP TRIGGER TR_ARTICULOS_generar_idArticulo;
+DROP TRIGGER TR_FACTURAS_generar_idFactura;
+DROP TRIGGER TR_PRESTAMOS_generar_idPrestamo;
 --------------------------- DISPARADORESOK ---------------------------
+
 -------------------------- DISPARADORESNoOK --------------------------
 
 ---------------------------- VISTAS ----------------------------
@@ -168,17 +180,40 @@ CREATE VIEW CLIENTES_SUSCRITOS AS SELECT nombre, apellido, clienteI, clienteT FR
 
 -- Solo consultar las ventas --
 CREATE VIEW COMPRAS AS 
-SELECT ARTICULOS.nombreArticulo, VENTAS.articuloI, VENTAS.clienteI, VENTAS.total, VENTAS.fechaCompra 
+SELECT PROVEEDORES.nombreP AS "PROVEEDORES",VENTAS.clienteI AS "ID PROVEEDOR", ARTICULOS.nombreArticulo AS "ARTICULO", VENTAS.articuloI AS "ID ARTICULO", VENTAS.total AS "TOTAL", VENTAS.fechaCompra 
 FROM VENTAS 
-JOIN ARTICULOS ON VENTAS.articuloI = ARTICULOS.idArticulo;
+JOIN ARTICULOS ON VENTAS.articuloI = ARTICULOS.idArticulo
+JOIN PROVEEDORES ON PROVEEDORES.clienteI = VENTAS.clienteI AND PROVEEDORES.clienteT = VENTAS.clienteT;
 
 -- Consultar las facturas de los clientes con multa --
 CREATE VIEW FACTURAS_CON_MULTA AS 
-SELECT SUSCRITOS.nombre, SUSCRITOS.apellido, FACTURAS.total AS "Total a Pagar", MULTAS.monto AS 'Total de multa', MULTAS.idMulta
+SELECT SUSCRITOS.nombre, SUSCRITOS.apellido, FACTURAS.total AS "Total a Pagar", MULTAS.monto AS "Total de multa", MULTAS.idMulta
 FROM FACTURAS 
 JOIN PRESTAMOS ON FACTURAS.prestamoI = PRESTAMOS.idPrestamo 
 JOIN SUSCRITOS ON SUSCRITOS.clienteI = PRESTAMOS.clienteI AND SUSCRITOS.clienteT = PRESTAMOS.clienteT 
 JOIN MULTAS ON MULTAS.facturaI = FACTURAS.idFactura;
+-- Articulos fisicos --
+CREATE VIEW ARTICULOS_FISICOS AS SELECT * FROM ARTICULOS a JOIN FISICOS b ON a.idArticulo=b.articuloI;
 
-CREATE VIEW CLIENTES_SUSCRITOS AS SELECT nombre, apellido, clienteI, clienteT FROM SUSCRITOS;
+-- Nombre del articulo, nombre de quien lo reservo, fecha de entrega, fecha estimada de devolucion --
+CREATE VIEW ARTICULOS_EN_RESERVA AS
+SELECT ARTICULOS.nombreArticulo AS "ARTICULO", SUSCRITOS.nombre, SUSCRITOS.apellido, PRESTAMOS.fechaEntrega, PRESTAMOS.fechaDevolucionEstimada AS "FECHA DEVOLUCION"
+FROM RESERVAS
+JOIN PRESTAMOS ON PRESTAMOS.reservaI = RESERVAS.idReserva
+JOIN SUSCRITOS ON SUSCRITOS.clienteI = PRESTAMOS.clienteI AND SUSCRITOS.clienteT = PRESTAMOS.clienteT
+JOIN ARTICULOS ON ARTICULOS.prestamoI = PRESTAMOS.idPrestamo;
+
+---------------------------- VISTASoK ----------------------------
+SELECT * FROM CLIENTES_SUSCRITOS;
+SELECT * FROM COMPRAS;
+SELECT * FROM FACTURAS_CON_MULTA;
+SELECT * FROM ARTICULOS_FISICOS;
+SELECT * FROM ARTICULOS_EN_RESERVA;
+
+---------------------------- XVISTAS ----------------------------
+DROP VIEW CLIENTES_SUSCRITOS;
+DROP VIEW COMPRAS;
+DROP VIEW FACTURAS_CON_MULTA;
+DROP VIEW ARTICULOS_FISICOS;
+DROP VIEW ARTICULOS_EN_RESERVA;
 

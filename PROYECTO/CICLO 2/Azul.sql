@@ -1,9 +1,9 @@
 ---------------------------------------TABLAS---------------------------------------
 CREATE TABLE CLIENTES(
- idCliente VARCHAR(20) NOT NULL,
- tidCliente VARCHAR(2) NOT NULL
- );
- 
+idCliente VARCHAR(20) NOT NULL,
+tidCliente VARCHAR(2) NOT NULL
+);
+
 CREATE TABLE SUSCRITOS(
 clienteI VARCHAR(20) NOT NULL,
 clienteT VARCHAR(2) NOT NULL,
