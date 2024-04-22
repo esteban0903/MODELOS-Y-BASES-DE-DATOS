@@ -1,17 +1,4 @@
 ----------------------------TUPLAS----------------------------
--- Secuencia de automatizacion --
-CREATE SEQUENCE secuencia_codigo
-  START WITH 1
-  INCREMENT BY 1;
--- Automatizacion de indices --
-CREATE OR REPLACE TRIGGER TR_VENTAS_generar_idCompra
-BEFORE INSERT ON VENTAS
-FOR EACH ROW
-BEGIN
-    :new.idCompra := TO_CHAR(secuencia_codigo.NEXTVAL);
-END;
-/
-
 --Tipo Tcredencial---
 CREATE OR REPLACE TRIGGER TR_SUSCRITOS_nombreUsuario
 BEFORE INSERT ON SUSCRITOS
@@ -119,4 +106,35 @@ UPDATE FACTURAS
 SET total = 5
 WHERE idFactura= 'F001';
 
+---------------------------- Automatizacion de indices con Disparadores----------------------------
+-- Secuencia de automatizacion --
+CREATE SEQUENCE secuencia_codigo
+  START WITH 1
+  INCREMENT BY 1;
+-- Generar indices de idCompra en Ventas --
+CREATE OR REPLACE TRIGGER TR_VENTAS_generar_idCompra
+BEFORE INSERT ON VENTAS
+FOR EACH ROW
+BEGIN
+    :new.idCompra := 'V'|| TO_CHAR(secuencia_codigo.NEXTVAL);
+END;
+/
+
+-- Generar indices de idArticulo en Articulos --
+CREATE OR REPLACE TRIGGER TR_ARTICULOS_generar_idArticulo
+BEFORE INSERT ON ARTICULOS
+FOR EACH ROW
+BEGIN
+    :new.idArticulo := 'A'||TO_CHAR(secuencia_codigo.NEXTVAL);
+END;
+/
+
+-- Generar indices de idPrestamo en PRESTAMOS --
+CREATE OR REPLACE TRIGGER TR_PRESTAMOS_generar_idPrestamo
+BEFORE INSERT ON PRESTAMOS
+FOR EACH ROW
+BEGIN
+    :new.idPrestamo := 'P'|| TO_CHAR(secuencia_codigo.NEXTVAL);
+END;
+/
 
