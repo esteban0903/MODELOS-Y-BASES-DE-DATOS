@@ -218,7 +218,7 @@ CREATE OR REPLACE PACKAGE BODY PC_EXTRAS AS
     ) IS
     BEGIN
         UPDATE EXTRAS
-        SET DESCRIPTION = detail
+        SET EXTRAS.DESCRIPTION = detail
         WHERE EXTRAS_ID = extra_id;
     END up_ad_detail;
     FUNCTION co(extra_id IN NUMBER) RETURN SYS_REFCURSOR IS
@@ -251,3 +251,59 @@ CREATE OR REPLACE PACKAGE BODY PC_EXTRAS AS
     END co_byBooking;
 END PC_EXTRAS;
 /
+
+------------------------------------- CRUDOK -------------------------------------
+DECLARE
+    result VARCHAR2(100);
+BEGIN
+    result := PC_EXTRAS.ad('Descuento especial', 50, 10, 1);
+    DBMS_OUTPUT.PUT_LINE(result);
+END;
+BEGIN
+    PC_EXTRAS.up_ad_detail('Nuevo detalle', 240425);
+END;
+BEGIN
+    PC_EXTRAS.de(1);
+END;
+-- Para consultar un extra por su ID
+DECLARE
+    extras_cursor SYS_REFCURSOR;
+BEGIN
+    extras_cursor := PC_EXTRAS.co(1);
+    DBMS_SQL.RETURN_RESULT(extras_cursor);
+END;
+/
+-- Para consultar todos los extras de la semana actual
+DECLARE
+    extras_cursor SYS_REFCURSOR;
+BEGIN
+    extras_cursor := PC_EXTRAS.co_weeks;
+    DBMS_SQL.RETURN_RESULT(extras_cursor);
+END;
+/
+-- Para consultar todos los extras de una reserva específica
+DECLARE
+    extras_cursor SYS_REFCURSOR;
+BEGIN
+    extras_cursor := PC_EXTRAS.co_byBooking(1);
+    DBMS_SQL.RETURN_RESULT(extras_cursor);
+END;
+/
+------------------------------------- CRUDNOOK -------------------------------------
+DECLARE
+    result VARCHAR2(100);
+BEGIN
+    -- Intentamos agregar un extra con un descuento mayor al 50% del precio
+    result := PC_EXTRAS.ad('Descuento especial', 100, 60, 1);
+    DBMS_OUTPUT.PUT_LINE(result);
+END;
+BEGIN
+    -- Intentamos actualizar el detalle de un extra que no existe, se ejecuta pero no altera la tabla
+    PC_EXTRAS.up_ad_detail('Nuevo detalle', 888);
+END;
+BEGIN
+    -- Intentamos eliminar un extra que no existe, se ejecuta pero no altera la tabla
+    PC_EXTRAS.de(999);
+END;
+------------------------------------- XPAQUETES -------------------------------------
+DROP PACKAGE PC_EXTRAS;
