@@ -36,28 +36,20 @@ ID              NUMBER(11),
 ROOM_TYPE       VARCHAR(6),
 MAX_OCCUPANCY   NUMBER(11)    
 );
-
 ------------------------------------- Creando PK's ------------------------------------
 --ALTER TABLE EXTRAS
 --ADD CONSTRAINT PK_EXTRAS_ID PRIMARY KEY (EXTRAS_ID);
-
 ALTER TABLE BOOKING
 ADD CONSTRAINT PK_BOOKING_ID PRIMARY KEY (BOOKING_ID);
-
 ALTER TABLE GUEST
 ADD CONSTRAINT PK_ID_GUEST PRIMARY KEY (ID);
-
 ALTER TABLE ROOM_TYPE
 ADD CONSTRAINT PK_ID PRIMARY KEY (ID);
-
 ALTER TABLE RATE
 ADD CONSTRAINT PK_RATE PRIMARY KEY (ROOM_TYPE, OCCUPANCY);
-
 ALTER TABLE ROOM
 ADD CONSTRAINT PK_ID_ROOM PRIMARY KEY (ID);
-
 -- XTABLAS
-
 DROP TABLE "BOOKING" CASCADE CONSTRAINTS PURGE;
 DROP TABLE "GUEST" CASCADE CONSTRAINTS PURGE;
 DROP TABLE "ROOM_TYPE" CASCADE CONSTRAINTS PURGE;
@@ -72,36 +64,28 @@ CREATE TABLE EXTRAS (
     DISCOUNT NUMBER(9),
     AMOUNT          NUMBER(11)
 );
-
 -- XTABLA
 DROP TABLE EXTRAS;
-
 ------------------------------------ Creando Atributos ------------------------------------
 -- Esto deberia comprobar que el valor de la PK empiece en 9 --
 -- Restriccion para extraSId positivo que inicia en 9
 ALTER TABLE EXTRAS ADD CONSTRAINT check_ExtraSIdPositive CHECK (EXTRAS_ID >= 9);
-
 -- Restriccion para discount positivo
 ALTER TABLE EXTRAS ADD CONSTRAINT check_DiscountPositive CHECK (DISCOUNT > 0);
-
 -------------------------------------- Validando casos significativos -------------------------------------
 -- AtributosOK --
 INSERT INTO EXTRAS (EXTRAS_ID, BOOKING_ID, DESCRIPTION, DISCOUNT) VALUES (10, 1, 'Descuento por reserva anticipada', 20);
-
 INSERT INTO EXTRAS (EXTRAS_ID, BOOKING_ID, DESCRIPTION, DISCOUNT) VALUES (9, 2, 'Descuento por ser cliente frecuente', 15);
-
 -- AtributosNoOK --
 -- Este caso no cumplira con la Restriccion check_ExtraSIdPositive ya que EXTRAS_ID debe ser mayor o igual a 9. --
 INSERT INTO EXTRAS (EXTRAS_ID, BOOKING_ID, DESCRIPTION, DISCOUNT) VALUES (-5, 3, 'Descuento por promoci�n', 10);
 -- Este caso no cumplira con la Restriccion check_DiscountPositive ya que DISCOUNT debe ser positivo. --
 INSERT INTO EXTRAS (EXTRAS_ID, BOOKING_ID, DESCRIPTION, DISCOUNT) VALUES (11, 4, 'Descuento por ser estudiante', -5);
-
 ------------------------------------ PARTE B ------------------------------------
 -- ACCIONES --
 DROP TABLE EXTRAS;
 DROP TABLE BOOKING;
 -- RECREAR TABLAS --
-
 CREATE TABLE BOOKING(
 BOOKING_ID      NUMBER(11),
 BOOKING_DATE    DATE,
@@ -112,7 +96,6 @@ ROOM_TYPE_REQUESTED VARCHAR(6),
 NIGHTS          NUMBER(11) NOT NULL,
 ARRIVAL_TIME    VARCHAR(5)
 );
-
 CREATE TABLE EXTRAS (
     EXTRAS_ID       NUMBER(11),
     BOOKING_ID      NUMBER(11),
@@ -120,36 +103,25 @@ CREATE TABLE EXTRAS (
     DISCOUNT        NUMBER(9),
     AMOUNT          NUMBER(11)
 );
-
 -- APLICAR ATRIBUTOS Y PK'S
 ALTER TABLE BOOKING
 ADD CONSTRAINT PK_BOOKING_ID PRIMARY KEY (BOOKING_ID);
-
 ALTER TABLE EXTRAS
 ADD CONSTRAINT PK_EXTRAS_ID PRIMARY KEY (EXTRAS_ID);
-
 ALTER TABLE EXTRAS ADD CONSTRAINT check_ExtraSIdPositive CHECK (EXTRAS_ID >= 9);
-
 -- Restriccion para discount positivo
 ALTER TABLE EXTRAS ADD CONSTRAINT check_DiscountPositive CHECK (DISCOUNT > 0);
-
 ------------------------------------ Creando FK's ------------------------------------
-
 ALTER TABLE EXTRAS
 ADD CONSTRAINT FK_EXTRAS_BOOKING_ID FOREIGN KEY (BOOKING_ID) REFERENCES BOOKING(BOOKING_ID);
-
 -- AccionesOK
 -------------------------------------- Validando casos significativos -------------------------------------
-
 INSERT INTO BOOKING (BOOKING_ID, BOOKING_DATE, ROOM_NO, GUEST_ID, OCCUPANTS, ROOM_TYPE_REQUESTED, NIGHTS, ARRIVAL_TIME) VALUES 
 (1, TO_DATE('2024-03-21', 'YYYY-MM-DD'), 101, 1, 2, 'STD', 3, '14:00');
-
 INSERT INTO BOOKING (BOOKING_ID, BOOKING_DATE, ROOM_NO, GUEST_ID, OCCUPANTS, ROOM_TYPE_REQUESTED, NIGHTS, ARRIVAL_TIME) VALUES 
 (2, TO_DATE('2024-03-22', 'YYYY-MM-DD'), 102, 2, 1, 'DLX', 2, '15:00');
-
 INSERT INTO BOOKING (BOOKING_ID, BOOKING_DATE, ROOM_NO, GUEST_ID, OCCUPANTS, ROOM_TYPE_REQUESTED, NIGHTS, ARRIVAL_TIME) VALUES 
 (3, TO_DATE('2024-03-23', 'YYYY-MM-DD'), 103, 3, 2, 'STD', 4, '13:00');
-
 ------------------------------------ PARTE B ------------------------------------
 -- Disparadores
 CREATE OR REPLACE TRIGGER trg_ExtraSIdCheck
@@ -161,7 +133,6 @@ BEGIN
     END IF;
 END;
 /
-
 CREATE OR REPLACE TRIGGER generar_id_extras
 BEFORE INSERT ON EXTRAS
 FOR EACH ROW
@@ -175,8 +146,6 @@ BEGIN
     :NEW.EXTRAS_ID := TO_NUMBER(TO_CHAR(SYSDATE, 'YYMMDD')) + v_counter;
 END;
 /
-
-
 CREATE OR REPLACE TRIGGER TR_EXTRAS_BI
 BEFORE INSERT ON EXTRAS
 FOR EACH ROW
@@ -193,8 +162,6 @@ BEGIN
     END IF;
 END;
 /
-
-
 -- XDisparadores
 DROP TRIGGER trg_ExtraSIdCheck;
 DROP TRIGGER generar_id_extras;
@@ -215,39 +182,24 @@ INSERT INTO EXTRAS(extras_id, booking_id, description, discount, amount) VALUES(
 ------------------------------------------ AUTORESTUDIO 5 ------------------------------------------
 ----------------------------------- PARTE A OFRECIENDO SERVICIOS -----------------------------------
 CREATE OR REPLACE PACKAGE PC_EXTRAS AS
-    -- Función para agregar un nuevo extra
     FUNCTION ad(
         description IN VARCHAR,
         amount IN NUMBER,
         discount IN NUMBER,
         booking_id IN NUMBER
     ) RETURN VARCHAR;
-
-    -- Procedimiento para actualizar detalles de un extra
     PROCEDURE up_ad_detail(
         detail IN VARCHAR,
         extra_id IN NUMBER
     );
-
-    -- Función para consultar un extra por su ID
     FUNCTION co(extra_id IN NUMBER) RETURN SYS_REFCURSOR;
-
-    -- Procedimiento para eliminar un extra por su ID
     PROCEDURE de(extra_id IN NUMBER);
-
-    -- Función para consultar todos los extras
-    FUNCTION co_all RETURN SYS_REFCURSOR;
-
-    -- Función para consultar todos los extras de la semana actual
     FUNCTION co_weeks RETURN SYS_REFCURSOR;
-
-    -- Función para consultar todos los extras de una reserva específica
     FUNCTION co_byBooking(booking_id IN NUMBER) RETURN SYS_REFCURSOR;
 END PC_EXTRAS;
 /
-
+CREATE SEQUENCE EXTRAS_SEQ START WITH 1 INCREMENT BY 1;
 CREATE OR REPLACE PACKAGE BODY PC_EXTRAS AS
-    -- Función para agregar un nuevo extra
     FUNCTION ad(
         description IN VARCHAR,
         amount IN NUMBER,
@@ -255,26 +207,20 @@ CREATE OR REPLACE PACKAGE BODY PC_EXTRAS AS
         booking_id IN NUMBER
     ) RETURN VARCHAR IS
     BEGIN
-        -- Insertar el nuevo extra
         INSERT INTO EXTRAS (EXTRAS_ID, BOOKING_ID, DESCRIPTION, DISCOUNT, AMOUNT)
         VALUES (EXTRAS_SEQ.NEXTVAL, booking_id, description, discount, amount);
         
         RETURN 'Extra agregado correctamente';
     END ad;
-
-    -- Procedimiento para actualizar detalles de un extra
     PROCEDURE up_ad_detail(
         detail IN VARCHAR,
         extra_id IN NUMBER
     ) IS
     BEGIN
-        -- Actualizar el detalle del extra
         UPDATE EXTRAS
         SET DESCRIPTION = detail
         WHERE EXTRAS_ID = extra_id;
     END up_ad_detail;
-
-    -- Función para consultar un extra por su ID
     FUNCTION co(extra_id IN NUMBER) RETURN SYS_REFCURSOR IS
         extras_cursor SYS_REFCURSOR;
     BEGIN
@@ -283,25 +229,10 @@ CREATE OR REPLACE PACKAGE BODY PC_EXTRAS AS
         
         RETURN extras_cursor;
     END co;
-
-    -- Procedimiento para eliminar un extra por su ID
     PROCEDURE de(extra_id IN NUMBER) IS
     BEGIN
-        -- Eliminar el extra
         DELETE FROM EXTRAS WHERE EXTRAS_ID = extra_id;
     END de;
-
-    -- Función para consultar todos los extras
-    FUNCTION co_all RETURN SYS_REFCURSOR IS
-        extras_cursor SYS_REFCURSOR;
-    BEGIN
-        OPEN extras_cursor FOR
-        SELECT * FROM EXTRAS;
-        
-        RETURN extras_cursor;
-    END co_all;
-
-    -- Función para consultar todos los extras de la semana actual
     FUNCTION co_weeks RETURN SYS_REFCURSOR IS
         extras_cursor SYS_REFCURSOR;
     BEGIN
@@ -310,10 +241,6 @@ CREATE OR REPLACE PACKAGE BODY PC_EXTRAS AS
         
         RETURN extras_cursor;
     END co_weeks;
-
-
-
-    -- Función para consultar todos los extras de una reserva específica
     FUNCTION co_byBooking(booking_id IN NUMBER) RETURN SYS_REFCURSOR IS
         extras_cursor SYS_REFCURSOR;
     BEGIN
@@ -324,6 +251,3 @@ CREATE OR REPLACE PACKAGE BODY PC_EXTRAS AS
     END co_byBooking;
 END PC_EXTRAS;
 /
-
-
-
