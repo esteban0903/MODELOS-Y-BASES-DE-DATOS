@@ -4,8 +4,8 @@
 CREATE TABLE USUARIOS( 
     universidadC    VARCHAR(3) NOT NULL,
     codigo          VARCHAR(3) NOT NULL,
-    tid             VARCHAR(50)NOT NULL,
-    nid             VARCHAR(3) NOT NULL,
+    tid             VARCHAR(3)NOT NULL,
+    nid             VARCHAR(50) NOT NULL,
     nombre          VARCHAR(50)NOT NULL,
     programa        VARCHAR(20)NOT NULL,
     correo          VARCHAR(50)NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE UNIVERSIDADES(
     codigoUn        VARCHAR(3) NOT NULL,
     representanteU   VARCHAR(10),-- Agregamos que esta podría ser nula -- 
     representanteC   VARCHAR(10),-- Agregamos que esta podría ser nula -- 
-    nombre          VARCHAR(20)NOT NULL,
+    nombre          VARCHAR(50)NOT NULL,
     direccion       VARCHAR(50) NOT NULL
 );
 
@@ -136,24 +136,12 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trg_create_TID_U
-BEFORE INSERT ON USUARIOS
-FOR EACH ROW
-BEGIN
-    :new.tid := :new.tid || '_' || TO_CHAR(:new.nid);
-END;
-/
-
-ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TURL_E CHECK (
-    SUBSTR(REPORTE, 1, 8) = 'https://'
-    AND LENGTH(REPORTE) <= 100
-);
 
 ------------------------------------------ PRIMARIAS ------------------------------------------
 
 ALTER TABLE UNIVERSIDADES ADD CONSTRAINT PK_UNIVERSIDAD_
 PRIMARY KEY (codigoUn);
--- Error --
+
 ALTER TABLE USUARIOS ADD CONSTRAINT PK_USUARIOS_
 PRIMARY KEY (universidadC, codigo);
 
@@ -191,11 +179,7 @@ PRIMARY KEY (evaluacionA);
 ALTER TABLE ARTICULOS ADD CONSTRAINT UK_ARTICULO
 UNIQUE (foto);
 
-ALTER TABLE USUARIOS ADD CONSTRAINT UK_USUARIO_tid
-UNIQUE (tid);
 
-ALTER TABLE USUARIOS ADD CONSTRAINT UK_USUARIO_nid
-UNIQUE (nid);
 
 ALTER TABLE EVALUACIONES ADD CONSTRAINT UK_EVALUACION
 UNIQUE (reporte);
@@ -501,4 +485,81 @@ DELETE FROM RESPUESTAS;
 DELETE FROM ROPAS;
 DELETE FROM UNIVERSIDADES;
 DELETE FROM USUARIOS;
+
+
+---TRIGGER PROBLAR---
+
+
+
+INSERT INTO mbda.DATA (UCODIGO,UNOMBRE,UDIRECCION,NID,NOMBRES)
+VALUES (111,'ESCUELA',  'AK 45 (Autonorte) #205/59',1000095983,'Esteban Aguilera Contreras');
+
+
+INSERT INTO mbda.DATA (UCODIGO,UNOMBRE,UDIRECCION,NID,NOMBRES)
+VALUES (111,'ESCUELA','AK 45 (Autonorte) #205/59',1000095256,'Miguel Angel Motta');
+
+
+DELETE FROM mbda.DATA WHERE NID=1000095983;
+DELETE FROM mbda.DATA WHERE NID=1000095256;
+
+
+INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
+SELECT codigoUn, nombre, direccion
+FROM (
+    SELECT TO_CHAR(UCODIGO) AS codigoUn, 
+           TRIM(UPPER(UNOMBRE)) AS nombre, 
+           UDIRECCION AS direccion,
+           ROW_NUMBER() OVER (PARTITION BY TRIM(UPPER(UNOMBRE)) ORDER BY UCODIGO) AS row_num
+    FROM mbda.DATA
+) subquery
+WHERE row_num = 1;
+
+
+INSERT INTO USUARIOS(universidadC,nid,nombre)
+SELECT TO_CHAR(UCODIGO),TO_CHAR(NID),NOMBRES FROM mbda.DATA;
+
+CREATE OR REPLACE TRIGGER TR_USUARIOS
+BEFORE INSERT ON USUARIOS 
+FOR EACH ROW
+DECLARE
+    v_nombre_universidad UNIVERSIDADES.nombre%TYPE;
+BEGIN
+    :new.codigo := UPPER(DBMS_RANDOM.string('U', 3));
+    
+    :new.tid := 'CC';
+    
+    :new.suspension := '';
+    
+    :new.nSuspensiones := 0;
+    
+    :new.registro := SYSDATE;
+    
+    SELECT nombre INTO v_nombre_universidad
+    FROM UNIVERSIDADES
+    WHERE codigoUn = :new.universidadC;
+    
+    :new.correo := SUBSTR(:new.nombre, 1, INSTR(:new.nombre, ' ') - 1) || '@' || SUBSTR((v_nombre_universidad), 1, 7) || '.edu.co';
+
+
+
+    IF v_nombre_universidad = 'ESCUELA' THEN
+        :new.programa := 'Ingenieria';
+    ELSIF v_nombre_universidad = 'ROSARIO' THEN
+        :new.programa := 'Derecho';
+    ELSIF v_nombre_universidad = 'JAVERIANA' THEN
+        :new.programa := 'Medicina';
+    ELSE
+        :new.programa := 'Por definir';
+    END IF;
+END;
+/
+
+
+
+
+
+
+
+
+
 
