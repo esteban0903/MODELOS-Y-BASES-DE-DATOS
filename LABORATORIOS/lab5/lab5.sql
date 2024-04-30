@@ -455,21 +455,21 @@ INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC)
 VALUES ('A1', 'Categoria 1', 'Electronica', 50.00, 200.00, 'A1');
 
 
----------------------------------------------------- POBLANDO EVALUACIONES ----------------------------------------------------
+-----------------------------------------  POBLANDO EVALUACIONES ----------------------------------------- 
 
 INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado) 
 VALUES ('202301', 'CC', 'nid001', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte1.pdf', 'AP');
 
 
----------------------------------------------------- POBLANDO AUDITORIAS ----------------------------------------------------
+-----------------------------------------  POBLANDO AUDITORIAS ----------------------------------------- 
 
 INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, EvaluacionA) 
 VALUES (1, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'Auditoria 1','A1','202301');
----------------------------------------------------- POBLANDO ARTICULOS ----------------------------------------------------
+-----------------------------------------  POBLANDO ARTICULOS ----------------------------------------- 
 
 INSERT INTO ARTICULOS (id, usuarioU, usuarioC, categoriaC, descripcion, estado, foto, precio, disponible) 
 VALUES (1, '001', '001', 'A1', 'Descripcion 1', 'NUEVO', 'foto1.jpg', 100.00, 'Y');
----------------------------------------------------- POBLANDO CALIFICACIONES ----------------------------------------------------
+----------------------------------------- POBLANDO CALIFICACIONES ----------------------------------------- 
 
 INSERT INTO CALIFICACIONES (usuarioU, usuarioC, articuloI, estrellas) 
 VALUES ('001', '001', 1, 4);
@@ -487,36 +487,205 @@ DELETE FROM UNIVERSIDADES;
 DELETE FROM USUARIOS;
 
 
----TRIGGER PROBLAR---
-
-
-
+------------------------------------------ LAB 5 ------------------------------------------ 
+----------------------------------- EXTENDIENDO USUARIOS ----------------------------------
 INSERT INTO mbda.DATA (UCODIGO,UNOMBRE,UDIRECCION,NID,NOMBRES)
 VALUES (111,'ESCUELA',  'AK 45 (Autonorte) #205/59',1000095983,'Esteban Aguilera Contreras');
-
 
 INSERT INTO mbda.DATA (UCODIGO,UNOMBRE,UDIRECCION,NID,NOMBRES)
 VALUES (111,'ESCUELA','AK 45 (Autonorte) #205/59',1000095256,'Miguel Angel Motta');
 
+SELECT NOMBRES FROM MBDA.DATA WHERE NID = 1000095983 OR NID = 1000095256 GROUP BY NOMBRES;
+
+GRANT DELETE ON MBDA.DATA TO BD1000095983 WITH GRANT OPTION;
 
 DELETE FROM mbda.DATA WHERE NID=1000095983;
 DELETE FROM mbda.DATA WHERE NID=1000095256;
 
 
-INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
-SELECT codigoUn, nombre, direccion
-FROM (
-    SELECT TO_CHAR(UCODIGO) AS codigoUn, 
-           TRIM(UPPER(UNOMBRE)) AS nombre, 
-           UDIRECCION AS direccion,
-           ROW_NUMBER() OVER (PARTITION BY TRIM(UPPER(UNOMBRE)) ORDER BY UCODIGO) AS row_num
-    FROM mbda.DATA
-) subquery
-WHERE row_num = 1;
+
+CREATE OR REPLACE PACKAGE data_a_universidades  AS
+    
+    PROCEDURE MIGRAR_DATA_UNIVERSIDADES;
+    END data_a_universidades;
+/
+
+/* Este paquete contiene la transaccion de MBDA.DATA  universidade y usuarios 
+* de nuestra base de datos.
+*/
+CREATE OR REPLACE PACKAGE BODY data_a_universidades AS 
+    PROCEDURE MIGRAR_DATA_UNIVERSIDADES IS
+    /* Inicia la transaccion*/
+    BEGIN
+        /* Inician las operaciones de migracion*/
+        BEGIN   
+            INSERT INTO UNIVERSIDADES (codigoUn, nombre, direccion)
+            SELECT codigoUn, nombre, direccion
+            FROM (
+                SELECT TO_CHAR(UCODIGO) AS codigoUn, 
+                TRIM(UPPER(UNOMBRE)) AS nombre, 
+                UDIRECCION AS direccion,
+                ROW_NUMBER() OVER (PARTITION BY TRIM(UPPER(UNOMBRE)) ORDER BY UCODIGO) AS row_num
+                FROM mbda.DATA
+                    ) subquery
+                WHERE row_num = 1
+                AND TRIM(nombre) IS NOT NULL AND LENGTH(TRIM(nombre)) > 0
+                ;
+            /*Confirmar los cambios*/
+            COMMIT; 
+            /*Si ocurre un error durante la transaccion que regrese a su estado correcto*/
+            EXCEPTION
+                WHEN OTHERS THEN
+                    ROLLBACK;
+                    RAISE;
+                END;
+            END MIGRAR_DATA_UNIVERSIDADES;
+        END data_a_universidades;
+/
+
+
 
 
 INSERT INTO USUARIOS(universidadC,nid,nombre)
-SELECT TO_CHAR(UCODIGO),TO_CHAR(NID),NOMBRES FROM mbda.DATA;
+SELECT TO_CHAR(UCODIGO),TO_CHAR(NID),NOMBRES FROM mbda.DATA ;
+
+SELECT * FROM UNIVERSIDADES;
+SELECT NID FROM MBDA.DATA GROUP BY NID;
+/*Mi intento de hacer el trigger que migre de DATA a USUARIOS*/
+
+
+/* CREAR  EL PAQUETE QUE INSERTE LOS DATOS DE MBDA.DATA EN USUARIOS*/
+CREATE OR REPLACE PACKAGE usuario_utils AS
+    PROCEDURE insertar_usuario(p_universidadC IN USUARIOS.universidadC%TYPE,
+                               p_nombre IN USUARIOS.nombre%TYPE,
+                               p_nid IN USUARIOS.nid%TYPE);
+END usuario_utils;
+/
+
+CREATE OR REPLACE PACKAGE BODY usuario_utils AS
+    PROCEDURE insertar_usuario(p_universidadC IN USUARIOS.universidadC%TYPE,
+                               p_nombre IN USUARIOS.nombre%TYPE,
+                               p_nid IN USUARIOS.nid%TYPE) IS
+        v_nombre_universidad UNIVERSIDADES.nombre%TYPE;
+    BEGIN
+        -- Iniciar la lógica de inserción
+        -- Obtener el nombre de la universidad solo si el campo universidadC no es nulo
+        IF p_universidadC IS NOT NULL THEN
+            SELECT nombre INTO v_nombre_universidad
+            FROM UNIVERSIDADES
+            WHERE codigoUn = p_universidadC;
+
+            -- Verificar si el nombre de la universidad se pudo obtener
+            IF v_nombre_universidad IS NOT NULL THEN
+                -- Construir el correo electrónico utilizando el nombre de la universidad
+                INSERT INTO USUARIOS (codigo, tid, suspension, nSuspensiones, registro,
+                                      universidadC, nombre, correo, programa, nid)
+                VALUES (UPPER(DBMS_RANDOM.string('U', 3)), 'CC', '', 0, SYSDATE,
+                        p_universidadC, p_nombre,
+                        SUBSTR(p_nombre, 1, INSTR(p_nombre, ' ') - 1) || '@' || SUBSTR(v_nombre_universidad, 1, 7) || '.edu.co',
+                        CASE v_nombre_universidad
+                            WHEN 'ESCUELA' THEN 'Ingenieria'
+                            WHEN 'ROSARIO' THEN 'Derecho'
+                            WHEN 'JAVERIANA' THEN 'Medicina'
+                            ELSE 'Por definir'
+                        END);
+            ELSE
+                -- Si no se encuentra el nombre de la universidad, asignar valores predeterminados
+                INSERT INTO USUARIOS (codigo, tid, suspension, nSuspensiones, registro,
+                                      universidadC, nombre, correo, programa, nid)
+                VALUES (UPPER(DBMS_RANDOM.string('U', 3)), 'CC', '', 0, SYSDATE,
+                        p_universidadC, p_nombre, 'correo@default.edu.co', 'Por definir', p_nid);
+            END IF;
+        ELSE
+            -- Si el campo universidadC es nulo, asignar valores predeterminados
+            INSERT INTO USUARIOS (codigo, tid, suspension, nSuspensiones, registro,
+                                  universidadC, nombre, correo, programa, nid)
+            VALUES (UPPER(DBMS_RANDOM.string('U', 3)), 'CC', '', 0, SYSDATE,
+                    p_universidadC, p_nombre, 'correo@default.edu.co', 'Por definir', p_nid);
+        END IF;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            -- Manejar caso donde no se encuentra la universidad
+            INSERT INTO USUARIOS (codigo, tid, suspension, nSuspensiones, registro,
+                                  universidadC, nombre, correo, programa, nid)
+            VALUES (UPPER(DBMS_RANDOM.string('U', 3)), 'CC', '', 0, SYSDATE,
+                    p_universidadC, p_nombre, 'correo@default.edu.co', 'Por definir', p_nid);
+        WHEN OTHERS THEN
+            -- Manejar otros errores y mostrar un mensaje de error personalizado
+            INSERT INTO USUARIOS (codigo, tid, suspension, nSuspensiones, registro,
+                                  universidadC, nombre, correo, programa, nid)
+            VALUES (UPPER(DBMS_RANDOM.string('U', 3)), 'CC', '', 0, SYSDATE,
+                    p_universidadC, p_nombre, 'correo@default.edu.co', 'Por definir', p_nid);
+            DBMS_OUTPUT.PUT_LINE('Error al insertar usuario: ' || SQLERRM);
+    END insertar_usuario;
+END usuario_utils;
+/
+
+    
+
+
+
+
+
+/*============================================================================*/
+
+CREATE OR REPLACE TRIGGER TR_USUARIOS
+BEFORE INSERT ON USUARIOS 
+FOR EACH ROW
+DECLARE
+    v_nombre_universidad UNIVERSIDADES.nombre%TYPE;
+BEGIN
+    :new.codigo := UPPER(DBMS_RANDOM.string('U', 3));
+    :new.tid := 'CC';
+    :new.suspension := '';
+    :new.nSuspensiones := 0;
+    :new.registro := SYSDATE;
+
+    -- Obtener el nombre de la universidad solo si el campo universidadC no es nulo
+    IF :new.universidadC IS NOT NULL THEN
+        SELECT nombre INTO v_nombre_universidad
+        FROM UNIVERSIDADES
+        WHERE codigoUn = :new.universidadC;
+        
+        -- Verificar si el nombre de la universidad se pudo obtener
+        IF v_nombre_universidad IS NOT NULL THEN
+            -- Construir el correo electrónico utilizando el nombre de la universidad
+            :new.correo := SUBSTR(:new.nombre, 1, INSTR(:new.nombre, ' ') - 1) || '@' || SUBSTR(v_nombre_universidad, 1, 7) || '.edu.co';
+
+            -- Asignar el programa según el nombre de la universidad
+            CASE v_nombre_universidad
+                WHEN 'ESCUELA' THEN :new.programa := 'Ingenieria';
+                WHEN 'ROSARIO' THEN :new.programa := 'Derecho';
+                WHEN 'JAVERIANA' THEN :new.programa := 'Medicina';
+                ELSE :new.programa := 'Por definir';
+            END CASE;
+        ELSE
+            -- Si no se encuentra el nombre de la universidad, asignar valores predeterminados
+            :new.correo := 'correo@default.edu.co';
+            :new.programa := 'Por definir';
+        END IF;
+    ELSE
+        -- Si el campo universidadC es nulo, asignar valores predeterminados
+        :new.correo := 'correo@default.edu.co';
+        :new.programa := 'Por definir';
+    END IF;
+    
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        -- Manejar caso donde no se encuentra la universidad
+        :new.correo := 'correo@default.edu.co';
+        :new.programa := 'Por definir';
+    WHEN OTHERS THEN
+        -- Manejar otros errores y mostrar un mensaje de error personalizado
+        :new.correo := 'correo@default.edu.co';
+        :new.programa := 'Por definir';
+        DBMS_OUTPUT.PUT_LINE('Error al insertar usuario: ' || SQLERRM);
+END;
+/
+
+/*----------------------------------------------------------------------------------------------*/
+
+/*Este es el trigger del viernes*/
 
 CREATE OR REPLACE TRIGGER TR_USUARIOS
 BEFORE INSERT ON USUARIOS 
@@ -540,8 +709,6 @@ BEGIN
     
     :new.correo := SUBSTR(:new.nombre, 1, INSTR(:new.nombre, ' ') - 1) || '@' || SUBSTR((v_nombre_universidad), 1, 7) || '.edu.co';
 
-
-
     IF v_nombre_universidad = 'ESCUELA' THEN
         :new.programa := 'Ingenieria';
     ELSIF v_nombre_universidad = 'ROSARIO' THEN
@@ -560,6 +727,18 @@ END;
 
 
 
+
+SELECT * FROM MBDA.DATA;
+
+
+
+
+/*Compilar el paquete de DATA a UNIVERSIDADES*/
+
+BEGIN
+  data_a_universidades.MIGRAR_DATA_UNIVERSIDADES;
+END;
+/
 
 
 
