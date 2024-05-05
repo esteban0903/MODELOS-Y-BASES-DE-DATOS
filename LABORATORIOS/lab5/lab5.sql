@@ -82,7 +82,7 @@ CREATE TABLE AUDITORIAS(
 -- Si hubo cambios --
 CREATE TABLE EVALUACIONES( 
     a_omes      VARCHAR(20) NOT NULL,
-    tid         VARCHAR(50) NOT NULL,
+    tid         VARCHAR(2) NOT NULL,
     nid         VARCHAR(10) NOT NULL,
     fecha       DATE  NOT NULL,
     descripcion VARCHAR(255), -- Agregamos que esta podría ser nula -- 
