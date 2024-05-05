@@ -1,4 +1,4 @@
---------------------------------------- LABORATORIO 4 -------------------------------------
+
 ------------------------------------------ TABLAS------------------------------------------
 -- Si hubo cambios --
 CREATE TABLE USUARIOS( 
@@ -488,7 +488,6 @@ DELETE FROM USUARIOS;
 
 
 ------------------------------------------ LAB 5 ------------------------------------------ 
---------------------------------------- PUNTOS 1 AL 4 -------------------------------------
 ----------------------------------- EXTENDIENDO USUARIOS ----------------------------------
 INSERT INTO mbda.DATA (UCODIGO,UNOMBRE,UDIRECCION,NID,NOMBRES)
 VALUES (111,'ESCUELA',  'AK 45 (Autonorte) #205/59',1000095983,'Esteban Aguilera Contreras');
@@ -504,9 +503,6 @@ DELETE FROM mbda.DATA WHERE NID=1000095983;
 DELETE FROM mbda.DATA WHERE NID=1000095256;
 
 
-
---------------------------------------- PUNTOS 5 -------------------------------------
----------------------------- MIGRANDO UNIVERSIDADES DE DATA --------------------------
 
 CREATE OR REPLACE PACKAGE data_a_universidades  AS
     
@@ -547,15 +543,15 @@ CREATE OR REPLACE PACKAGE BODY data_a_universidades AS
         END data_a_universidades;
 /
 
-/*Compilar el paquete de DATA a UNIVERSIDADES para migrar UNIVERSIDADES*/
-
-BEGIN
-  data_a_universidades.MIGRAR_DATA_UNIVERSIDADES;
-END;
-/
 
 
----------------------------- MIGRANDO USUARIOS DE DATA --------------------------
+
+INSERT INTO USUARIOS(universidadC,nid,nombre)
+SELECT TO_CHAR(UCODIGO),TO_CHAR(NID),NOMBRES FROM mbda.DATA ;
+
+SELECT * FROM UNIVERSIDADES;
+SELECT NID FROM MBDA.DATA GROUP BY NID;
+/*Mi intento de hacer el trigger que migre de DATA a USUARIOS*/
 
 
 /* CREAR  EL PAQUETE QUE INSERTE LOS DATOS DE MBDA.DATA EN USUARIOS*/
@@ -625,6 +621,67 @@ CREATE OR REPLACE PACKAGE BODY usuario_utils AS
 END usuario_utils;
 /
 
+    
+
+
+
+
+
+/*============================================================================*/
+
+CREATE OR REPLACE TRIGGER TR_USUARIOS
+BEFORE INSERT ON USUARIOS 
+FOR EACH ROW
+DECLARE
+    v_nombre_universidad UNIVERSIDADES.nombre%TYPE;
+BEGIN
+    :new.codigo := UPPER(DBMS_RANDOM.string('U', 3));
+    :new.tid := 'CC';
+    :new.suspension := '';
+    :new.nSuspensiones := 0;
+    :new.registro := SYSDATE;
+
+    -- Obtener el nombre de la universidad solo si el campo universidadC no es nulo
+    IF :new.universidadC IS NOT NULL THEN
+        SELECT nombre INTO v_nombre_universidad
+        FROM UNIVERSIDADES
+        WHERE codigoUn = :new.universidadC;
+        
+        -- Verificar si el nombre de la universidad se pudo obtener
+        IF v_nombre_universidad IS NOT NULL THEN
+            -- Construir el correo electrónico utilizando el nombre de la universidad
+            :new.correo := SUBSTR(:new.nombre, 1, INSTR(:new.nombre, ' ') - 1) || '@' || SUBSTR(v_nombre_universidad, 1, 7) || '.edu.co';
+
+            -- Asignar el programa según el nombre de la universidad
+            CASE v_nombre_universidad
+                WHEN 'ESCUELA' THEN :new.programa := 'Ingenieria';
+                WHEN 'ROSARIO' THEN :new.programa := 'Derecho';
+                WHEN 'JAVERIANA' THEN :new.programa := 'Medicina';
+                ELSE :new.programa := 'Por definir';
+            END CASE;
+        ELSE
+            -- Si no se encuentra el nombre de la universidad, asignar valores predeterminados
+            :new.correo := 'correo@default.edu.co';
+            :new.programa := 'Por definir';
+        END IF;
+    ELSE
+        -- Si el campo universidadC es nulo, asignar valores predeterminados
+        :new.correo := 'correo@default.edu.co';
+        :new.programa := 'Por definir';
+    END IF;
+    
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        -- Manejar caso donde no se encuentra la universidad
+        :new.correo := 'correo@default.edu.co';
+        :new.programa := 'Por definir';
+    WHEN OTHERS THEN
+        -- Manejar otros errores y mostrar un mensaje de error personalizado
+        :new.correo := 'correo@default.edu.co';
+        :new.programa := 'Por definir';
+        DBMS_OUTPUT.PUT_LINE('Error al insertar usuario: ' || SQLERRM);
+END;
+/
 
 /*----------------------------------------------------------------------------------------------*/
 
@@ -661,6 +718,424 @@ BEGIN
     ELSE
         :new.programa := 'Por definir';
     END IF;
+END;
+/
+
+
+
+
+
+
+
+
+SELECT * FROM MBDA.DATA;
+
+
+
+
+/*Compilar el paquete de DATA a UNIVERSIDADES*/
+
+BEGIN
+  data_a_universidades.MIGRAR_DATA_UNIVERSIDADES;
+END;
+/
+
+
+--paquete evaluaciones---
+----------------------------------CRUDE------------------------------------
+-----------CATEGORIAS CREACION -----------
+CREATE OR REPLACE PACKAGE PC_CATEGORIAS AS
+    --- ADICIONAR ---
+    PROCEDURE crear_categoria(
+        p_codigo IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_tipo IN VARCHAR2,
+        p_minimo IN DECIMAL,
+        p_maximo IN DECIMAL,
+        p_perteneceC IN VARCHAR2 := NULL
+    );
+
+    --- LEER ---
+    FUNCTION leer_categoria(
+        p_codigo IN VARCHAR2
+    ) RETURN SYS_REFCURSOR;
+
+    --- ACTUALIZAR ---
+    PROCEDURE actualizar_categoria(
+        p_codigo IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_tipo IN VARCHAR2,
+        p_minimo IN DECIMAL,
+        p_maximo IN DECIMAL,
+        p_perteneceC IN VARCHAR2 := NULL
+    );
+
+    --- ELIMINAR ---
+    PROCEDURE eliminar_categoria(
+        p_codigo IN VARCHAR2
+    );
+END PC_CATEGORIAS;
+/
+
+
+-----------AUDITORIAS CREACION--------------
+CREATE OR REPLACE PACKAGE PC_AUDITORIAS AS
+    --- ADICIONAR ---
+    PROCEDURE crear_auditoria(
+        p_id IN INTEGER,
+        p_fecha IN DATE,
+        p_accion IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_categoriaC IN VARCHAR2,
+        p_evaluacionA IN VARCHAR2 := NULL
+    );
+
+    --- LEER ---
+    FUNCTION leer_auditoria(
+        p_id IN INTEGER
+    ) RETURN SYS_REFCURSOR;
+
+    --- ACTUALIZAR ---
+    PROCEDURE actualizar_auditoria(
+        p_id IN INTEGER,
+        p_fecha IN DATE,
+        p_accion IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_categoriaC IN VARCHAR2,
+        p_evaluacionA IN VARCHAR2 := NULL
+    );
+
+    --- ELIMINAR ---
+    PROCEDURE eliminar_auditoria(
+        p_id IN INTEGER
+    );
+END PC_AUDITORIAS;
+/
+----------------------------------CRUDI------------------------------------
+-----------CATEGORIAS BODY -----------
+CREATE OR REPLACE PACKAGE BODY PC_CATEGORIAS AS
+    --- ADICIONAR BODY ---
+    PROCEDURE crear_categoria(
+        p_codigo IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_tipo IN VARCHAR2,
+        p_minimo IN DECIMAL,
+        p_maximo IN DECIMAL,
+        p_perteneceC IN VARCHAR2 := NULL
+    ) IS
+    BEGIN
+        INSERT INTO CATEGORIAS (codigo, nombre, tipo, minimo, maximo, perteneceC)
+        VALUES (p_codigo, p_nombre, p_tipo, p_minimo, p_maximo, p_perteneceC);
+        COMMIT;
+    END crear_categoria;
+
+    --- LEER BODY ---
+    FUNCTION leer_categoria(
+        p_codigo IN VARCHAR2
+    ) RETURN SYS_REFCURSOR IS
+        v_cursor SYS_REFCURSOR;
+    BEGIN
+        OPEN v_cursor FOR
+        SELECT codigo, nombre, tipo, minimo, maximo, perteneceC
+        FROM CATEGORIAS
+        WHERE codigo = p_codigo;
+        RETURN v_cursor;
+    END leer_categoria;
+
+    --- ACTUALIZAR BODY ---
+    PROCEDURE actualizar_categoria(
+        p_codigo IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_tipo IN VARCHAR2,
+        p_minimo IN DECIMAL,
+        p_maximo IN DECIMAL,
+        p_perteneceC IN VARCHAR2 := NULL
+    ) IS
+    BEGIN
+        UPDATE CATEGORIAS SET
+            nombre = p_nombre,
+            tipo = p_tipo,
+            minimo = p_minimo,
+            maximo = p_maximo,
+            perteneceC = p_perteneceC
+        WHERE codigo = p_codigo;
+        COMMIT;
+    END actualizar_categoria;
+
+    --- ELIMINAR BODY ---
+    PROCEDURE eliminar_categoria(
+        p_codigo IN VARCHAR2
+    ) IS
+    BEGIN
+        DELETE FROM CATEGORIAS WHERE codigo = p_codigo;
+        COMMIT;
+    END eliminar_categoria;
+END PC_CATEGORIAS;
+/
+
+
+-----------RESPUESTAS CREACION-----------
+CREATE OR REPLACE PACKAGE PC_RESPUESTAS AS
+    --- ADICIONAR ---
+    PROCEDURE crear_respuesta(
+        p_evaluacionA IN VARCHAR2,
+        p_respuesta IN VARCHAR2
+    );
+
+    ---LEER ---
+    FUNCTION leer_respuesta(
+        p_evaluacionA IN VARCHAR2
+    ) RETURN SYS_REFCURSOR;
+
+    --- ACTUALIZAR ---
+    PROCEDURE actualizar_respuesta(
+        p_evaluacionA IN VARCHAR2,
+        p_respuesta IN VARCHAR2
+    );
+
+    --- ELIMINAR ---
+    PROCEDURE eliminar_respuesta(
+        p_evaluacionA IN VARCHAR2
+    );
+END PC_RESPUESTAS;
+/
+-----------EVALUACIONES CREACION -----------
+CREATE OR REPLACE PACKAGE PC_EVALUACIONES AS
+    -- ADICIONAR---
+    PROCEDURE crear_evaluacion(
+        p_omes IN VARCHAR2,
+        p_tid IN VARCHAR2,
+        p_nid IN VARCHAR2,
+        p_fecha IN DATE,
+        p_descripcion IN VARCHAR2,
+        p_reporte IN VARCHAR2,
+        p_resultado IN VARCHAR2
+    );
+    --- LEER---
+    FUNCTION leer_evaluaciones RETURN SYS_REFCURSOR;
+END PC_EVALUACIONES;
+/
+
+
+
+-----------AUDITORIAS BODY------------------
+CREATE OR REPLACE PACKAGE BODY PC_AUDITORIAS AS
+    --- ADICIONAR ---
+    PROCEDURE crear_auditoria(
+        p_id IN INTEGER,
+        p_fecha IN DATE,
+        p_accion IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_categoriaC IN VARCHAR2,
+        p_evaluacionA IN VARCHAR2 := NULL
+    ) IS
+    BEGIN
+        INSERT INTO AUDITORIAS (id, fecha, accion, nombre, categoriaC, evaluacionA)
+        VALUES (p_id, p_fecha, p_accion, p_nombre, p_categoriaC, p_evaluacionA);
+        COMMIT;
+    END crear_auditoria;
+
+    --- LEER ---
+    FUNCTION leer_auditoria(
+        p_id IN INTEGER
+    ) RETURN SYS_REFCURSOR IS
+        v_cursor SYS_REFCURSOR;
+    BEGIN
+        OPEN v_cursor FOR
+        SELECT id, fecha, accion, nombre, categoriaC, evaluacionA
+        FROM AUDITORIAS
+        WHERE id = p_id;
+        RETURN v_cursor;
+    END leer_auditoria;
+
+    --- ACTUALIZAR ---
+    PROCEDURE actualizar_auditoria(
+        p_id IN INTEGER,
+        p_fecha IN DATE,
+        p_accion IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_categoriaC IN VARCHAR2,
+        p_evaluacionA IN VARCHAR2 := NULL
+    ) IS
+    BEGIN
+        UPDATE AUDITORIAS SET
+            fecha = p_fecha,
+            accion = p_accion,
+            nombre = p_nombre,
+            categoriaC = p_categoriaC,
+            evaluacionA = p_evaluacionA
+        WHERE id = p_id;
+        COMMIT;
+    END actualizar_auditoria;
+
+    --- ELIMINAR  ---
+    PROCEDURE eliminar_auditoria(
+        p_id IN INTEGER
+    ) IS
+    BEGIN
+        DELETE FROM AUDITORIAS WHERE id = p_id;
+        COMMIT;
+    END eliminar_auditoria;
+END PC_AUDITORIAS;
+/
+
+
+-----------EVALUACIONES BODY-----------
+CREATE OR REPLACE PACKAGE BODY PC_EVALUACIONES AS
+    --- ADICIONAR BODY---
+    PROCEDURE crear_evaluacion(
+        p_omes IN VARCHAR2,
+        p_tid IN VARCHAR2,
+        p_nid IN VARCHAR2,
+        p_fecha IN DATE,
+        p_descripcion IN VARCHAR2,
+        p_reporte IN VARCHAR2,
+        p_resultado IN VARCHAR2
+    ) IS
+    BEGIN
+        INSERT INTO EVALUACIONES (a_omes, tid, nid, fecha, descripcion, reporte, resultado)
+        VALUES (p_omes, p_tid, p_nid, p_fecha, p_descripcion, p_reporte, p_resultado);
+        COMMIT;
+    END crear_evaluacion;
+    
+    ---LEER BODY---
+    
+    FUNCTION leer_evaluaciones RETURN SYS_REFCURSOR IS
+        v_cursor SYS_REFCURSOR;
+    BEGIN
+        OPEN v_cursor FOR
+        SELECT a_omes, tid, nid, fecha, descripcion, reporte, resultado
+        FROM EVALUACIONES;
+        RETURN v_cursor;
+    END leer_evaluaciones;
+END PC_EVALUACIONES;
+/
+
+
+-----------RESPUESTAS BODY  -----------
+CREATE OR REPLACE PACKAGE BODY PC_RESPUESTAS AS
+    --- ADICIONAR ---
+    PROCEDURE crear_respuesta(
+        p_evaluacionA IN VARCHAR2,
+        p_respuesta IN VARCHAR2
+    ) IS
+    BEGIN
+        INSERT INTO RESPUESTAS (evaluacionA, respuesta)
+        VALUES (p_evaluacionA, p_respuesta);
+        COMMIT;
+    END crear_respuesta;
+
+    --- LEER ---
+    FUNCTION leer_respuesta(
+        p_evaluacionA IN VARCHAR2
+    ) RETURN SYS_REFCURSOR IS
+        v_cursor SYS_REFCURSOR;
+    BEGIN
+        OPEN v_cursor FOR
+        SELECT evaluacionA, respuesta
+        FROM RESPUESTAS
+        WHERE evaluacionA = p_evaluacionA;
+        RETURN v_cursor;
+    END leer_respuesta;
+
+    --- ACTUALIZAR ---
+    PROCEDURE actualizar_respuesta(
+        p_evaluacionA IN VARCHAR2,
+        p_respuesta IN VARCHAR2
+    ) IS
+    BEGIN
+        UPDATE RESPUESTAS SET
+            respuesta = p_respuesta
+        WHERE evaluacionA = p_evaluacionA;
+        COMMIT;
+    END actualizar_respuesta;
+
+    --- ELIMINAR ---
+    PROCEDURE eliminar_respuesta(
+        p_evaluacionA IN VARCHAR2
+    ) IS
+    BEGIN
+        DELETE FROM RESPUESTAS WHERE evaluacionA = p_evaluacionA;
+        COMMIT;
+    END eliminar_respuesta;
+END PC_RESPUESTAS;
+/
+
+
+
+----------------------------------CRUDOK------------------------------------
+----Crear una nueva categoría y leerla ----
+BEGIN
+    PC_CATEGORIAS.crear_categoria('A1', 'Categoria 2', 'Electrónica', 50, 60, 'A1');
+END;
+/
+
+DECLARE
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    v_cursor := PC_CATEGORIAS.leer_categoria('A1');
+END;
+/
+
+
+---Crear una nueva evaluacion ---
+BEGIN
+    PC_EVALUACIONES.crear_evaluacion('202302', 'CC', 'nid002', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte2.pdf', 'AP');
+END;
+/
+
+
+---Crear una nueva respuesta y leerla ---
+BEGIN
+    PC_RESPUESTAS.crear_respuesta('202302', 'Respuesta para Evaluacion 202301');
+END;
+/
+
+DECLARE
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    v_cursor := PC_RESPUESTAS.leer_respuesta('202301');
+    
+END;
+/
+
+---CREAR AUDITORIA Y ACTUALIZARLA ---
+
+BEGIN
+    PC_AUDITORIAS.crear_auditoria(2, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'Auditoria 2', 'A1', '202302');
+END;
+/
+
+BEGIN
+    PC_AUDITORIAS.actualizar_auditoria(2, TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Modificar', 'Auditoria 2 Modificada', 'A1', '202301');
+END;
+/
+
+
+
+--- ELIMINAR UNA CATEGORIA ---
+BEGIN
+    PC_CATEGORIAS.eliminar_categoria('A1');
+END;
+/
+
+
+----------------------------------CRUDnOK------------------------------------
+
+---INTENTAR CREAR UNA EVALUACION QUE YA EXISTE----
+BEGIN
+    PC_EVALUACIONES.crear_evaluacion('202302', 'CC', 'nid002', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte2.pdf', 'AP');
+END;
+/
+--- CREAR UNA RESPUESTA QUE NO TIENE ASOCIADA UNA EVALUACION ---
+BEGIN
+    PC_RESPUESTAS.crear_respuesta('23213123', 'Respuesta sin evaluación asociada');
+END;
+/
+
+--- CREAR UNA AUDITORIA CON UN ID CON CODIGO QUE NO CUMPLA CON EL TIPO DE DATO PERMITIDO---
+BEGIN
+    PC_CATEGORIAS.crear_categoria('A1232132132131231232132131', 'Categoria 2', 'Electrónica', 50, 60, 'A1');
 END;
 /
 
