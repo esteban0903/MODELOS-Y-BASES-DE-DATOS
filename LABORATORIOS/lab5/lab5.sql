@@ -1,4 +1,4 @@
-
+--------------------------------------- LABORATORIO 4 -------------------------------------
 ------------------------------------------ TABLAS------------------------------------------
 -- Si hubo cambios --
 CREATE TABLE USUARIOS( 
@@ -488,6 +488,7 @@ DELETE FROM USUARIOS;
 
 
 ------------------------------------------ LAB 5 ------------------------------------------ 
+--------------------------------------- PUNTOS 1 AL 4 -------------------------------------
 ----------------------------------- EXTENDIENDO USUARIOS ----------------------------------
 INSERT INTO mbda.DATA (UCODIGO,UNOMBRE,UDIRECCION,NID,NOMBRES)
 VALUES (111,'ESCUELA',  'AK 45 (Autonorte) #205/59',1000095983,'Esteban Aguilera Contreras');
@@ -503,6 +504,9 @@ DELETE FROM mbda.DATA WHERE NID=1000095983;
 DELETE FROM mbda.DATA WHERE NID=1000095256;
 
 
+
+--------------------------------------- PUNTOS 5 -------------------------------------
+---------------------------- MIGRANDO UNIVERSIDADES DE DATA --------------------------
 
 CREATE OR REPLACE PACKAGE data_a_universidades  AS
     
@@ -543,15 +547,15 @@ CREATE OR REPLACE PACKAGE BODY data_a_universidades AS
         END data_a_universidades;
 /
 
+/*Compilar el paquete de DATA a UNIVERSIDADES para migrar UNIVERSIDADES*/
+
+BEGIN
+  data_a_universidades.MIGRAR_DATA_UNIVERSIDADES;
+END;
+/
 
 
-
-INSERT INTO USUARIOS(universidadC,nid,nombre)
-SELECT TO_CHAR(UCODIGO),TO_CHAR(NID),NOMBRES FROM mbda.DATA ;
-
-SELECT * FROM UNIVERSIDADES;
-SELECT NID FROM MBDA.DATA GROUP BY NID;
-/*Mi intento de hacer el trigger que migre de DATA a USUARIOS*/
+---------------------------- MIGRANDO USUARIOS DE DATA --------------------------
 
 
 /* CREAR  EL PAQUETE QUE INSERTE LOS DATOS DE MBDA.DATA EN USUARIOS*/
@@ -621,67 +625,6 @@ CREATE OR REPLACE PACKAGE BODY usuario_utils AS
 END usuario_utils;
 /
 
-    
-
-
-
-
-
-/*============================================================================*/
-
-CREATE OR REPLACE TRIGGER TR_USUARIOS
-BEFORE INSERT ON USUARIOS 
-FOR EACH ROW
-DECLARE
-    v_nombre_universidad UNIVERSIDADES.nombre%TYPE;
-BEGIN
-    :new.codigo := UPPER(DBMS_RANDOM.string('U', 3));
-    :new.tid := 'CC';
-    :new.suspension := '';
-    :new.nSuspensiones := 0;
-    :new.registro := SYSDATE;
-
-    -- Obtener el nombre de la universidad solo si el campo universidadC no es nulo
-    IF :new.universidadC IS NOT NULL THEN
-        SELECT nombre INTO v_nombre_universidad
-        FROM UNIVERSIDADES
-        WHERE codigoUn = :new.universidadC;
-        
-        -- Verificar si el nombre de la universidad se pudo obtener
-        IF v_nombre_universidad IS NOT NULL THEN
-            -- Construir el correo electrónico utilizando el nombre de la universidad
-            :new.correo := SUBSTR(:new.nombre, 1, INSTR(:new.nombre, ' ') - 1) || '@' || SUBSTR(v_nombre_universidad, 1, 7) || '.edu.co';
-
-            -- Asignar el programa según el nombre de la universidad
-            CASE v_nombre_universidad
-                WHEN 'ESCUELA' THEN :new.programa := 'Ingenieria';
-                WHEN 'ROSARIO' THEN :new.programa := 'Derecho';
-                WHEN 'JAVERIANA' THEN :new.programa := 'Medicina';
-                ELSE :new.programa := 'Por definir';
-            END CASE;
-        ELSE
-            -- Si no se encuentra el nombre de la universidad, asignar valores predeterminados
-            :new.correo := 'correo@default.edu.co';
-            :new.programa := 'Por definir';
-        END IF;
-    ELSE
-        -- Si el campo universidadC es nulo, asignar valores predeterminados
-        :new.correo := 'correo@default.edu.co';
-        :new.programa := 'Por definir';
-    END IF;
-    
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        -- Manejar caso donde no se encuentra la universidad
-        :new.correo := 'correo@default.edu.co';
-        :new.programa := 'Por definir';
-    WHEN OTHERS THEN
-        -- Manejar otros errores y mostrar un mensaje de error personalizado
-        :new.correo := 'correo@default.edu.co';
-        :new.programa := 'Por definir';
-        DBMS_OUTPUT.PUT_LINE('Error al insertar usuario: ' || SQLERRM);
-END;
-/
 
 /*----------------------------------------------------------------------------------------------*/
 
@@ -718,25 +661,6 @@ BEGIN
     ELSE
         :new.programa := 'Por definir';
     END IF;
-END;
-/
-
-
-
-
-
-
-
-
-SELECT * FROM MBDA.DATA;
-
-
-
-
-/*Compilar el paquete de DATA a UNIVERSIDADES*/
-
-BEGIN
-  data_a_universidades.MIGRAR_DATA_UNIVERSIDADES;
 END;
 /
 
