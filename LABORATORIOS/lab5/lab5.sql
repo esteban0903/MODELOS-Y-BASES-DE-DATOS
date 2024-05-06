@@ -386,23 +386,7 @@ BEGIN
     END IF;
 END;
 /
--- ELIMINAR --
--- Únicamente se pueden eliminar los que no tienen artículos asociados.--
-CREATE OR REPLACE TRIGGER TR_eliminar_categoria
-BEFORE DELETE ON CATEGORIAS
-FOR EACH ROW
-DECLARE
-    v_count NUMBER;
-BEGIN
-    SELECT COUNT(*)
-    INTO v_count
-    FROM ARTICULOS
-    WHERE categoriaC = :old.codigo;
-    IF v_count > 0 THEN
-        RAISE_APPLICATION_ERROR(-20005, 'No se puede eliminar la categoría porque tiene artículos asociados.');
-    END IF;
-END;
-/
+
 
 -- CREAR AUDITORIAS --
 CREATE OR REPLACE TRIGGER TR_creacion_categoria_auditoria
@@ -441,7 +425,6 @@ DROP TRIGGER TR_precio_minimo_maximo;
 DROP TRIGGER TR_precio_maximo_predeterminado;
 DROP TRIGGER TR_inmutabilidad_datos;
 DROP TRIGGER TR_actualizar_maximo;
-DROP TRIGGER TR_eliminar_categoria;
 DROP TRIGGER TR_creacion_categoria_auditoria;
 --------------------------CASO DE USO 2--------------------------
 DROP TRIGGER TR_EVALUACIONES_fecha;
@@ -1087,14 +1070,14 @@ END;
 
 ---Crear una nueva respuesta y leerla ---
 BEGIN
-    PC_RESPUESTAS.crear_respuesta('202302', 'Respuesta para Evaluacion 202301');
+    PC_RESPUESTAS.crear_respuesta('202302', 'Respuesta para Evaluacion 202302');
 END;
 /
 
 DECLARE
     v_cursor SYS_REFCURSOR;
 BEGIN
-    v_cursor := PC_RESPUESTAS.leer_respuesta('202301');
+    v_cursor := PC_RESPUESTAS.leer_respuesta('202302');
     
 END;
 /
@@ -1107,7 +1090,7 @@ END;
 /
 
 BEGIN
-    PC_AUDITORIAS.actualizar_auditoria(2, TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Modificar', 'Auditoria 2 Modificada', 'A1', '202301');
+    PC_AUDITORIAS.actualizar_auditoria(2, TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'Modificar', 'Auditoria 2 Modificada', 'A1', '202302');
 END;
 /
 
@@ -1118,7 +1101,6 @@ BEGIN
     PC_CATEGORIAS.eliminar_categoria('A1');
 END;
 /
-
 
 ----------------------------------CRUDnOK------------------------------------
 
@@ -1138,6 +1120,316 @@ BEGIN
     PC_CATEGORIAS.crear_categoria('A1232132132131231232132131', 'Categoria 2', 'Electrónica', 50, 60, 'A1');
 END;
 /
+
+
+
+---------------------------------- XCRUD ------------------------------------
+-- Para PC_CATEGORIAS
+DROP PACKAGE PC_CATEGORIAS;
+
+-- Para PC_AUDITORIAS
+DROP PACKAGE PC_AUDITORIAS;
+
+-- Para PC_EVALUACIONES
+DROP PACKAGE PC_EVALUACIONES;
+
+-- Para PC_RESPUESTAS
+DROP PACKAGE PC_RESPUESTAS;
+
+---------------------------------- ACTORES ------------------------------------
+-------------------------------------ACTORESE---------------------------------------
+
+CREATE OR REPLACE PACKAGE PA_AUDITOR AS
+    --- ADICIONAR EN EVALUACIONES ---
+    PROCEDURE crear_evaluacion(
+        p_omes IN VARCHAR2,
+        p_tid IN VARCHAR2,
+        p_nid IN VARCHAR2,
+        p_fecha IN DATE,
+        p_descripcion IN VARCHAR2,
+        p_reporte IN VARCHAR2,
+        p_resultado IN VARCHAR2
+    );
+    
+    --- CONSULTAR EN EVALUACIONES ---
+    FUNCTION consultar_evaluacion(
+        p_omes IN VARCHAR2
+    ) RETURN SYS_REFCURSOR;
+    
+    --- ACTUALIZAR EN AUDITORIAS ---
+    PROCEDURE actualizar_auditoria(
+        p_id IN INTEGER,
+        p_fecha IN DATE,
+        p_accion IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_categoriaC IN VARCHAR2,
+        p_evaluacionA IN VARCHAR2 := NULL
+    );
+END PA_AUDITOR;
+/
+
+CREATE OR REPLACE PACKAGE PA_ADMINISTRADOR AS
+    --- CREAR EN AUDITORIAS ---
+    PROCEDURE crear_auditoria(
+        p_id IN INTEGER,
+        p_fecha IN DATE,
+        p_accion IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_categoriaC IN VARCHAR2,
+        p_evaluacionA IN VARCHAR2 := NULL
+    );
+
+    --- CREAR EN CATEGORIAS ---
+    PROCEDURE crear_categoria(
+        p_codigo IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_tipo IN VARCHAR2,
+        p_minimo IN DECIMAL,
+        p_maximo IN DECIMAL,
+        p_perteneceC IN VARCHAR2 := NULL
+    );
+
+    --- LEER EN CATEGORIAS ---
+    FUNCTION leer_categoria(
+        p_codigo IN VARCHAR2
+    ) RETURN SYS_REFCURSOR;
+
+    --- ACTUALIZAR EN CATEGORIAS ---
+    PROCEDURE actualizar_categoria(
+        p_codigo IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_tipo IN VARCHAR2,
+        p_minimo IN DECIMAL,
+        p_maximo IN DECIMAL,
+        p_perteneceC IN VARCHAR2 := NULL
+    );
+
+    --- ELIMINAR EN CATEGORIAS ---
+    PROCEDURE eliminar_categoria(
+        p_codigo IN VARCHAR2
+    );
+END PA_ADMINISTRADOR;
+/
+
+-------------------------------------ACTORESI---------------------------------------
+-- PAQUETE DE AUDITOR --
+CREATE OR REPLACE PACKAGE BODY PA_AUDITOR AS
+    --- ADICIONAR EN EVALUACIONES ---
+    PROCEDURE crear_evaluacion(
+        p_omes IN VARCHAR2,
+        p_tid IN VARCHAR2,
+        p_nid IN VARCHAR2,
+        p_fecha IN DATE,
+        p_descripcion IN VARCHAR2,
+        p_reporte IN VARCHAR2,
+        p_resultado IN VARCHAR2
+    ) IS
+    BEGIN
+        -- Llamar al procedimiento de creación de evaluación del paquete PC_EVALUACIONES
+        PC_EVALUACIONES.crear_evaluacion(
+            p_omes,
+            p_tid,
+            p_nid,
+            p_fecha,
+            p_descripcion,
+            p_reporte,
+            p_resultado
+        );
+    END crear_evaluacion;
+    
+    --- CONSULTAR EN EVALUACIONES ---
+    FUNCTION consultar_evaluacion(
+        p_omes IN VARCHAR2
+    ) RETURN SYS_REFCURSOR IS
+        v_cursor SYS_REFCURSOR;
+    BEGIN
+        -- Llamar a la función de consulta de evaluación del paquete PC_EVALUACIONES
+        v_cursor := PC_EVALUACIONES.leer_evaluaciones;
+        RETURN v_cursor;
+    END consultar_evaluacion;
+    
+    --- ACTUALIZAR EN AUDITORIAS ---
+    PROCEDURE actualizar_auditoria(
+        p_id IN INTEGER,
+        p_fecha IN DATE,
+        p_accion IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_categoriaC IN VARCHAR2,
+        p_evaluacionA IN VARCHAR2 := NULL
+    ) IS
+    BEGIN
+        -- Llamar al procedimiento de actualización de auditoría del paquete PC_AUDITORIAS
+        PC_AUDITORIAS.actualizar_auditoria(
+            p_id,
+            p_fecha,
+            p_accion,
+            p_nombre,
+            p_categoriaC,
+            p_evaluacionA
+        );
+    END actualizar_auditoria;
+END PA_AUDITOR;
+/
+-- PAQUETE DE ADMINISTRADOR --
+CREATE OR REPLACE PACKAGE BODY PA_ADMINISTRADOR AS
+    --- CREAR EN AUDITORIAS ---
+    PROCEDURE crear_auditoria(
+        p_id IN INTEGER,
+        p_fecha IN DATE,
+        p_accion IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_categoriaC IN VARCHAR2,
+        p_evaluacionA IN VARCHAR2 := NULL
+    ) IS
+    BEGIN
+        -- Llamar al procedimiento de creación de auditoría del paquete PC_AUDITORIAS
+        PC_AUDITORIAS.crear_auditoria(
+            p_id,
+            p_fecha,
+            p_accion,
+            p_nombre,
+            p_categoriaC,
+            p_evaluacionA
+        );
+    END crear_auditoria;
+
+    --- CREAR EN CATEGORIAS ---
+    PROCEDURE crear_categoria(
+        p_codigo IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_tipo IN VARCHAR2,
+        p_minimo IN DECIMAL,
+        p_maximo IN DECIMAL,
+        p_perteneceC IN VARCHAR2 := NULL
+    ) IS
+    BEGIN
+        -- Llamar al procedimiento de creación de categoría del paquete PC_CATEGORIAS
+        PC_CATEGORIAS.crear_categoria(
+            p_codigo,
+            p_nombre,
+            p_tipo,
+            p_minimo,
+            p_maximo,
+            p_perteneceC
+        );
+    END crear_categoria;
+
+    --- LEER EN CATEGORIAS ---
+    FUNCTION leer_categoria(
+        p_codigo IN VARCHAR2
+    ) RETURN SYS_REFCURSOR IS
+        v_cursor SYS_REFCURSOR;
+    BEGIN
+        -- Llamar a la función de consulta de categoría del paquete PC_CATEGORIAS
+        v_cursor := PC_CATEGORIAS.leer_categoria(p_codigo);
+        RETURN v_cursor;
+    END leer_categoria;
+
+    --- ACTUALIZAR EN CATEGORIAS ---
+    PROCEDURE actualizar_categoria(
+        p_codigo IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_tipo IN VARCHAR2,
+        p_minimo IN DECIMAL,
+        p_maximo IN DECIMAL,
+        p_perteneceC IN VARCHAR2 := NULL
+    ) IS
+    BEGIN
+        -- Llamar al procedimiento de actualización de categoría del paquete PC_CATEGORIAS
+        PC_CATEGORIAS.actualizar_categoria(
+            p_codigo,
+            p_nombre,
+            p_tipo,
+            p_minimo,
+            p_maximo,
+            p_perteneceC
+        );
+    END actualizar_categoria;
+
+    --- ELIMINAR EN CATEGORIAS ---
+    PROCEDURE eliminar_categoria(
+        p_codigo IN VARCHAR2
+    ) IS
+    BEGIN
+        -- Llamar al procedimiento de eliminación de categoría del paquete PC_CATEGORIAS
+        PC_CATEGORIAS.eliminar_categoria(p_codigo);
+    END eliminar_categoria;
+END PA_ADMINISTRADOR;
+/
+
+----------------------------------ACTORESOK------------------------------------
+---- CREAR AUDITORIA Y LEERLA ----
+
+BEGIN
+    PA_ADMINISTRADOR.crear_categoria('A3', 'Categoria 3', 'Electrónica', 50, 60, 'A3');
+END;
+/
+
+DECLARE
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    v_cursor := PA_ADMINISTRADOR.leer_categoria('A3');
+END;
+/
+
+-- CREAR AUDITORIA Y ACTUALIZARLA --
+-- La evaluacion debe existir --
+BEGIN
+    PC_EVALUACIONES.crear_evaluacion('202307', 'CC', 'nid002', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte3.pdf', 'AP');
+END;
+/
+
+BEGIN
+    PA_ADMINISTRADOR.crear_auditoria(2, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'Auditoria 2', 'A3', '202307');
+END;
+/
+
+BEGIN
+    PA_ADMINISTRADOR.actualizar_categoria('A3', 'Categoria 3', 'Electrónica', 50, 70, 'A3');
+END;
+/
+
+--- ELIMINAR CATEGORIA --
+BEGIN
+    PA_ADMINISTRADOR.eliminar_categoria('A3');
+END;
+/
+--- AUDITOR  --
+--- CREAR EVALUACION --
+BEGIN
+    PA_AUDITOR.crear_evaluacion('202308', 'CC', 'nid002', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte4.pdf', 'AP');
+END;
+/
+
+DECLARE
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    v_cursor := PA_AUDITOR.consultar_evaluacion('202302');
+END;
+/
+--Crear una nueva respuesta y leerla:--
+/*Para esto ya debe estar creada la autidoria, que se encarga de crear el administrador*/
+BEGIN
+    PA_ADMINISTRADOR.crear_categoria('A4', 'Para Auditor', 'Electrónica', 50, 60, 'A4');
+END;
+/
+BEGIN
+    PA_ADMINISTRADOR.crear_auditoria(2, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'A para Auditor', 'A4', '202308');
+END;
+/
+
+BEGIN
+    PA_AUDITOR.actualizar_auditoria(2, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Se modifico', 'Auditor Modificada', 'A4', '202308'); ---asdfasdfasdfsadfsadfsadf
+END;
+/
+----------------------------------ACTORESnOK------------------------------------
+
+---------------------------------- XSEGURIDAD ------------------------------------
+-- Para PC_CATEGORIAS
+DROP PACKAGE PA_AUDITOR;
+
+-- Para PC_AUDITORIAS
+DROP PACKAGE PA_ADMINISTRADOR;
 
 
 
