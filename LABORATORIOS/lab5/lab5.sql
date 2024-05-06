@@ -1423,13 +1423,49 @@ BEGIN
 END;
 /
 ----------------------------------ACTORESnOK------------------------------------
+-- Intentar crear una evaluacion con un reporte que ya existe (debe ser unico) ---
+BEGIN
+    PA_AUDITOR.crear_evaluacion('202308', 'CC', 'nid002', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporte4.pdf', 'AP');
+END;
+/
 
----------------------------------- XSEGURIDAD ------------------------------------
+-- Deberia fallar si se intenta crear una auditoria con una Categoria que no esta definida --
+BEGIN
+    PA_ADMINISTRADOR.crear_auditoria(2, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'A para Auditor', 'A99', '202308');
+END;
+/
+
+-- Deberia fallar si se intenta crear una auditoria y la evaluacion de referencia no existe (se puede crear una auditoria con evaluacion nula) --
+BEGIN
+    PA_ADMINISTRADOR.crear_auditoria(2, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Crear', 'A para Auditor', 'A4', '00000');
+END;
+/
+---------------------------------- XACTORES ------------------------------------
 -- Para PC_CATEGORIAS
 DROP PACKAGE PA_AUDITOR;
 
 -- Para PC_AUDITORIAS
-DROP PACKAGE PA_ADMINISTRADOR;
+DROP PACKAGE PA_ADMINISTRADOR;  
+---------------------------------- SEGURIDAD ------------------------------------
+-- CREAR LOS USUARIOS --
+CREATE ROLE AUDITOR_GRUPO2_M_Y_E;
+CREATE ROLE ADMINISTRADOR_GRUPO2_M_Y_E;
+-- PERMISOS PARA ADMINISTRADOR --
+GRANT EXECUTE ON PA_ADMINISTRADOR TO ADMINISTRADOR_GRUPO2_M_Y_E;
+GRANT EXECUTE ON PC_AUDITORIAS TO ADMINISTRADOR_GRUPO2_M_Y_E;
+GRANT EXECUTE ON PC_CATEGORIAS TO ADMINISTRADOR_GRUPO2_M_Y_E;
 
+GRANT INSERT ON AUDITORIAS TO ADMINISTRADOR_GRUPO2_M_Y_E;
+GRANT SELECT, INSERT, UPDATE, DELETE ON CATEGORIAS TO ADMINISTRADOR_GRUPO2_M_Y_E;
+
+-- PERMISOS PARA AUDITOR --
+GRANT EXECUTE ON PA_AUDITOR TO AUDITOR_GRUPO2_M_Y_E;
+GRANT EXECUTE ON PC_AUDITORIAS TO AUDITOR_GRUPO2_M_Y_E;
+GRANT EXECUTE ON PC_EVALUACIONES TO AUDITOR_GRUPO2_M_Y_E;
+GRANT EXECUTE ON PC_EVALUACIONES TO AUDITOR_GRUPO2_M_Y_E;
+
+
+GRANT SELECT, INSERT ON EVALUACIONES TO AUDITOR_GRUPO2_M_Y_E;
+GRANT UPDATE ON AUDITORIAS TO AUDITOR_GRUPO2_M_Y_E;
 
 
