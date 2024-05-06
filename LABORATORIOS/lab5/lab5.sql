@@ -794,6 +794,52 @@ CREATE OR REPLACE PACKAGE PC_AUDITORIAS AS
     );
 END PC_AUDITORIAS;
 /
+
+
+-----------EVALUACIONES CREACION -----------
+CREATE OR REPLACE PACKAGE PC_EVALUACIONES AS
+    -- ADICIONAR---
+    PROCEDURE crear_evaluacion(
+        p_omes IN VARCHAR2,
+        p_tid IN VARCHAR2,
+        p_nid IN VARCHAR2,
+        p_fecha IN DATE,
+        p_descripcion IN VARCHAR2,
+        p_reporte IN VARCHAR2,
+        p_resultado IN VARCHAR2
+    );
+    --- LEER---
+  FUNCTION leer_evaluaciones(a_omes_in IN EVALUACIONES.a_omes%TYPE) RETURN SYS_REFCURSOR;
+END PC_EVALUACIONES;
+/
+
+
+
+-----------RESPUESTAS CREACION-----------
+CREATE OR REPLACE PACKAGE PC_RESPUESTAS AS
+    --- ADICIONAR ---
+    PROCEDURE crear_respuesta(
+        p_evaluacionA IN VARCHAR2,
+        p_respuesta IN VARCHAR2
+    );
+
+    ---LEER ---
+    FUNCTION leer_respuesta(
+        p_evaluacionA IN VARCHAR2
+    ) RETURN SYS_REFCURSOR;
+
+    --- ACTUALIZAR ---
+    PROCEDURE actualizar_respuesta(
+        p_evaluacionA IN VARCHAR2,
+        p_respuesta IN VARCHAR2
+    );
+
+    --- ELIMINAR ---
+    PROCEDURE eliminar_respuesta(
+        p_evaluacionA IN VARCHAR2
+    );
+END PC_RESPUESTAS;
+/
 ----------------------------------CRUDI------------------------------------
 -----------CATEGORIAS BODY -----------
 CREATE OR REPLACE PACKAGE BODY PC_CATEGORIAS AS
@@ -855,51 +901,6 @@ CREATE OR REPLACE PACKAGE BODY PC_CATEGORIAS AS
     END eliminar_categoria;
 END PC_CATEGORIAS;
 /
-
-
------------RESPUESTAS CREACION-----------
-CREATE OR REPLACE PACKAGE PC_RESPUESTAS AS
-    --- ADICIONAR ---
-    PROCEDURE crear_respuesta(
-        p_evaluacionA IN VARCHAR2,
-        p_respuesta IN VARCHAR2
-    );
-
-    ---LEER ---
-    FUNCTION leer_respuesta(
-        p_evaluacionA IN VARCHAR2
-    ) RETURN SYS_REFCURSOR;
-
-    --- ACTUALIZAR ---
-    PROCEDURE actualizar_respuesta(
-        p_evaluacionA IN VARCHAR2,
-        p_respuesta IN VARCHAR2
-    );
-
-    --- ELIMINAR ---
-    PROCEDURE eliminar_respuesta(
-        p_evaluacionA IN VARCHAR2
-    );
-END PC_RESPUESTAS;
-/
------------EVALUACIONES CREACION -----------
-CREATE OR REPLACE PACKAGE PC_EVALUACIONES AS
-    -- ADICIONAR---
-    PROCEDURE crear_evaluacion(
-        p_omes IN VARCHAR2,
-        p_tid IN VARCHAR2,
-        p_nid IN VARCHAR2,
-        p_fecha IN DATE,
-        p_descripcion IN VARCHAR2,
-        p_reporte IN VARCHAR2,
-        p_resultado IN VARCHAR2
-    );
-    --- LEER---
-    FUNCTION leer_evaluaciones RETURN SYS_REFCURSOR;
-END PC_EVALUACIONES;
-/
-
-
 
 -----------AUDITORIAS BODY------------------
 CREATE OR REPLACE PACKAGE BODY PC_AUDITORIAS AS
@@ -983,12 +984,13 @@ CREATE OR REPLACE PACKAGE BODY PC_EVALUACIONES AS
     
     ---LEER BODY---
     
-    FUNCTION leer_evaluaciones RETURN SYS_REFCURSOR IS
+    FUNCTION leer_evaluaciones(a_omes_in IN EVALUACIONES.a_omes%TYPE) RETURN SYS_REFCURSOR IS
         v_cursor SYS_REFCURSOR;
     BEGIN
         OPEN v_cursor FOR
         SELECT a_omes, tid, nid, fecha, descripcion, reporte, resultado
-        FROM EVALUACIONES;
+        FROM EVALUACIONES
+        WHERE a_omes = a_omes_in; -- Filtrar por el valor de a_omes proporcionado
         RETURN v_cursor;
     END leer_evaluaciones;
 END PC_EVALUACIONES;
@@ -1467,5 +1469,62 @@ GRANT EXECUTE ON PC_EVALUACIONES TO AUDITOR_GRUPO2_M_Y_E;
 
 GRANT SELECT, INSERT ON EVALUACIONES TO AUDITOR_GRUPO2_M_Y_E;
 GRANT UPDATE ON AUDITORIAS TO AUDITOR_GRUPO2_M_Y_E;
+
+
+
+
+---------------------------------- PRUEBAS ------------------------------------
+
+--- María es una estudiante universitaria entusiasta que recientemente se unió a una plataforma en línea donde puede comprar y evaluar artículos. 
+--- Hoy, María ha comprado un artículo y está emocionada de dejar una evaluación sobre su experiencia.
+
+---1.Para esto , maria quiere crear una evaluación de su experiencia:
+BEGIN
+    PC_EVALUACIONES.crear_evaluacion('202100', 'CC', 'nidMariaa', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporteMaria.pdf', 'AP');
+END;
+/
+
+---2. Ya teniendo su registro de evaluación creado, maria quiere dejar sus comentarios y su experiencia
+
+BEGIN
+    PC_RESPUESTAS.crear_respuesta('202100', 'Mi experiencia fue muy agradable, estoy feliz');
+END;
+/
+
+---3.Maria ya creada su evaluación, quiere ver en el sistema si se creo, por lo que quiere leerlo.
+DECLARE
+    v_cursor SYS_REFCURSOR;
+    v_a_omes EVALUACIONES.a_omes%TYPE := '202100'; -- Especifica el valor de a_omes que deseas utilizar
+BEGIN
+    v_cursor := PC_EVALUACIONES.leer_evaluaciones(v_a_omes); -- Llama a la función leer_evaluaciones con el valor de a_omes
+
+    DBMS_SQL.RETURN_RESULT(v_cursor); -- Imprime el resultado del cursor
+END;
+/
+
+
+
+---3. Minutos despues, Maria se dio cuenta que queria cambiar cosas a su respuesta , por lo que decidio actualizarla---
+BEGIN
+    PC_RESPUESTAS.actualizar_respuesta('202100', 'Mi experiencia fue buena');
+END;
+/
+
+---4. Maria quiere ver como quedo su respuesta para ver si deja esa o la cambia por otra, por lo que decide leerla
+DECLARE
+    v_cursor SYS_REFCURSOR;
+    v_evaluacionA RESPUESTAS.evaluacionA%TYPE := '202100'; -- Especifica el valor de a_omes que deseas utilizar
+BEGIN
+    v_cursor := PC_RESPUESTAS.leer_respuesta(v_evaluacionA); -- Llama a la función leer_evaluaciones con el valor de a_omes
+
+    DBMS_SQL.RETURN_RESULT(v_cursor); -- Imprime el resultado del cursor
+END;
+/
+---5. Al ver la  respuesta maria volvio a cambiar de opinión y decidio que no queria dejar ninguna respuesta. Le parece algo innecesario, por lo que quiere eliminarla
+BEGIN
+    PC_RESPUESTAS.eliminar_respuesta('202100');
+END;
+/
+
 
 
