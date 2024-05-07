@@ -1358,22 +1358,19 @@ BEGIN
     PC_RESPUESTAS.eliminar_respuesta('202100');
 END;
 /
----6. Maria elimino su evaluacion, pues se dio cuenta que el producto no era malo pero le faltaban caracteristicas, asi que ella quiere hacer
+---6. Maria elimino su respuesta, pues se dio cuenta que el producto no era malo pero le faltaban caracteristicas, asi que ella quiere hacer
 --- un articulo basado en ese, pero para eso necesita una nueva categoria, por lo que fue y se lo comento al administrador. 
---- El administrador Consulta las categorias para ver si existe la categoria para el articulo de Maria:
-
-DECLARE
-    v_cursor SYS_REFCURSOR;
-BEGIN
-    v_cursor := PA_ADMINISTRADOR.leer_categoria('A11');
-     DBMS_SQL.RETURN_RESULT(v_cursor);
-END;
-/
---- 7. No encontro la categoria a la que se referia Maria, en este caso el decide ayudarla. El administrador, luego de evaluar la peticion de Maria, 
---- va a permitir la creacion temporal de una categoria para el articulo de Maria, hasta que lleguen mas articulos para esa categoria que justifiquen mantenerla:
+--- El administrador crea una nueva categoria para Maria
 
 BEGIN
     PA_ADMINISTRADOR.crear_categoria('A11', 'Para Auditor', 'Articulo de Belleza', 50, 60, 'A11');
+END;
+/
+--- 7. Maria le dice que no era un articulo de belleza , era un articulo de limpieza.  El administrador, luego de evaluar la peticion de Maria, 
+--- va a permitir la actualizacion de la categoria.
+
+BEGIN
+    PA_ADMINISTRADOR.actualizar_categoria('A11', 'Para Auditor', 'Articulo de limpieza', 50, 60, 'A11');
 END;
 /
 
@@ -1384,16 +1381,21 @@ BEGIN
 END;
 /
 
---- 9. En ese momento el Administrador llama a su asistente, con el objetivo que monitoree la auditoria, para ello el Auditor crea una Evaluacion.
-
+--- 9. En ese momento el Administrador llama a su asistente, con el objetivo que monitoree la auditoria. El asistente consulta la auditoria para ver si esta correcta.
+DECLARE
+    v_cursor SYS_REFCURSOR;
+    v_id AUDITORIAS.id%TYPE := 2; -- Especifica el valor de a_omes que deseas utilizar
 BEGIN
-    PA_AUDITOR.crear_evaluacion('202020', 'CC', 'nidAuditor', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reportedecategoria.pdf', 'PE');
+    v_cursor := PC_AUDITORIAS.leer_auditoria(v_id); -- Llama a la función leer_evaluaciones con el valor de a_omes
+
+    DBMS_SQL.RETURN_RESULT(v_cursor); -- Imprime el resultado del cursor
 END;
 /
 
---- 10. Finalmente el Auditor actualiza la auditoria anexando la evaluacion que creo y a partir de ahi llevara el seguimiento de la categoria que propuso Maria
+
+--- 10. Finalmente el Auditor se da cuenta que la auditoria es correcta y actualiza el nombre
 
 BEGIN
-    PA_AUDITOR.actualizar_auditoria(4, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Modificado', 'Auditoria en proceso', 'A11', '202020');
+    PA_AUDITOR.actualizar_auditoria(2, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Modificado', 'Auditoria terminada', 'A11', '202020');
 END;
 /
