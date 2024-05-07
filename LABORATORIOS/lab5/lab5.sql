@@ -1377,7 +1377,7 @@ END;
 --- 8. Luego de ello, el Administrador quiere llevar un seguimiento, asi que va a crear una auditoria para monitorear el comportamiento que llegue a tener.
 
 BEGIN
-    PA_ADMINISTRADOR.crear_auditoria(2, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Monitoreo Para Maria', 'Auditoria M', 'A11', null);
+    PA_ADMINISTRADOR.crear_auditoria(2, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Monitoreo Para Maria', 'Auditoria M', 'A11', '202100');
 END;
 /
 
