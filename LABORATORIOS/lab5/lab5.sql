@@ -1366,6 +1366,7 @@ DECLARE
     v_cursor SYS_REFCURSOR;
 BEGIN
     v_cursor := PA_ADMINISTRADOR.leer_categoria('A11');
+     DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
 /
 --- 7. No encontro la categoria a la que se referia Maria, en este caso el decide ayudarla. El administrador, luego de evaluar la peticion de Maria, 
