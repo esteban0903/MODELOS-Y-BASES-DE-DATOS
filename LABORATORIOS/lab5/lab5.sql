@@ -526,202 +526,36 @@ CREATE OR REPLACE PACKAGE BODY data_a_universidades AS
         END data_a_universidades;
 /
 
-
-
-
-INSERT INTO USUARIOS(universidadC,nid,nombre)
-SELECT TO_CHAR(UCODIGO),TO_CHAR(NID),NOMBRES FROM mbda.DATA ;
-
-SELECT * FROM UNIVERSIDADES;
-SELECT NID FROM MBDA.DATA GROUP BY NID;
-/*Mi intento de hacer el trigger que migre de DATA a USUARIOS*/
-
-
-/* CREAR  EL PAQUETE QUE INSERTE LOS DATOS DE MBDA.DATA EN USUARIOS*/
-CREATE OR REPLACE PACKAGE usuario_utils AS
-    PROCEDURE insertar_usuario(p_universidadC IN USUARIOS.universidadC%TYPE,
-                               p_nombre IN USUARIOS.nombre%TYPE,
-                               p_nid IN USUARIOS.nid%TYPE);
-END usuario_utils;
-/
-
-CREATE OR REPLACE PACKAGE BODY usuario_utils AS
-    PROCEDURE insertar_usuario(p_universidadC IN USUARIOS.universidadC%TYPE,
-                               p_nombre IN USUARIOS.nombre%TYPE,
-                               p_nid IN USUARIOS.nid%TYPE) IS
-        v_nombre_universidad UNIVERSIDADES.nombre%TYPE;
-    BEGIN
-        -- Iniciar la lógica de inserción
-        -- Obtener el nombre de la universidad solo si el campo universidadC no es nulo
-        IF p_universidadC IS NOT NULL THEN
-            SELECT nombre INTO v_nombre_universidad
-            FROM UNIVERSIDADES
-            WHERE codigoUn = p_universidadC;
-
-            -- Verificar si el nombre de la universidad se pudo obtener
-            IF v_nombre_universidad IS NOT NULL THEN
-                -- Construir el correo electrónico utilizando el nombre de la universidad
-                INSERT INTO USUARIOS (codigo, tid, suspension, nSuspensiones, registro,
-                                      universidadC, nombre, correo, programa, nid)
-                VALUES (UPPER(DBMS_RANDOM.string('U', 3)), 'CC', '', 0, SYSDATE,
-                        p_universidadC, p_nombre,
-                        SUBSTR(p_nombre, 1, INSTR(p_nombre, ' ') - 1) || '@' || SUBSTR(v_nombre_universidad, 1, 7) || '.edu.co',
-                        CASE v_nombre_universidad
-                            WHEN 'ESCUELA' THEN 'Ingenieria'
-                            WHEN 'ROSARIO' THEN 'Derecho'
-                            WHEN 'JAVERIANA' THEN 'Medicina'
-                            ELSE 'Por definir'
-                        END);
-            ELSE
-                -- Si no se encuentra el nombre de la universidad, asignar valores predeterminados
-                INSERT INTO USUARIOS (codigo, tid, suspension, nSuspensiones, registro,
-                                      universidadC, nombre, correo, programa, nid)
-                VALUES (UPPER(DBMS_RANDOM.string('U', 3)), 'CC', '', 0, SYSDATE,
-                        p_universidadC, p_nombre, 'correo@default.edu.co', 'Por definir', p_nid);
-            END IF;
-        ELSE
-            -- Si el campo universidadC es nulo, asignar valores predeterminados
-            INSERT INTO USUARIOS (codigo, tid, suspension, nSuspensiones, registro,
-                                  universidadC, nombre, correo, programa, nid)
-            VALUES (UPPER(DBMS_RANDOM.string('U', 3)), 'CC', '', 0, SYSDATE,
-                    p_universidadC, p_nombre, 'correo@default.edu.co', 'Por definir', p_nid);
-        END IF;
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            -- Manejar caso donde no se encuentra la universidad
-            INSERT INTO USUARIOS (codigo, tid, suspension, nSuspensiones, registro,
-                                  universidadC, nombre, correo, programa, nid)
-            VALUES (UPPER(DBMS_RANDOM.string('U', 3)), 'CC', '', 0, SYSDATE,
-                    p_universidadC, p_nombre, 'correo@default.edu.co', 'Por definir', p_nid);
-        WHEN OTHERS THEN
-            -- Manejar otros errores y mostrar un mensaje de error personalizado
-            INSERT INTO USUARIOS (codigo, tid, suspension, nSuspensiones, registro,
-                                  universidadC, nombre, correo, programa, nid)
-            VALUES (UPPER(DBMS_RANDOM.string('U', 3)), 'CC', '', 0, SYSDATE,
-                    p_universidadC, p_nombre, 'correo@default.edu.co', 'Por definir', p_nid);
-            DBMS_OUTPUT.PUT_LINE('Error al insertar usuario: ' || SQLERRM);
-    END insertar_usuario;
-END usuario_utils;
-/
-
-    
-
-
-
-
-
 /*============================================================================*/
-
-CREATE OR REPLACE TRIGGER TR_USUARIOS
-BEFORE INSERT ON USUARIOS 
-FOR EACH ROW
-DECLARE
-    v_nombre_universidad UNIVERSIDADES.nombre%TYPE;
-BEGIN
-    :new.codigo := UPPER(DBMS_RANDOM.string('U', 3));
-    :new.tid := 'CC';
-    :new.suspension := '';
-    :new.nSuspensiones := 0;
-    :new.registro := SYSDATE;
-
-    -- Obtener el nombre de la universidad solo si el campo universidadC no es nulo
-    IF :new.universidadC IS NOT NULL THEN
-        SELECT nombre INTO v_nombre_universidad
-        FROM UNIVERSIDADES
-        WHERE codigoUn = :new.universidadC;
-        
-        -- Verificar si el nombre de la universidad se pudo obtener
-        IF v_nombre_universidad IS NOT NULL THEN
-            -- Construir el correo electrónico utilizando el nombre de la universidad
-            :new.correo := SUBSTR(:new.nombre, 1, INSTR(:new.nombre, ' ') - 1) || '@' || SUBSTR(v_nombre_universidad, 1, 7) || '.edu.co';
-
-            -- Asignar el programa según el nombre de la universidad
-            CASE v_nombre_universidad
-                WHEN 'ESCUELA' THEN :new.programa := 'Ingenieria';
-                WHEN 'ROSARIO' THEN :new.programa := 'Derecho';
-                WHEN 'JAVERIANA' THEN :new.programa := 'Medicina';
-                ELSE :new.programa := 'Por definir';
-            END CASE;
-        ELSE
-            -- Si no se encuentra el nombre de la universidad, asignar valores predeterminados
-            :new.correo := 'correo@default.edu.co';
-            :new.programa := 'Por definir';
-        END IF;
-    ELSE
-        -- Si el campo universidadC es nulo, asignar valores predeterminados
-        :new.correo := 'correo@default.edu.co';
-        :new.programa := 'Por definir';
-    END IF;
-    
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        -- Manejar caso donde no se encuentra la universidad
-        :new.correo := 'correo@default.edu.co';
-        :new.programa := 'Por definir';
-    WHEN OTHERS THEN
-        -- Manejar otros errores y mostrar un mensaje de error personalizado
-        :new.correo := 'correo@default.edu.co';
-        :new.programa := 'Por definir';
-        DBMS_OUTPUT.PUT_LINE('Error al insertar usuario: ' || SQLERRM);
-END;
-/
-
-/*----------------------------------------------------------------------------------------------*/
-
-/*Este es el trigger del viernes*/
-
-CREATE OR REPLACE TRIGGER TR_USUARIOS
-BEFORE INSERT ON USUARIOS 
-FOR EACH ROW
-DECLARE
-    v_nombre_universidad UNIVERSIDADES.nombre%TYPE;
-BEGIN
-    :new.codigo := UPPER(DBMS_RANDOM.string('U', 3));
-    
-    :new.tid := 'CC';
-    
-    :new.suspension := '';
-    
-    :new.nSuspensiones := 0;
-    
-    :new.registro := SYSDATE;
-    
-    SELECT nombre INTO v_nombre_universidad
-    FROM UNIVERSIDADES
-    WHERE codigoUn = :new.universidadC;
-    
-    :new.correo := SUBSTR(:new.nombre, 1, INSTR(:new.nombre, ' ') - 1) || '@' || SUBSTR((v_nombre_universidad), 1, 7) || '.edu.co';
-
-    IF v_nombre_universidad = 'ESCUELA' THEN
-        :new.programa := 'Ingenieria';
-    ELSIF v_nombre_universidad = 'ROSARIO' THEN
-        :new.programa := 'Derecho';
-    ELSIF v_nombre_universidad = 'JAVERIANA' THEN
-        :new.programa := 'Medicina';
-    ELSE
-        :new.programa := 'Por definir';
-    END IF;
-END;
-/
-
-
-
-
-
-
-
-
-SELECT * FROM MBDA.DATA;
-
-
-
-
 /*Compilar el paquete de DATA a UNIVERSIDADES*/
 
 BEGIN
   data_a_universidades.MIGRAR_DATA_UNIVERSIDADES;
 END;
 /
+-- INSERTAR USUARIOS
+INSERT INTO USUARIOS (universidadC, codigo, tid, nid, nombre, programa, correo, registro, nSuspensiones)
+SELECT 
+    UCODIGO AS universidadC,
+    UPPER(DBMS_RANDOM.string('U', 3)) AS codigo,
+    'CC' AS tid,
+    NID AS nid,
+    NOMBRES AS nombre,
+    CASE
+        WHEN UCODIGO = '111' THEN 'Ingeniería'
+        WHEN UCODIGO = '112' THEN 'Derecho'
+        WHEN UCODIGO = '113' THEN 'Medicina'
+        ELSE 'Por definir'
+    END AS programa,
+    substr(NOMBRES, 1, (INSTR(NOMBRES, ' '))-1) || lower(substr(NOMBRES, 1, 7)) || '@edu.co' AS correo,
+    CURRENT_DATE AS registro,
+    0 AS nSuspensiones
+FROM mbda.DATA
+ORDER BY nid;
+
+/*----------------------------------------------------------------------------------------------*/
+
+
 
 
 --paquete evaluaciones---
@@ -1479,7 +1313,7 @@ GRANT ADMINISTRADOR TO bd1000095983;
 
 ---1.Para esto , maria quiere crear una evaluación de su experiencia:
 BEGIN
-    PC_EVALUACIONES.crear_evaluacion('202100', 'CC', 'nidMariaa', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporteMaria.pdf', 'AP');
+    PC_EVALUACIONES.crear_evaluacion('202100', 'CC', 'nidMariaa', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reporteMaria.pdf', 'PE');
 END;
 /
 
@@ -1524,6 +1358,41 @@ BEGIN
     PC_RESPUESTAS.eliminar_respuesta('202100');
 END;
 /
+---6. Maria elimino su evaluacion, pues se dio cuenta que el producto no era malo pero le faltaban caracteristicas, asi que ella quiere hacer
+--- un articulo basado en ese, pero para eso necesita una nueva categoria, por lo que fue y se lo comento al administrador. 
+--- El administrador Consulta las categorias para ver si existe la categoria para el articulo de Maria:
 
+DECLARE
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    v_cursor := PA_ADMINISTRADOR.leer_categoria('A11');
+END;
+/
+--- 7. No encontro la categoria a la que se referia Maria, en este caso el decide ayudarla. El administrador, luego de evaluar la peticion de Maria, 
+--- va a permitir la creacion temporal de una categoria para el articulo de Maria, hasta que lleguen mas articulos para esa categoria que justifiquen mantenerla:
 
+BEGIN
+    PA_ADMINISTRADOR.crear_categoria('A11', 'Para Auditor', 'Articulo de Belleza', 50, 60, 'A11');
+END;
+/
 
+--- 8. Luego de ello, el Administrador quiere llevar un seguimiento, asi que va a crear una auditoria para monitorear el comportamiento que llegue a tener.
+
+BEGIN
+    PA_ADMINISTRADOR.crear_auditoria(2, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Monitoreo Para Maria', 'Auditoria M', 'A11', null);
+END;
+/
+
+--- 9. En ese momento el Administrador llama a su asistente, con el objetivo que monitoree la auditoria, para ello el Auditor crea una Evaluacion.
+
+BEGIN
+    PA_AUDITOR.crear_evaluacion('202020', 'CC', 'nidAuditor', TO_DATE('2024-03-15', 'YYYY-MM-DD'), 'A', 'https://reportedecategoria.pdf', 'PE');
+END;
+/
+
+--- 10. Finalmente el Auditor actualiza la auditoria anexando la evaluacion que creo y a partir de ahi llevara el seguimiento de la categoria que propuso Maria
+
+BEGIN
+    PA_AUDITOR.actualizar_auditoria(4, TO_DATE('2024-03-14', 'YYYY-MM-DD'), 'Modificado', 'Auditoria en proceso', 'A11', '202020');
+END;
+/
