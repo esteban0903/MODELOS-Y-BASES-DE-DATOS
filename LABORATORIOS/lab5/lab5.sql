@@ -1246,7 +1246,7 @@ CREATE OR REPLACE PACKAGE BODY PA_AUDITOR AS
         v_cursor SYS_REFCURSOR;
     BEGIN
         -- Llamar a la función de consulta de evaluación del paquete PC_EVALUACIONES
-        v_cursor := PC_EVALUACIONES.leer_evaluaciones;
+        v_cursor := PC_EVALUACIONES.leer_evaluaciones(p_omes);
         RETURN v_cursor;
     END consultar_evaluacion;
     
@@ -1470,8 +1470,7 @@ GRANT EXECUTE ON PC_EVALUACIONES TO AUDITOR_GRUPO2_M_Y_E;
 GRANT SELECT, INSERT ON EVALUACIONES TO AUDITOR_GRUPO2_M_Y_E;
 GRANT UPDATE ON AUDITORIAS TO AUDITOR_GRUPO2_M_Y_E;
 
-
-
+GRANT ADMINISTRADOR TO bd1000095983;
 
 ---------------------------------- PRUEBAS ------------------------------------
 
