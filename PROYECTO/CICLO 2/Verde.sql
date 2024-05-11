@@ -10,20 +10,22 @@ END;
 -- para poder analizar el trabajo tenemos que determinar el coeficiente de los tipos --
 
 
----La fecha de devolucion estimada debe ser 15 dias despues de la fecha de entrega ---
-CREATE OR REPLACE TRIGGER TR_PRESTAMOS_INSERT_FECHA
-BEFORE INSERT OR UPDATE ON PRESTAMOS
+---La fecha de devolucion deberia ser menor a 21 dias ---
+CREATE OR REPLACE TRIGGER TR_PRESTAMOS_INSERT_FECHA_DEVOLUCION
+AFTER INSERT OR UPDATE ON PRESTAMOS
 FOR EACH ROW
 DECLARE
     v_diferencia_dias NUMBER;
 BEGIN
-    v_diferencia_dias := ABS(:NEW.fechaDevolucionEstimada - :OLD.fechaEntrega);
+    v_diferencia_dias := ABS(:NEW.fechaDevolucionEstimada - :NEW.fechaEntrega);
     
-    IF v_diferencia_dias < 15 OR v_diferencia_dias > 30 THEN
-        RAISE_APPLICATION_ERROR(-20001, 'La fecha de devoluci�n debe ser al menos 15 d�as despu�s de la fecha de entrega y no mas de 30 dias.');
+    IF v_diferencia_dias > 21 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'La fecha de devolucion ser al menos 15 dias despues de haberlo entregado, y menos de 30 dias de haber sido entregado');
+        
     END IF;
 END;
 /
+
 
 
 ---El total de la factura debe ser la suma de lo que ya existe mas el total de la multa---
@@ -35,7 +37,7 @@ DECLARE
 BEGIN
     SELECT NVL(SUM(monto), 0) INTO v_total_factura FROM MULTAS WHERE facturaI = :NEW.idFactura;
     
-    -- Solo actualiza el total si es una actualizaci�n y el campo total se ha modificado expl�citamente.
+    -- Solo actualiza el total si es una actualizacion y el campo total se ha modificado explicitamente.
     IF UPDATING('total') or INSERTING THEN
         :NEW.total := :NEW.total + v_total_factura;
     END IF;
@@ -46,18 +48,68 @@ CREATE OR REPLACE TRIGGER TR_FACTURAS_estado
 BEFORE UPDATE ON FACTURAS
 FOR EACH ROW
 BEGIN
-    IF :NEW.estado!='D' THEN
-        RAISE_APPLICATION_ERROR(-20001,'Si el estado de la factura no es denegado, no se puede modificar'); 
+    IF :OLD.estado!='D' THEN
+            RAISE_APPLICATION_ERROR(-20001,'Si el estado de la factura no es denegado, no se puede modificar'); 
     END IF;
 END;
 /
 
+-- Nuevos Triggers --
+-- La fecha de entrega se autogenera el dia en que se hace el prestamo 
+CREATE OR REPLACE TRIGGER TR_PRESTAMOS_INSERT_FECHA_AUTO
+BEFORE INSERT ON PRESTAMOS
+FOR EACH ROW
+BEGIN
+    :NEW.fechaEntrega := SYSDATE;
+END;
+/
+
+-- La fecha de entrega se autogenera cuando se hace el prestamo, por lo que no debe poder cambiar 
+CREATE OR REPLACE TRIGGER TR_PRESTAMOS_INSERT_FECHA_ENTREGA_INMUTABLE
+BEFORE UPDATE ON PRESTAMOS
+FOR EACH ROW
+BEGIN
+    IF :NEW.fechaEntrega != :OLD.fechaEntrega THEN
+        RAISE_APPLICATION_ERROR(-20000, 'La fecha de entrega se crea el dia del prestamo, es inmutable');
+	END IF;
+END;
+/
+
+
+-- La multa debe ser positiva --
+CREATE OR REPLACE TRIGGER TR_MULTAS_VALOR_POSITIVO
+BEFORE INSERT OR UPDATE ON MULTAS
+FOR EACH ROW
+BEGIN
+    IF :NEW.monto < 0 THEN
+        RAISE_APPLICATION_ERROR(-19999, 'Los valores de monto de una multa deben ser positivos');
+    END IF;
+END;
+/
+
+-- El total de la factura debe ser positivo --
+CREATE OR REPLACE TRIGGER TR_FACTURAS_VALOR_POSITIVO
+BEFORE INSERT OR UPDATE ON FACTURAS
+FOR EACH ROW
+BEGIN 
+    IF :NEW.total < 0 THEN
+        RAISE_APPLICATION_ERROR(-19998, 'Los valores de monto de una multa deben ser positivos');
+    END IF;
+END;
+/
+
+
+
+
 ----------------------------XTRIGGERS----------------------------
 DROP TRIGGER TR_SUSCRITOS_nombreUsuario;
-DROP TRIGGER TR_PRESTAMOS_INSERT_FECHA;
+DROP TRIGGER TR_PRESTAMOS_INSERT_FECHA_DEVOLUCION;
 DROP TRIGGER TR_FACTURAS_total;
 DROP TRIGGER TR_FACTURAS_estado;
-
+DROP TRIGGER TR_PRESTAMOS_INSERT_FECHA_AUTO;
+DROP TRIGGER TR_PRESTAMOS_INSERT_FECHA_ENTREGA_INMUTABLE;
+DROP TRIGGER TR_MULTAS_VALOR_POSITIVO;
+DROP TRIGGER TR_FACTURAS_VALOR_POSITIVO;
 
 ----------------------------TUPLASOK----------------------------
 ---T_CREDENCIAL---
@@ -69,42 +121,73 @@ VALUES('C4','CC');
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
 VALUES('C4','CC','NomUs4','T','Nom4','Ape4');
 
----FECHA ENTREGA---
--- Dentro del rango estimado de 15 dias, pues su fecha original es: 03/01/2024 --
-UPDATE PRESTAMOS
-SET FechaDevolucionEstimada = TO_DATE('2024-01-20', 'YYYY-MM-DD')
-WHERE idPrestamo = 'P3';
+---FECHA CREACION---
+-- Creacion -- Va a comprobar que la fecha de entrega sea menor a 21 dias cuando se cree el prestamo
+INSERT INTO RESERVAS(clienteI, clienteT,idReserva,estado) 
+VALUES('C4','CC','RE004','A');
+INSERT INTO PRESTAMOS(clienteI, clienteT, idPrestamo, reservaI, fechaEntrega, fechaDevolucionEstimada) 
+VALUES('C4','CC','PE004','RE004',TO_DATE('2024-05-20', 'YYYY-MM-DD'),TO_DATE('2024-05-31', 'YYYY-MM-DD'));
 
----MODIFICAR FACTURA ---
--- El valor total pasa ser 5 + 1 = 6, porque debe 1 en multas
-UPDATE FACTURAS
-SET total = 5
-WHERE idFactura= 'F2';
+---FECHA ENTREGA---
+-- Dentro del rango estimado de 15 dias, pues siempre que crea un prestamo, es con la fecha actual --
+UPDATE PRESTAMOS
+SET FechaDevolucionEstimada = SYSDATE + INTERVAL '15' DAY
+WHERE idPrestamo = 'PE004';
+
+
+-- FACTURA POSITIVA --
+INSERT INTO FACTURAS(prestamoI, idFactura,metodoPago,fecha,total,estado)
+VALUES ('PE004', 'FE0001','T',TO_DATE('2024-04-01', 'YYYY-MM-DD'),0,'D');
 
 -- FACTURA ESTADO --
 -- Debe funcionar, pues su estado es 'D' Denegado --
 UPDATE FACTURAS
 SET fecha = TO_DATE('2024-08-01','YYYY-MM-DD')
-WHERE idFactura= 'F2';
+WHERE idFactura= 'FE0001';
+
+---MODIFICAR FACTURA ---
+-- El valor total pasa ser 0 + 1000 = 1000, porque debe 1 en multas
+UPDATE FACTURAS
+SET total = 1000
+WHERE idFactura= 'FE0001';
+
+-- MULTAS DEBEN SER POSITIVAS --
+INSERT INTO MULTAS(facturaI,idMulta,monto,descripcion)
+VALUES ('FE0001', 'ME001',1000,'Se demoro en la entrega del articulo');
+
 
 ----------------------------TUPLASNOK----------------------------
 ---T_CREDENCIAL---
 -- No se puede si no es tipo : 'CC','TI'
 UPDATE PRESTAMOS
-SET tidCliente = 'NN' 
-WHERE idCliente = 'C001';
+SET clienteT = 'NN' 
+WHERE clienteI = 'C4';
 
 ---FECHA ENTREGA---
---FUERA del rango estimado de 15 dias, pues su fecha original es: 2024-05-20
+--FUERA del rango estimado de 21 dias, pues su fecha original es: Hoy
 UPDATE PRESTAMOS
-SET FechaDevolucionEstimada = TO_DATE('2024-08-06', 'YYYY-MM-DD')
-WHERE idPrestamo = 'P003';
+SET FechaDevolucionEstimada = SYSDATE + INTERVAL '21' DAY
+WHERE idPrestamo = 'PE004';
 
 ---INMUTABILIDAD ---
--- No va a cambiar si su estado no es 'D'
+/* 
+* No va a cambiar si su estado no es 'D'
+* Ya que su estado es D, lo podemos cambiar, es como si cancelara la factura, 
+* despues de cancelarla ya esta pago y no debe poder modificarlo 
+*/
+
 UPDATE FACTURAS
-SET total = 5
-WHERE idFactura= 'F001';
+SET estado = 'A'
+WHERE idFactura= 'FE0001';
+/* 
+* Ahora que su estado es A, significa que ya fue (pagado) asi su factura 
+* sera la misma, y se quedara un registro de su factura y multas pagadas en ella, 
+* por eso no debe modificarlo 
+*/
+UPDATE FACTURAS
+SET total = 1500
+WHERE idFactura= 'FE0001';
+
 
 ---------------------------- Automatizacion de indices con Disparadores----------------------------
 -- Secuencias de automatizacion --
@@ -113,7 +196,8 @@ CREATE SEQUENCE secuencia_articulos START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE secuencia_prestamos START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE secuencia_facturas START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE secuencia_clientes START WITH 1 INCREMENT BY 1;
-
+CREATE SEQUENCE secuencia_reservas START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE secuencia_multas START WITH 1 INCREMENT BY 1;
 -- Generar indices de idClientes en Clientes --
 CREATE OR REPLACE TRIGGER TR_CLIENTES_generar_idCliente
 BEFORE INSERT ON CLIENTES
@@ -158,62 +242,81 @@ BEGIN
     :new.idFactura := 'F'|| TO_CHAR(secuencia_facturas.NEXTVAL);
 END;
 /
+-- Generar indices de idReservas en RESERVAS --
+CREATE OR REPLACE TRIGGER TR_RESERVAS_generar_idReserva
+BEFORE INSERT ON RESERVAS
+FOR EACH ROW
+BEGIN
+    :new.idReserva := 'R'|| TO_CHAR(secuencia_reservas.NEXTVAL);
+END;
+/
+-- Generar indices de idMultas en MULTAS --
+CREATE OR REPLACE TRIGGER TR_MULTAS_generar_idMulta
+BEFORE INSERT ON MULTAS
+FOR EACH ROW
+BEGIN
+    :new.idMulta := 'M'|| TO_CHAR(secuencia_multas.NEXTVAL);
+END;
+/
 ---------------------------- XDISPARADORES ----------------------------
 DROP SEQUENCE secuencia_ventas;
 DROP SEQUENCE secuencia_articulos;
 DROP SEQUENCE secuencia_facturas;
 DROP SEQUENCE secuencia_prestamos;
 DROP SEQUENCE secuencia_clientes;
+DROP SEQUENCE secuencia_reservas;
+DROP SEQUENCE secuencia_multas;
 
 DROP TRIGGER TR_CLIENTES_generar_idCliente;
 DROP TRIGGER TR_VENTAS_generar_idCompra;
 DROP TRIGGER TR_ARTICULOS_generar_idArticulo;
 DROP TRIGGER TR_FACTURAS_generar_idFactura;
 DROP TRIGGER TR_PRESTAMOS_generar_idPrestamo;
+DROP TRIGGER TR_RESERVAS_generar_idReserva;
+DROP TRIGGER TR_MULTAS_generar_idMulta;
 --------------------------- DISPARADORESOK ---------------------------
+-- Para probar vamos a eliminar los clientes existentes, y con ello todo sus conexiones.
+DELETE FROM CLIENTES WHERE idCliente = 'C4';
+/* 
+    Generar ID cliente (no tenemos que colocar el tid, se puede generar solo.)
+    Esto garantiza que solo sea necesario pedir una identificacion si el cliente
+    entra a la biblioteca o usa servicios por el portal web.
+*/
+INSERT INTO CLIENTES(tidCliente) VALUES('CC');
+INSERT INTO CLIENTES(tidCliente) VALUES('TI');
+INSERT INTO CLIENTES(tidCliente) VALUES('CC');
+INSERT INTO CLIENTES(tidCliente) VALUES('CC');
+INSERT INTO CLIENTES(tidCliente) VALUES('TI');
+INSERT INTO CLIENTES(tidCliente) VALUES('CE');
+-- Para consultar Antes, este es el mismo mecanismo para los demas disparadores --
+SELECT * FROM CLIENTES;
+INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
+VALUES ('A001', 'P001', 'Literatura clasica','La historia detras de juego de tronos',TO_DATE('2024-03-20', 'YYYY-MM-DD'),'GOT');
+INSERT INTO ARTICULOS(prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
+VALUES (NULL, 'Ejemplo 2','Descripcion ejemplo de automatizacion indices',TO_DATE('2009-04-20', 'YYYY-MM-DD'),'Indice 2');
+INSERT INTO ARTICULOS(prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
+VALUES (NULL, 'Ejemplo 3','Descripcion ejemplo de automatizacion indices',TO_DATE('1997-04-20', 'YYYY-MM-DD'),'Indice 3');
+INSERT INTO ARTICULOS(prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
+VALUES (NULL, 'Ejemplo 4','Descripcion ejemplo de automatizacion indices',TO_DATE('1997-04-20', 'YYYY-MM-DD'),'Indice 4');
+SELECT * FROM ARTICULOS;
+INSERT INTO ARTICULOS(prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
+VALUES (NULL, 'Ejemplo','Descripcion ejemplo de automatizacion indices',TO_DATE('1997-04-20', 'YYYY-MM-DD'),'Indice');
+INSERT INTO ARTICULOS(prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
+VALUES (NULL, 'Ejemplo','Descripcion ejemplo de automatizacion indices',TO_DATE('1997-04-20', 'YYYY-MM-DD'),'Indice');
+INSERT INTO ARTICULOS(prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
+VALUES (NULL, 'Ejemplo','Descripcion ejemplo de automatizacion indices',TO_DATE('1997-04-20', 'YYYY-MM-DD'),'Indice');
+INSERT INTO ARTICULOS(prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
+VALUES (NULL, 'Ejemplo','Descripcion ejemplo de automatizacion indices',TO_DATE('1997-04-20', 'YYYY-MM-DD'),'Indice');
+INSERT INTO ARTICULOS(prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
+VALUES (NULL, 'Ejemplo','Descripcion ejemplo de automatizacion indices',TO_DATE('1997-04-20', 'YYYY-MM-DD'),'Indice');
+INSERT INTO ARTICULOS(prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
+VALUES (NULL, 'Ejemplo','Descripcion ejemplo de automatizacion indices',TO_DATE('1997-04-20', 'YYYY-MM-DD'),'Indice');
+INSERT INTO ARTICULOS(prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
+VALUES (NULL, 'Ejemplo','Descripcion ejemplo de automatizacion indices',TO_DATE('1997-04-20', 'YYYY-MM-DD'),'Indice');
+SELECT * FROM ARTICULOS ORDER BY IDARTICULO;
+---------------- Restaurar los valores de la base de datos ----------------
+DELETE FROM ARTICULOS; 
+DELETE FROM CLIENTES;
 
 -------------------------- DISPARADORESNoOK --------------------------
-
----------------------------- VISTAS ----------------------------
--- Solo consultar los clientes --
-CREATE VIEW CLIENTES_SUSCRITOS AS SELECT nombre, apellido, clienteI, clienteT FROM SUSCRITOS;
-
--- Solo consultar las ventas --
-CREATE VIEW COMPRAS AS 
-SELECT PROVEEDORES.nombreP AS "PROVEEDORES",VENTAS.clienteI AS "ID PROVEEDOR", ARTICULOS.nombreArticulo AS "ARTICULO", VENTAS.articuloI AS "ID ARTICULO", VENTAS.total AS "TOTAL", VENTAS.fechaCompra 
-FROM VENTAS 
-JOIN ARTICULOS ON VENTAS.articuloI = ARTICULOS.idArticulo
-JOIN PROVEEDORES ON PROVEEDORES.clienteI = VENTAS.clienteI AND PROVEEDORES.clienteT = VENTAS.clienteT;
-
--- Consultar las facturas de los clientes con multa --
-CREATE VIEW FACTURAS_CON_MULTA AS 
-SELECT SUSCRITOS.nombre, SUSCRITOS.apellido, FACTURAS.total AS "Total a Pagar", MULTAS.monto AS "Total de multa", MULTAS.idMulta
-FROM FACTURAS 
-JOIN PRESTAMOS ON FACTURAS.prestamoI = PRESTAMOS.idPrestamo 
-JOIN SUSCRITOS ON SUSCRITOS.clienteI = PRESTAMOS.clienteI AND SUSCRITOS.clienteT = PRESTAMOS.clienteT 
-JOIN MULTAS ON MULTAS.facturaI = FACTURAS.idFactura;
--- Articulos fisicos --
-CREATE VIEW ARTICULOS_FISICOS AS SELECT * FROM ARTICULOS a JOIN FISICOS b ON a.idArticulo=b.articuloI;
-
--- Nombre del articulo, nombre de quien lo reservo, fecha de entrega, fecha estimada de devolucion --
-CREATE VIEW ARTICULOS_EN_RESERVA AS
-SELECT ARTICULOS.nombreArticulo AS "ARTICULO", SUSCRITOS.nombre, SUSCRITOS.apellido, PRESTAMOS.fechaEntrega, PRESTAMOS.fechaDevolucionEstimada AS "FECHA DEVOLUCION"
-FROM RESERVAS
-JOIN PRESTAMOS ON PRESTAMOS.reservaI = RESERVAS.idReserva
-JOIN SUSCRITOS ON SUSCRITOS.clienteI = PRESTAMOS.clienteI AND SUSCRITOS.clienteT = PRESTAMOS.clienteT
-JOIN ARTICULOS ON ARTICULOS.prestamoI = PRESTAMOS.idPrestamo;
-
----------------------------- VISTASoK ----------------------------
-SELECT * FROM CLIENTES_SUSCRITOS;
-SELECT * FROM COMPRAS;
-SELECT * FROM FACTURAS_CON_MULTA;
-SELECT * FROM ARTICULOS_FISICOS;
-SELECT * FROM ARTICULOS_EN_RESERVA;
-
----------------------------- XVISTAS ----------------------------
-DROP VIEW CLIENTES_SUSCRITOS;
-DROP VIEW COMPRAS;
-DROP VIEW FACTURAS_CON_MULTA;
-DROP VIEW ARTICULOS_FISICOS;
-DROP VIEW ARTICULOS_EN_RESERVA;
-
+--

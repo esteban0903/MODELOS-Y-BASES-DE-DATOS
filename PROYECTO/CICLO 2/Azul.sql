@@ -83,14 +83,14 @@ prestamoI VARCHAR(20) NOT NULL,
 idFactura VARCHAR(20) NOT NULL,
 metodoPago VARCHAR(2) NOT NULL,
 fecha DATE NOT NULL,
-total INT NOT NULL,
+total NUMBER NOT NULL,
 estado CHAR(1) NOT NULL
 );
 
 CREATE TABLE MULTAS(
 facturaI VARCHAR(20) NOT NULL,
 idMulta VARCHAR(20) NOT NULL,
-monto INT NOT NULL,
+monto NUMBER NOT NULL,
 descripcion VARCHAR(100) NOT NULL
 );
 
@@ -268,6 +268,7 @@ JOIN DEVOLUCIONES b ON a.idPrestamo=b.prestamoI
 WHERE a.fechaDevolucionEstimada<b.fechaDevolucion
 ;
 ---------------------------------------POBLAROK---------------------------------------
+
 INSERT INTO CLIENTES(idCliente,  tidCliente)
 VALUES('C00D1','CC');
 
@@ -279,145 +280,146 @@ VALUES('C003','TI');
 
 
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C1','CC','NomUs1','T','Nom1','Ape1');
+VALUES('C00D1','CC','FullDancer','T','Luke','Ross');
 
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C2','CE','NomUs2','E','Nom2','Ape2');
+VALUES('C002','CE','SparkPink','E','Emma','Ross');
 
 INSERT INTO SUSCRITOS(clienteI,clienteT,nombreUsuario,metodoPago,nombre,apellido)
-VALUES('C3','TI','NomUs3','C','Nom3','Ape3');
+VALUES('C003','TI','Jess','C','Jesse','Prescott');
 
 
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva,  estado)
-VALUES ('C1','CC','R001','A');
+VALUES ('C00D1','CC','R001','A');
 
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva,  estado)
-VALUES ('C2','CE','R002','D');
+VALUES ('C002','CE','R002','D');
 
 INSERT INTO RESERVAS(clienteI,clienteT,idReserva,  estado)
-VALUES ('C3','TI','R003','A');
+VALUES ('C003','TI','R003','A');
 
 
 INSERT INTO PRESTAMOS(clienteI,clienteT,idPrestamo,reservaI,fechaEntrega,FechaDevolucionEstimada)
-VALUES ('C1', 'CC','P001', 'R001',TO_DATE('2024-01-01', 'YYYY-MM-DD'), TO_DATE('2024-03-20', 'YYYY-MM-DD'));
+VALUES ('C00D1', 'CC','P001', 'R001',TO_DATE('2024-01-01', 'YYYY-MM-DD'), TO_DATE('2024-03-20', 'YYYY-MM-DD'));
 
 INSERT INTO PRESTAMOS(clienteI,clienteT,idPrestamo,reservaI,fechaEntrega,FechaDevolucionEstimada)
-VALUES ('C2', 'CE','P002', 'R002',TO_DATE('2024-01-02', 'YYYY-MM-DD'),TO_DATE('2024-02-02', 'YYYY-MM-DD'));
+VALUES ('C002', 'CE','P002', 'R002',TO_DATE('2024-01-02', 'YYYY-MM-DD'),TO_DATE('2024-02-02', 'YYYY-MM-DD'));
 
 INSERT INTO PRESTAMOS(clienteI,clienteT,idPrestamo,reservaI,fechaEntrega,FechaDevolucionEstimada)
-VALUES ('C3', 'TI','P003', 'R003',TO_DATE('2024-01-03', 'YYYY-MM-DD'),TO_DATE('2024-02-03', 'YYYY-MM-DD'));
+VALUES ('C003', 'TI','P003', 'R003',TO_DATE('2024-01-03', 'YYYY-MM-DD'),TO_DATE('2024-02-03', 'YYYY-MM-DD'));
 
 
 INSERT INTO DEVOLUCIONES(prestamoI, estado,fechaDevolucion)
-VALUES ('P1', 'A',TO_DATE('2024-03-01', 'YYYY-MM-DD'));
+VALUES ('P001', 'A',TO_DATE('2024-03-01', 'YYYY-MM-DD'));
 
 INSERT INTO DEVOLUCIONES(prestamoI, estado,fechaDevolucion)
-VALUES ('P2', 'D',TO_DATE('2024-03-02', 'YYYY-MM-DD'));
+VALUES ('P002', 'D',TO_DATE('2024-03-02', 'YYYY-MM-DD'));
 
 INSERT INTO DEVOLUCIONES(prestamoI, estado,fechaDevolucion)
-VALUES ('P3', 'A',TO_DATE('2024-03-03', 'YYYY-MM-DD'));
-
-
-INSERT INTO FACTURAS(prestamoI, idFactura,metodoPago,fecha,total,estado)
-VALUES ('P1', 'F001','T',TO_DATE('2024-04-01', 'YYYY-MM-DD'),1,'A');
+VALUES ('P003', 'A',TO_DATE('2024-03-03', 'YYYY-MM-DD'));
 
 INSERT INTO FACTURAS(prestamoI, idFactura,metodoPago,fecha,total,estado)
-VALUES ('P2', 'F002','E',TO_DATE('2024-04-02', 'YYYY-MM-DD'),2,'D');
+VALUES ('P001', 'F001','T',TO_DATE('2024-04-01', 'YYYY-MM-DD'),2000,'A');
 
 INSERT INTO FACTURAS(prestamoI, idFactura,metodoPago,fecha,total,estado)
-VALUES ('P3', 'F003','C',TO_DATE('2024-04-03', 'YYYY-MM-DD'),3,'A');
+VALUES ('P002', 'F002','E',TO_DATE('2024-04-02', 'YYYY-MM-DD'),2000,'D');
+
+INSERT INTO FACTURAS(prestamoI, idFactura,metodoPago,fecha,total,estado)
+VALUES ('P003', 'F003','C',TO_DATE('2024-04-03', 'YYYY-MM-DD'),5000,'A');
 
 
 INSERT INTO MULTAS(facturaI,idMulta,monto,descripcion)
-VALUES ('F1', 'M001',1,'Des1');
+VALUES ('F001', 'M001',1000,'Se demoro en la entrega del articulo');
 
 INSERT INTO MULTAS(facturaI,idMulta,monto,descripcion)
-VALUES ('F2', 'M002',1,'Des2');
+VALUES ('F002', 'M002',1000,'Entrego tarde el articulo');
 
 INSERT INTO MULTAS(facturaI,idMulta,monto,descripcion)
-VALUES ('F3', 'M003',1,'Des3');
+VALUES ('F003', 'M003',15000,'Entrego el articulo a tiempo pero con la portada rayada');
 
 
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A001', 'P1', 'GEN1','DES1',TO_DATE('2024-03-20', 'YYYY-MM-DD'),'GOT');
+VALUES ('A001', 'P001', 'Literatura clasica','La historia detras de juego de tronos',TO_DATE('2024-03-20', 'YYYY-MM-DD'),'GOT');
 
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A002', 'P2', 'GEN2','DES2',TO_DATE('2024-03-21', 'YYYY-MM-DD'),'Boulevard');
+VALUES ('A002', 'P002', 'Romance','Dos adolescentes crean un Boulevard bajo la lluvia en sus corazones.',TO_DATE('2024-03-21', 'YYYY-MM-DD'),'Boulevard');
 
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A003', 'P3', 'GEN3','DES3',TO_DATE('2024-03-22', 'YYYY-MM-DD'),'El principe');
+VALUES ('A003', 'P003', 'Misterio','Una historia que ilustra Estrategias políticas para gobernar con poder y astucia.',TO_DATE('2024-03-22', 'YYYY-MM-DD'),'El principe');
 
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A004', NULL, 'GEN3','DES3',TO_DATE('2024-03-22', 'YYYY-MM-DD'),'El principe');
+VALUES ('A004', NULL, 'Intriga y suspenso','La historia de un policia cazando un asesino, hasta que se da cuenta quien esta siendo cazado',TO_DATE('2024-03-22', 'YYYY-MM-DD'),'El crusigrama');
+
 
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A1','Autores1');
+VALUES('A001','George R. R. Martin');
 
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A2','Autores2');
+VALUES('A002','Flor M. Salvador');
 
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A3','Autores3');
+VALUES('A003','Nicolas Maquiavelo.');
 
 
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A1','Est1','Y');
+VALUES('A001','Excelente','Y');
 
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A2','Est2','N');
+VALUES('A002','Bueno','N');
 
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A3','Est3','Y');
+VALUES('A003','Tiene un Detalle en la portada','Y');
 
 INSERT INTO FISICOS(articuloI,estado,disponible)
-VALUES('A4','Est4','N');
+VALUES('A004','Deteriorado','N');
+
 
 INSERT INTO DIGITALES(articuloI,formato)
-VALUES('A1','PDF');
+VALUES('A001','PDF');
 
 INSERT INTO DIGITALES(articuloI,formato)
-VALUES('A2','EPUB');
+VALUES('A002','EPUB');
 
 INSERT INTO DIGITALES(articuloI,formato)
-VALUES('A3','MOBI');
+VALUES('A003','MOBI');
 
 
 INSERT INTO PROVEEDORES(nombreP,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('Jaun','C1','CC','Cat1','Correo1');
+VALUES('Jaun','C00D1','CC','Literatura infantil, historias para ninos, libros de ensenaza','juan_en@gmail.com');
 
 INSERT INTO PROVEEDORES(nombreP,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('Carlos','C2','CE','Cat2','Correo2');
+VALUES('Carlos','C002','CE','Libros de Historia, cultura, Desarrollo de habilidades, aprendizaje','carlitos@hotmail.com');
 
 INSERT INTO PROVEEDORES(nombreP,clienteI,clienteT,catalogo,correoElectronico)
-VALUES('Samuel','C3','TI','Cat3','Correo3');
+VALUES('Samuel','C003','TI','Literatura, libros de terror, ciencia ficcion, misterio y suspenso','samuAlvaro@live.com');
 
 
 INSERT INTO VENTAS(articuloI, clienteI,clienteT, idCompra,metodoPago,total,fechaCompra)
-VALUES('A1','C1','CC','IC1','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
+VALUES('A001','C00D1','CC','IC001','T',1,TO_DATE('2024-09-15', 'YYYY-MM-DD'));
 
 INSERT INTO VENTAS(articuloI, clienteI,clienteT, idCompra,metodoPago,total,fechaCompra)
-VALUES('A2','C2','CE','IC2','E',1,TO_DATE('2024-09-16', 'YYYY-MM-DD'));
+VALUES('A002','C002','CE','IC002','E',1,TO_DATE('2024-09-16', 'YYYY-MM-DD'));
 
 INSERT INTO VENTAS(articuloI, clienteI,clienteT, idCompra,metodoPago,total,fechaCompra)
-VALUES('A3','C3','TI','IC3','C',1,TO_DATE('2024-09-17', 'YYYY-MM-DD'));
+VALUES('A003','C003','TI','IC003','C',1,TO_DATE('2024-09-17', 'YYYY-MM-DD'));
 
 ---------------------------------------POBLARNOOK---------------------------------------
 -- Tabla CLIENTES (Primary Key) --
 -- Deberia fallar porque se esta intentando insertar un cliente con una clave primaria que ya existe --
 INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C1','CC');
+VALUES('C00D1','CC');
+
+-- Deberia fallar porque se esta intentando insertar un cliente con una clave primaria que ya existe --
+INSERT INTO CLIENTES(idCliente,  tidCliente)
+VALUES('C002','CE');
 
 -- Deberia fallar porque se esta intentando insertar un cliente con una clave primaria que ya existe --
 INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C1','CC');
+VALUES('C003','TI');
 
 -- Deberia fallar porque se esta intentando insertar un cliente con una clave primaria que ya existe --
 INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C1','CC');
-
--- Deberia fallar porque se esta intentando insertar un cliente con una clave primaria que ya existe --
-INSERT INTO CLIENTES(idCliente, tidCliente)
-VALUES('C1','CC');
+VALUES('C003','TI');
 
 -- Tabla CLIENTES (Check Constraint) --
 -- Deberia fallar porque el tipo de documento especificado no esta en la lista de valores permitidos --
@@ -639,15 +641,15 @@ VALUES('A4','Autor2');
 -- Tabla ARTICULOS (Primary Key) --
 -- Deberia fallar porque se esta intentando insertar un articulo con una ID que ya existe --
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A1', 'P001', 'Genero1','Descripcion1',TO_DATE('2024-03-20', 'YYYY-MM-DD'),'El extranjero');
+VALUES ('A001', 'P001', 'Genero1','Descripcion1',TO_DATE('2024-03-20', 'YYYY-MM-DD'),'El extranjero');
 
 -- Deberia fallar porque se esta intentando insertar un articulo con una ID que ya existe --
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A2', 'P002', 'Genero2','Descripcion2',TO_DATE('2024-03-21', 'YYYY-MM-DD'),'La divina comedia');
+VALUES ('A002', 'P002', 'Genero2','Descripcion2',TO_DATE('2024-03-21', 'YYYY-MM-DD'),'La divina comedia');
 
 -- Deberia fallar porque se esta intentando insertar un articulo con una ID que ya existe --
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
-VALUES ('A3', 'P003', 'Genero3','Descripcion3',TO_DATE('2024-03-22', 'YYYY-MM-DD'),'Pet Sematary');
+VALUES ('A003', 'P003', 'Genero3','Descripcion3',TO_DATE('2024-03-22', 'YYYY-MM-DD'),'Pet Sematary');
 
 -- Deberia fallar porque se esta intentando insertar un articulo con una ID que ya existe --
 INSERT INTO ARTICULOS(idArticulo,prestamoI,genero,descripcion,fechaPublicacion,nombreArticulo)
@@ -666,5 +668,3 @@ DELETE FROM RESERVAS;
 DELETE FROM SUSCRITOS;
 DELETE FROM VENTAS;
 DELETE FROM ARTICULOS;
-
-
