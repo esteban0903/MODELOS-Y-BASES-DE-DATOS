@@ -110,7 +110,7 @@ ALTER TABLE CALIFICACIONES ADD CONSTRAINT CHECK_ESTRELLAS CHECK (estrellas BETWE
 ALTER TABLE ARTICULOS ADD CONSTRAINT CHECK_TESTADO_ARTICULO CHECK (ESTADO IN ('NUEVO', 'USADO'));
 ALTER TABLE ARTICULOS ADD CONSTRAINT CHECK_TURL CHECK (FOTO LIKE ('%.jpg') OR FOTO LIKE ('%.jpg')  OR FOTO LIKE ('%.jpeg') OR FOTO LIKE ('%.png'));
 ALTER TABLE ROPAS ADD CONSTRAINT CHECK_TALLA CHECK (TALLA IN ('S', 'M', 'L', 'XL', 'XS', 'XXL'));
-ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TDESCRIPTION CHECK (DESCRIPCION IN ('A', 'M', 'B')); 
+/*ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TDESCRIPTION CHECK (DESCRIPCION IN ('A', 'M', 'B')); */
 ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TRESULTADO CHECK(RESULTADO IN ('AP', 'PE'));
 ALTER TABLE EVALUACIONES ADD CONSTRAINT CHECK_TID_E CHECK (TID IN ('CC', 'CD')); 
 ALTER TABLE CATEGORIAS 
@@ -292,16 +292,7 @@ END;
 
 ---MODIFICAR---
 ---El único dato que se puede modificar es el resultado de las auditorías.
-CREATE OR REPLACE TRIGGER TR_EVALUACIONES_resultado
-BEFORE UPDATE ON EVALUACIONES
-FOR EACH ROW
-BEGIN
-    IF :old.a_omes != :new.a_omes OR :old.tid != :new.tid OR :old.nid != :new.nid OR :old.fecha != :new.fecha OR :old.descripcion != :new.descripcion
-        OR :old.reporte != :new.reporte THEN
-        RAISE_APPLICATION_ERROR(-20004, 'El único dato que se puede modificar es el resultado');
-    END IF;
-END;
-/
+
 ---Solo es posible adicionar respuestas de las anomalías si el estado de la auditoría es pendiente
 CREATE OR REPLACE TRIGGER TR_EVALUACIONES_RESPUESTAS
 BEFORE UPDATE ON RESPUESTAS 
@@ -462,13 +453,12 @@ DROP TRIGGER TR_creacion_categoria_auditoria;
 --------------------------CASO DE USO 2--------------------------
 DROP TRIGGER TR_EVALUACIONES_fecha;
 DROP TRIGGER TR_EVALUACIONES_tipo;
-DROP TRIGGER TR_EVALUACIONES_resultado;
 DROP TRIGGER TR_EVALUACIONES_RESPUESTAS;
 DROP TRIGGER TR_EVALUACIONES_descripcion;
 
 
 --DTD-- 
-/*
+
 <?xml version="1.0"?>
 <!DOCTYPE evaluaciones [
   <!ELEMENT evaluaciones (descripcion?)>
@@ -494,7 +484,7 @@ VALUES ('202302', 'CC', 'nid002', TO_DATE('2024-03-16', 'YYYY-MM-DD'),
         'https://reporte2.pdf', 'PE');
  ----------------------------------------------------POBLANDO RESPUESTAS ----------------------------------------------------
 INSERT INTO RESPUESTAS(evaluacionA,respuesta)
-VALUES('202301','anomalia1')
+VALUES('202301','anomalia1');
 
 
 --POBLARNOK--
@@ -519,7 +509,7 @@ WHERE EXTRACTVALUE(descripcion, 'evaluacion/descripcion') = 'A'
 --Consultar evaluaciones con anomalias en prioridad baja
 SELECT a_omes as evaluacion
 FROM EVALUACIONES 
-WHERE EXTRACTVALUE(descripcion, 'evaluacion/descripcion') = 'B'
+WHERE EXTRACTVALUE(descripcion, 'evaluacion/descripcion') = 'B';
 
 
 ---DTD EXTENDIDO---
@@ -548,7 +538,15 @@ VALUES ('202303', 'CC', 'nid003', TO_DATE('2024-03-17', 'YYYY-MM-DD'),
 --Mostrar las evaluaciones con anomalias en prioridad ALTA y un puntaje mayor a 50
 SELECT a_omes
 FROM EVALUACIONES 
-WHERE descripcion.exists('evaluacion/descripcion[@puntaje > 50]');
+WHERE descripcion.exists('/evaluacion/descripcion[@puntaje > 50]');
+
+SELECT *
+FROM EVALUACIONES
+WHERE XMLExists('/evaluacion/descripcion[@puntaje > 50]' PASSING descripcion);
+
+SELECT a_omes
+FROM EVALUACIONES
+WHERE XMLExists('/evaluaciones/descripcion[@puntaje > 50]' PASSING descripcion);
 
 --no me funciona , no se 
 ------------------------------------------ XPoblar ------------------------------------------
