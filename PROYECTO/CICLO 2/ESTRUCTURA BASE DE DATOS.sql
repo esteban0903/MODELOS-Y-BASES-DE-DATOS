@@ -758,7 +758,6 @@ CREATE OR REPLACE PACKAGE PC_MULTAS AS
     -- DELETE
     -- DELETE
     PROCEDURE eliminar_multa(p_idMulta IN VARCHAR2);
-
 END PC_MULTAS;
 /
 --------------------------- CRUDI ---------------------------
