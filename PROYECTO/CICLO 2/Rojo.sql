@@ -172,7 +172,6 @@ CREATE OR REPLACE PACKAGE PC_BIBLIOTECARIO AS
     ------------- CRUD SUSCRITOS --------------
     -- CREATE --
     PROCEDURE suscritoCrear(
-        p_clienteI IN VARCHAR2,
         p_clienteT IN VARCHAR2,
         p_metodoPago IN VARCHAR2,
         p_nombre IN VARCHAR2,
@@ -396,7 +395,6 @@ END PC_GERENTE;
 
 
 -------------------------------- ACTORESI --------------------------------
-
 
 
 
@@ -706,6 +704,11 @@ END articuloCrear;
             RAISE_APPLICATION_ERROR(-20116, 'Se presentó un error al eliminar el Autor, por favor verifique los parámetros e inténtelo nuevamente');
     END autorEliminar;
 END PC_ADMINISTRADOR;
+/
+
+CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
+
+END PC_BIBLIOTECARIO;
 /
 -------------------------------- SEGURIDAD --------------------------------
 -------------------------------- SEGURIDAD OK --------------------------------
