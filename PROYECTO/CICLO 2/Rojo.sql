@@ -769,5 +769,49 @@ BEGIN
 	PC_ADMINISTRADOR.proveedorCrear('Henry','CE','Libros y revistas de ciencia ficcion','henryAllen@hotmail.com');
 END;
 /
+BEGIN
+	PC_ADMINISTRADOR.proveedorCrear('Jonathan','CC','Libros de Terror','jonthanT@hotmail.com');
+END;
+/
+
+-- Leer Proveedores --
+DECLARE
+    v_cursor SYS_REFCURSOR;
+    v_registro PROVEEDORES%ROWTYPE; -- Asumiendo que VENTAS es el nombre de tu tabla
+BEGIN
+    v_cursor := PC_ADMINISTRADOR.proveedoresLeer;
+    LOOP
+        FETCH v_cursor INTO v_registro;
+        EXIT WHEN v_cursor%NOTFOUND;
+        -- Aquí puedes procesar los datos de cada registro de la tabla VENTAS
+        DBMS_OUTPUT.PUT_LINE('Datos de la articulos: '||' ' ||v_registro.NOMBREP||' ' ||v_registro.CLIENTEI||' ' ||v_registro.CLIENTET||' ' ||v_registro.CATALOGO||' ' ||v_registro.CORREOELECTRONICO);
+    END LOOP;
+    CLOSE v_cursor;
+END;
+/
+-- Leer Proveedor Especifico --
+DECLARE
+    v_cursor SYS_REFCURSOR;
+    v_registro PROVEEDORES%ROWTYPE; -- Asumiendo que VENTAS es el nombre de tu tabla
+BEGIN
+    v_cursor := PC_ADMINISTRADOR.proveedorLeer_id('C2','CC');
+        FETCH v_cursor INTO v_registro;
+        -- Aquí puedes procesar los datos de cada registro de la tabla VENTAS
+        DBMS_OUTPUT.PUT_LINE('Datos de la articulos: '||' ' ||v_registro.NOMBREP||' ' ||v_registro.CLIENTEI||' ' ||v_registro.CLIENTET||' ' ||v_registro.CATALOGO||' ' ||v_registro.CORREOELECTRONICO);
+    CLOSE v_cursor;
+END;
+/
+
+-- Actualizar proveedor especifico --
+BEGIN
+ 	PC_ADMINISTRADOR.proveedorActualizar('C2','CC','jonathan2@live.com','Articulos de Terror', 'Jonathan');
+    END;
+/
+
+BEGIN
+ 	PC_ADMINISTRADOR.proveedorEliminar('C2','CC');
+    END;
+/
+
 
 -------------------------------- XSEGURIDAD --------------------------------
