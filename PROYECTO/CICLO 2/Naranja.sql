@@ -2,7 +2,8 @@
 CREATE OR REPLACE PACKAGE PC_CLIENTES AS
     -- CREATE --
     PROCEDURE crear_cliente(
-        p_tid_cliente   IN VARCHAR2
+        p_tid_cliente   IN VARCHAR2,
+        p_id_cliente    OUT     VARCHAR2
     );
     -- READ --
     FUNCTION leer_clientes RETURN SYS_REFCURSOR;
@@ -328,11 +329,15 @@ END PC_MULTAS;
 CREATE OR REPLACE PACKAGE BODY PC_CLIENTES AS
     -- CREATE --
     PROCEDURE crear_cliente(
-        p_tid_cliente   IN VARCHAR2
+        p_tid_cliente   IN VARCHAR2,
+        p_id_cliente    OUT     VARCHAR2
     ) IS
+    v_new_id CLIENTES.idCliente%TYPE;
     BEGIN 
-    INSERT INTO CLIENTES(tidCliente) VALUES(p_tid_cliente);
-		COMMIT;
+    INSERT INTO CLIENTES(tidCliente) VALUES(p_tid_cliente)
+    RETURNING idCLiente INTO v_new_id;
+    p_id_cliente:=v_new_id;
+    COMMIT;
 	EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
@@ -1258,8 +1263,10 @@ END PC_MULTAS;
 --------------------------- CRUDOK ---------------------------
 ------------------CREAR------------------
 ------CLIENTES------
+DECLARE 
+    id_cliente VARCHAR(20);
 BEGIN
-    PC_CLIENTES.crear_cliente('CC');
+    PC_CLIENTES.crear_cliente('CC',id_cliente);
 END;
 /
 ------SUSCRITOS------

@@ -431,12 +431,12 @@ ON SUSCRITOS(clienteI, nombre);
 
 CREATE UNIQUE INDEX I_NOMBRES_ARTICULOS
 ON ARTICULOS(idArticulo, nombreArticulo);
-
 --------------------------- CRUDE ---------------------------
 CREATE OR REPLACE PACKAGE PC_CLIENTES AS
     -- CREATE --
     PROCEDURE crear_cliente(
-        p_tid_cliente   IN VARCHAR2
+        p_tid_cliente   IN VARCHAR2,
+        p_id_cliente    OUT     VARCHAR2
     );
     -- READ --
     FUNCTION leer_clientes RETURN SYS_REFCURSOR;
@@ -569,7 +569,6 @@ END PC_VENTAS;
 CREATE OR REPLACE PACKAGE PC_ARTICULOS AS
     -- CREATE
     PROCEDURE crear_articulo(
-    p_idArticulo IN VARCHAR2,
     p_prestamoI IN VARCHAR2,
     p_genero IN VARCHAR2,
     p_descripcion IN VARCHAR2,
@@ -639,7 +638,7 @@ CREATE OR REPLACE PACKAGE PC_FISICOS AS
 END PC_FISICOS;
 /
 
-CREATE OR REPLACE PACKAGE PC_DIGITALES ASrt 
+CREATE OR REPLACE PACKAGE PC_DIGITALES AS
     -- CREATE
     PROCEDURE crear_digital(
     p_articuloI IN VARCHAR2,
@@ -719,9 +718,6 @@ CREATE OR REPLACE PACKAGE PC_FACTURAS AS
     p_estado IN CHAR
     );
 
-    -- READ
-    FUNCTION leer_facturas RETURN SYS_REFCURSOR;
-    FUNCTION leer_factura(p_idFactura IN VARCHAR2) RETURN SYS_REFCURSOR;
 
     -- UPDATE
     PROCEDURE actualizar_factura(
@@ -758,6 +754,7 @@ CREATE OR REPLACE PACKAGE PC_MULTAS AS
     -- DELETE
     -- DELETE
     PROCEDURE eliminar_multa(p_idMulta IN VARCHAR2);
+
 END PC_MULTAS;
 /
 --------------------------- CRUDI ---------------------------
@@ -765,11 +762,15 @@ END PC_MULTAS;
 CREATE OR REPLACE PACKAGE BODY PC_CLIENTES AS
     -- CREATE --
     PROCEDURE crear_cliente(
-        p_tid_cliente   IN VARCHAR2
+        p_tid_cliente   IN VARCHAR2,
+        p_id_cliente    OUT     VARCHAR2
     ) IS
+    v_new_id CLIENTES.idCliente%TYPE;
     BEGIN 
-    INSERT INTO CLIENTES(tidCliente) VALUES(p_tid_cliente);
-		COMMIT;
+    INSERT INTO CLIENTES(tidCliente) VALUES(p_tid_cliente)
+    RETURNING idCLiente INTO v_new_id;
+    p_id_cliente:=v_new_id;
+    COMMIT;
 	EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
@@ -1141,7 +1142,6 @@ END PC_VENTAS;
 CREATE OR REPLACE PACKAGE BODY PC_ARTICULOS AS
     -- CREATE
     PROCEDURE crear_articulo(
-    p_idArticulo IN VARCHAR2,
     p_prestamoI IN VARCHAR2,
     p_genero IN VARCHAR2,
     p_descripcion IN VARCHAR2,
@@ -1218,7 +1218,50 @@ CREATE OR REPLACE PACKAGE BODY PC_ARTICULOS AS
         END eliminar_articulo;
 END PC_ARTICULOS;
 /
+CREATE OR REPLACE PACKAGE BODY PC_FACTURAS AS
+    --CREATE
+    PROCEDURE crear_Factura(
+    p_prestamoI IN VARCHAR2,
+    p_metodoPago IN VARCHAR2,
+    p_fecha IN DATE,
+    p_total IN NUMBER,
+    p_estado IN CHAR
+    ) IS BEGIN
+    	INSERT INTO FACTURAS(prestamoI,metodoPago, fecha,total,estado)
+    	VALUES(p_prestamoI,p_metodoPago, p_fecha,p_total,p_estado);
+		COMMIT;
+		EXCEPTION
+        WHEN OTHERS THEN
+        ROLLBACK;
+        RAISE_APPLICATION_ERROR(-20029, 'Ocurrio un error en la crecion de la
+            factura, datos restablecidos, verifique sus parametros');
+    END crear_factura;
+    --UPDATE
+    PROCEDURE actualizar_factura(
+        p_idFactura IN VARCHAR2, 
+    p_fecha IN DATE,
+    p_total IN NUMBER,
+    p_estado IN CHAR
+    )IS BEGIN
+        UPDATE	FACTURAS
+        SET		fecha = p_fecha,
+                total=p_total,
+                estado=p_estado
+        WHERE	idFactura = p_idFactura;
+		COMMIT;
+        EXCEPTION
+        WHEN OTHERS THEN
+        ROLLBACK;
+        RAISE_APPLICATION_ERROR(-20032, 'Ocurrio un error en la actualizacion de 
+        la factura, datos restablecidos, verifique parametros');
 
+    END actualizar_factura;
+    PROCEDURE eliminar_factura(p_idFactura IN VARCHAR2)
+        IS BEGIN
+        DELETE FROM FACTURAS WHERE idFactura = p_idFactura;
+        END eliminar_factura;
+END PC_FACTURAS;
+/
 CREATE OR REPLACE PACKAGE BODY PC_AUTORES AS
     -- CREATE
     PROCEDURE crear_autor(
@@ -1649,6 +1692,197 @@ CREATE OR REPLACE PACKAGE BODY PC_MULTAS AS
 END PC_MULTAS;
 /
 
+--------------------------- CRUDOK ---------------------------
+--------------------------- CRUDOK ---------------------------
+------------------CREAR------------------
+------CLIENTES------
+DECLARE 
+    id_cliente VARCHAR(20);
+BEGIN
+    PC_CLIENTES.crear_cliente('CC',id_cliente);
+END;
+/
+------SUSCRITOS------
+BEGIN
+    PC_SUSCRITOS.crear_suscrito('C1','CC','T','Luke','Ross');
+END;
+/
+------RESERVAS------
+BEGIN
+    PC_RESERVAS.crear_reserva('C1','CC');
+END;
+/
+------PRESTAMOS------
+BEGIN
+    PC_PRESTAMOS.crear_prestamo('C1','CC','R1',TO_DATE('2024-05-25', 'YYYY-MM-DD'));
+END;
+/
+------DEVOLUCIONES------
+BEGIN
+    PC_DEVOLUCIONES.crear_devolucion('P1','D',TO_DATE('2024-05-27', 'YYYY-MM-DD'));
+END;
+/
+------FACTURAS------
+BEGIN
+    PC_FACTURAS.crear_factura('P1','C',TO_DATE('2024-04-03', 'YYYY-MM-DD'),5000,'D');
+END;
+/
+------MULTAS------
+BEGIN
+    PC_MULTAS.crear_multa('F1',10,'descripcion');
+END;
+/
+------ARTICULOS------
+BEGIN
+    PC_ARTICULOS.crear_articulo('P1','gen1','des1',TO_DATE('1999-05-27', 'YYYY-MM-DD'),'art1');
+END;
+/
+------AUTORES------
+BEGIN
+    PC_AUTORES.crear_autor('A1','autor1');
+END;
+/
+------FISICOS------
+BEGIN
+    PC_FISICOS.crear_fisico('A1','A');
+END;
+/
+------DIGITALES------
+BEGIN
+    PC_DIGITALES.crear_digital('A1','PDF');
+END;
+/
+------PROVEEDORES------
+BEGIN
+    PC_PROVEEDORES.crear_PROVEEDOR('NOMP','C1','CC','CAT1','correo@.com');
+END;
+/
+------VENTAS------
+BEGIN
+    PC_VENTAS.crear_VENTAS('A1','C1','CC','T',1,TO_DATE('2024-10-15', 'YYYY-MM-DD'));
+END;
+/
+------------------ACTUALIZAR------------------
+------SUSCRITOS------
+BEGIN
+    PC_SUSCRITOS.actualizar_suscrito('C1','CC','E','Luke');
+END;
+/
+------RESERVAS------
+BEGIN
+    PC_RESERVAS.actualizar_reserva('R1','A');
+END;
+/
+------PRESTAMOS------
+BEGIN
+    PC_PRESTAMOS.actualizar_prestamo('P1',TO_DATE('2024-05-24', 'YYYY-MM-DD'));
+END;
+/
+------DEVOLUCIONES------
+BEGIN
+    PC_DEVOLUCIONES.actualizar_devolucion('P1','A',TO_DATE('2024-05-27', 'YYYY-MM-DD'));
+END;
+/
+------FACTURAS------
+BEGIN
+    PC_FACTURAS.actualizar_factura('F1',TO_DATE('2024-04-03', 'YYYY-MM-DD'),5000,'D');
+END;
+/
+------MULTAS------
+BEGIN
+    PC_MULTAS.actualizar_multa('F1',10,'descripcion2');
+END;
+/
+------ARTICULOS------
+BEGIN
+    PC_ARTICULOS.actualizar_articulo('A1','P1','gen1','des2');
+END;
+/
+------AUTORES------
+BEGIN
+    PC_AUTORES.actualizar_autor('A1','autor12');
+END;
+/
+------FISICOS------
+BEGIN
+    PC_FISICOS.actualizar_fisico('A1','D','N');
+END;
+/
+------DIGITALES------
+BEGIN
+    PC_DIGITALES.actualizar_digital('A1','EPUB');
+END;
+/
+BEGIN
+    PC_PROVEEDORES.actualizar_PROVEEDOR('P1','CC','correo@.com','CAT1','NOMP');
+END;
+/
+------VENTAS------
+BEGIN
+    PC_VENTAS.actualizar_venta('V1','A1','T',5,TO_DATE('2024-10-15', 'YYYY-MM-DD'));
+END;
+/
+------------------ELIMINAR------------------
+------SUSCRITOS------
+BEGIN
+    PC_SUSCRITOS.eliminar_suscrito('C1','CC');
+END;
+/
+------RESERVAS------
+BEGIN
+    PC_RESERVAS.eliminar_reserva('R1');
+END;
+/
+------PRESTAMOS------
+BEGIN
+    PC_PRESTAMOS.eliminar_prestamo('P1');
+END;
+/
+------DEVOLUCIONES------
+BEGIN
+    PC_DEVOLUCIONES.eliminar_devolucion('P1');
+END;
+/
+------MULTAS------
+BEGIN
+    PC_MULTAS.eliminar_multa('M1');
+END;
+/
+------ARTICULOS------
+BEGIN
+    PC_ARTICULOS.eliminar_articulo('A1');
+END;
+/
+------AUTORES------
+BEGIN
+    PC_AUTORES.eliminar_autor('A1','autor12');
+END;
+/
+------FISICOS------
+BEGIN
+    PC_FISICOS.eliminar_fisico('A1');
+END;
+/
+------DIGITALES------
+BEGIN
+    PC_DIGITALES.eliminar_digital('A1');
+END;
+/
+------PROVEEDOR------
+BEGIN
+    PC_PROVEEDORES.eliminar_PROVEEDOR('P1','CC');
+END;
+/
+------VENTAS------
+BEGIN
+    PC_VENTAS.eliminar_venta('V1');
+END;
+/
+------FACTURAS------
+BEGIN
+    PC_FACTURAS.eliminar_factura('F1');
+END;
+/
 --------------------------- CRUDOK ---------------------------
 
 
