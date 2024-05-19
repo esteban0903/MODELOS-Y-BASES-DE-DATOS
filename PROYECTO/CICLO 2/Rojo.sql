@@ -330,7 +330,7 @@ CREATE OR REPLACE PACKAGE PC_CLIENTE AS
     );
     -- READ --
     FUNCTION reservaLeer_id(p_clienteI IN VARCHAR2) RETURN SYS_REFCURSOR;
-    FUNCTION leer_reservas RETURN SYS_REFCURSOR;
+    FUNCTION leer_reservass RETURN SYS_REFCURSOR;
     
     -- UPDATE --
     PROCEDURE reservaLeer(
@@ -366,18 +366,6 @@ CREATE OR REPLACE PACKAGE PC_CLIENTE AS
         p_metodoPago IN VARCHAR2,
         p_nombre IN VARCHAR2
     );
-    ------------- CONSULTAS OPERACIONALES --------------
-    -- PRESTAMOS --
-    FUNCTION prestamoLeer(p_idPrestamo IN VARCHAR2) RETURN SYS_REFCURSOR;
-    -- FISICOS --
-    FUNCTION fisicosLeer RETURN SYS_REFCURSOR;
-    FUNCTION fisicoLeer(p_articuloI IN VARCHAR2) RETURN SYS_REFCURSOR;
-    -- FACTURAS -- SOLO LAS DE ESTE USUARIO --
-    FUNCTION facturasLeer_id_tid(
-        p_id_suscrito IN VARCHAR2, 
-        p_tid_suscrito IN VARCHAR2) 
-    RETURN SYS_REFCURSOR;
-    FUNCTION facturaLeer(p_idFactura IN VARCHAR2) RETURN SYS_REFCURSOR;
 
 END PC_CLIENTE;
 /
@@ -407,14 +395,9 @@ CREATE OR REPLACE PACKAGE BODY PC_ADMINISTRADOR AS
     p_fechaPublicacion IN DATE,
     p_nombreArticulo IN VARCHAR2
     ) IS
-BEGIN
-    PC_ARTICULOS.crear_articulo(p_prestamoI, p_genero, p_descripcion, p_fechaPublicacion, p_nombreArticulo);
-    COMMIT;
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20102, 'Se presentó un error al crear el Artículo, por favor verifique los parámetros e inténtelo nuevamente');
-END articuloCrear;
+    BEGIN
+        PC_ARTICULOS.crear_articulo(p_prestamoI, p_genero, p_descripcion, p_fechaPublicacion, p_nombreArticulo);
+    END articuloCrear;
 
     FUNCTION articulosLeer RETURN SYS_REFCURSOR IS
     BEGIN
@@ -434,21 +417,11 @@ END articuloCrear;
     ) IS
     BEGIN
         PC_ARTICULOS.actualizar_articulo(p_idArticulo, p_prestamoI, p_genero, p_descripcion);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20103, 'Se presentó un error al actualizar el Artículo, por favor verifique los parámetros e inténtelo nuevamente');
     END articuloActualizar;
     
     PROCEDURE articuloEliminar(p_idArticulo IN VARCHAR2) IS
     BEGIN
         PC_ARTICULOS.eliminar_articulo(p_idArticulo);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20104, 'Se presentó un error al eliminar el Artículo, por favor verifique los parámetros e inténtelo nuevamente');
     END articuloEliminar;
         ------------- CRUD PROVEEDORES --------------
     PROCEDURE proveedorCrear(
@@ -460,11 +433,6 @@ END articuloCrear;
     BEGIN
         PC_CLIENTES.crear_cliente(p_clienteT,id_cliente);
         PC_PROVEEDORES.crear_proveedor(p_nombreP, id_cliente, p_clienteT, p_catalogo, p_correo_electronico);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20105, 'Se presentó un error al crear el Proveedor, por favor verifique los parámetros e inténtelo nuevamente');
     END proveedorCrear;
     
     FUNCTION proveedoresLeer RETURN SYS_REFCURSOR IS
@@ -489,11 +457,6 @@ END articuloCrear;
     ) IS
     BEGIN
         PC_PROVEEDORES.actualizar_proveedor(p_id_proveedor, p_tid_proveedor, p_correo_electronico, p_catalogo, p_nombre);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20106, 'Se presentó un error al actualizar el Proveedor, por favor verifique los parámetros e inténtelo nuevamente');
     END proveedorActualizar;
     
     PROCEDURE proveedorEliminar(
@@ -502,11 +465,6 @@ END articuloCrear;
     ) IS
     BEGIN
         PC_PROVEEDORES.eliminar_proveedor(p_id_proveedor, p_tid_proveedor);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20107, 'Se presentó un error al eliminar el Proveedor, por favor verifique los parámetros e inténtelo nuevamente');
     END proveedorEliminar;
 	------------- CRUD VENTAS -------------
     PROCEDURE ventasCrear(
@@ -518,11 +476,6 @@ END articuloCrear;
         p_fechaCompra IN DATE
     )IS BEGIN 
 	PC_VENTAS.crear_VENTAS(p_articuloI,p_clienteI,p_clienteT,p_metodoPago,p_total,p_fechaCompra);
-	COMMIT;
-	EXCEPTION 
-    WHEN OTHERS THEN 
-        ROLLBACK;
-		RAISE_APPLICATION_ERROR(-20101, 'Se presento un error, al crear la Venta, por favor verifique los parametros e intentelo nuevamente');
     END ventasCrear;
 
     FUNCTION ventasLeer RETURN SYS_REFCURSOR IS
@@ -544,23 +497,13 @@ END articuloCrear;
 
     ) IS BEGIN 
         PC_VENTAS.actualizar_venta(p_idCompra,p_articuloI,p_metodoPago,p_total,p_fechaCompra);
-		COMMIT;
-		EXCEPTION 
-        WHEN OTHERS THEN 
-        ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20102, 'Se presento un error, al actualizar la Venta como administrador, datos restablecidos');
-        END ventaActualizar;
+    END ventaActualizar;
 
 	PROCEDURE ventaEliminar(
         p_idCompra IN VARCHAR2
     ) IS BEGIN
         PC_VENTAS.eliminar_venta(p_idCompra);
-        COMMIT;
-		EXCEPTION 
-            WHEN OTHERS THEN
-            ROLLBACK;
-			RAISE_APPLICATION_ERROR(-20101, 'Se presentó un error al eliminar la venta, por favor verifique los parámetros e inténtelo nuevamente');	
-        END ventaEliminar;
+    END ventaEliminar;
         ------------- CRUD FISICOS --------------
     PROCEDURE fisicoCrear(
         p_articuloI IN VARCHAR2,
@@ -568,11 +511,6 @@ END articuloCrear;
     ) IS
     BEGIN
         PC_FISICOS.crear_fisico(p_articuloI, p_estado);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20108, 'Se presentó un error al crear el Físico, por favor verifique los parámetros e inténtelo nuevamente');
     END fisicoCrear;
 
     FUNCTION fisicosLeer RETURN SYS_REFCURSOR IS
@@ -592,21 +530,11 @@ END articuloCrear;
     ) IS
     BEGIN
         PC_FISICOS.actualizar_fisico(p_articuloI, p_estado, p_disponible);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20109, 'Se presentó un error al actualizar el Físico, por favor verifique los parámetros e inténtelo nuevamente');
     END fisicoActualizar;
     
     PROCEDURE fisicoEliminar(p_articuloI IN VARCHAR2) IS
     BEGIN
         PC_FISICOS.eliminar_fisico(p_articuloI);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20110, 'Se presentó un error al eliminar el Físico, por favor verifique los parámetros e inténtelo nuevamente');
     END fisicoEliminar;
         ------------- CRUD DIGITALES --------------
     PROCEDURE digitalCrear(
@@ -615,11 +543,6 @@ END articuloCrear;
     ) IS
     BEGIN
         PC_DIGITALES.crear_digital(p_articuloI, p_formato);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20111, 'Se presentó un error al crear el Digital, por favor verifique los parámetros e inténtelo nuevamente');
     END digitalCrear;
     
     FUNCTION digitalesLeer RETURN SYS_REFCURSOR IS
@@ -638,21 +561,11 @@ END articuloCrear;
     ) IS
     BEGIN
         PC_DIGITALES.actualizar_digital(p_articuloI, p_formato);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20112, 'Se presentó un error al actualizar el Digital, por favor verifique los parámetros e inténtelo nuevamente');
     END digitalActualizar;
     
     PROCEDURE digitalEliminar(p_articuloI IN VARCHAR2) IS
     BEGIN
         PC_DIGITALES.eliminar_digital(p_articuloI);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20113, 'Se presentó un error al eliminar el Digital, por favor verifique los parámetros e inténtelo nuevamente');
     END digitalEliminar;
         ------------- CRUD AUTORES --------------
     PROCEDURE autorCrear(
@@ -661,11 +574,6 @@ END articuloCrear;
     ) IS
     BEGIN
         PC_AUTORES.crear_autor(p_articuloI, p_autor);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20114, 'Se presentó un error al crear el Autor, por favor verifique los parámetros e inténtelo nuevamente');
     END autorCrear;
     
     FUNCTION autoresLeer RETURN SYS_REFCURSOR IS
@@ -684,11 +592,6 @@ END articuloCrear;
     ) IS
     BEGIN
         PC_AUTORES.actualizar_autor(p_articuloI, p_autor);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20115, 'Se presentó un error al actualizar el Autor, por favor verifique los parámetros e inténtelo nuevamente');
     END autorActualizar;
     
     PROCEDURE autorEliminar(
@@ -697,11 +600,6 @@ END articuloCrear;
     ) IS
     BEGIN
         PC_AUTORES.eliminar_autor(p_articuloI, p_autor);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20116, 'Se presentó un error al eliminar el Autor, por favor verifique los parámetros e inténtelo nuevamente');
     END autorEliminar;
 END PC_ADMINISTRADOR;
 /
@@ -718,11 +616,6 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
     BEGIN
         PC_CLIENTES.crear_cliente(p_clienteT,p_clienteI);
     	PC_SUSCRITOS.crear_suscrito(p_clienteI,p_clienteT,p_metodoPago,p_nombre,p_apellido);
-    	COMMIT;
-		EXCEPTION
-            WHEN OTHERS THEN
-            ROLLBACK;
-			RAISE_APPLICATION_ERROR(-20300, 'Hubo un error al crear un suscrito, verifique parametros, datos restaurados');
     END suscritoCrear;
 
     -- READ --
@@ -745,11 +638,6 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
         p_nombre IN VARCHAR2
     ) IS BEGIN
         PC_SUSCRITOS.actualizar_suscrito(p_id_suscrito ,p_clienteT ,p_metodoPago,p_nombre );
-        COMMIT;
-		EXCEPTION
-            WHEN OTHERS THEN
-            ROLLBACK;
-			RAISE_APPLICATION_ERROR(-20301, 'Hubo un error al Actualizar un suscrito, verifique parametros, datos restaurados');
         END suscritoActualizar;
 
     -- DELETE --
@@ -758,11 +646,6 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
         p_tid_suscrito IN VARCHAR2
     ) IS BEGIN
         PC_SUSCRITOS.eliminar_suscrito(p_id_suscrito,p_tid_suscrito);
-        COMMIT;
-		EXCEPTION
-            WHEN OTHERS THEN
-            ROLLBACK;
-			RAISE_APPLICATION_ERROR(-20302, 'Hubo un error al Eliminar un suscrito, verifique parametros, datos restaurados');
 	END suscritoEliminar;
 
     ------------- CRUD PRESTAMOS --------------
@@ -775,11 +658,6 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
     ) IS
     BEGIN
         PC_PRESTAMOS.crear_prestamo(p_clienteI, p_clienteT, p_reservaI, p_fechaDevolucionEstimada);
-        COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20303, 'Hubo un error al Crear un prestamo, verifique parametros, datos restaurados');
     END prestamosCrear;
 
     -- READ
@@ -797,22 +675,12 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
     p_fechaDevolucionEstimada IN DATE
     ) IS BEGIN
         PC_PRESTAMOS.actualizar_prestamo(p_idPrestamo,p_fechaDevolucionEstimada);
-        COMMIT;
-    	EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20304, 'Hubo un error al Actualizar un prestamo, verifique parametros, datos restaurados');
-        END prestamoActualizar;
+    END prestamoActualizar;
 
     -- DELETE
     PROCEDURE prestamoEliminar(p_idPrestamo IN VARCHAR2) IS BEGIN
         PC_PRESTAMOS.eliminar_prestamo(p_idPrestamo);
-		COMMIT;
-    	EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20304, 'Hubo un error al Eliminar un prestamo, verifique parametros, datos restaurados');
-        END prestamoEliminar;
+    END prestamoEliminar;
 
     ------------- CRUD FACTURAS --------------
     -- CREATE
@@ -824,12 +692,7 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
     p_estado IN CHAR
     ) IS BEGIN
         PC_FACTURAS.crear_factura(p_prestamoI,p_metodoPago,p_fecha,p_total,p_estado);
-        COMMIT;
-    	EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20305, 'Hubo un error al Crear una factura, verifique parametros, datos restaurados');
-        END facturaCrear;
+    END facturaCrear;
 
     -- READ
     FUNCTION facturasLeer RETURN SYS_REFCURSOR IS BEGIN
@@ -848,22 +711,12 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
     p_estado IN CHAR
     ) IS BEGIN 
         PC_FACTURAS.actualizar_factura(p_idFactura,p_fecha,p_total,p_estado);
-        COMMIT;
-    	EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20306, 'Hubo un error al Actualizar una factura, verifique parametros, datos restaurados');
-        END facturaActualizar;
+    END facturaActualizar;
 
     -- DELETE
     PROCEDURE facturaEliminar(p_idFactura IN VARCHAR2) IS BEGIN
         PC_FACTURAS.eliminar_factura(p_idFactura);
-        COMMIT;
-    	EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20307, 'Hubo un error al Eliminar una factura, verifique parametros, datos restaurados');
-        END facturaEliminar;
+    END facturaEliminar;
 
     ------------- CRUD MULTAS --------------
     -- CREATE
@@ -873,12 +726,7 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
     p_descripcion IN VARCHAR2
     ) IS BEGIN
         PC_MULTAS.crear_multa(p_facturaI, p_monto, p_descripcion);
-        COMMIT;
-    	EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20308, 'Hubo un error al Crear una Multa, verifique parametros, datos restaurados');
-        END multaCrear;
+    END multaCrear;
 
     -- READ
     FUNCTION multasLeer RETURN SYS_REFCURSOR IS BEGIN
@@ -895,22 +743,12 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
     p_descripcion IN VARCHAR2
     ) IS BEGIN
         PC_MULTAS.actualizar_multa(p_idMulta,p_monto,p_descripcion);
-        COMMIT;
-    	EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20309, 'Hubo un error al Actualizar una Multa, verifique parametros, datos restaurados');
-        END multaActualizar;
+    END multaActualizar;
 
     -- DELETE
     PROCEDURE multaEliminar(p_idMulta IN VARCHAR2) IS BEGIN
         PC_MULTAS.eliminar_multa(p_idMulta);
-        COMMIT;
-    	EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20310, 'Hubo un error al Eliminar una Multa, verifique parametros, datos restaurados');
-        END multaEliminar;
+    END multaEliminar;
     
     ------------- CRUD DEVOLUCIONES --------------
     -- CREATE
@@ -920,12 +758,7 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
     p_fechaDevolucion IN DATE
     ) IS BEGIN
         PC_DEVOLUCIONES.crear_devolucion(p_prestamoI,p_estado,p_fechaDevolucion);
-        COMMIT;
-    	EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20311, 'Hubo un error al Crear un prestamo, verifique parametros, datos restaurados');
-        END devolucionCrear;
+    END devolucionCrear;
 
     -- READ
     FUNCTION devolucionesLeer RETURN SYS_REFCURSOR IS BEGIN
@@ -942,22 +775,12 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
     p_fechaDevolucion IN DATE
     ) IS BEGIN 
         PC_DEVOLUCIONES.actualizar_devolucion(p_prestamoI,p_estado,p_fechaDevolucion);
-        COMMIT;
-    	EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20312, 'Hubo un error al Actualizar un prestamo, verifique parametros, datos restaurados');
-        END devolucionActualizar;
+    END devolucionActualizar;
 
     -- DELETE -- 
     PROCEDURE devolucionEliminar(p_prestamoI IN VARCHAR2) IS BEGIN
         PC_DEVOLUCIONES.eliminar_devolucion(p_prestamoI);
-        COMMIT;
-    	EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20312, 'Hubo un error al Actualizar un prestamo, verifique parametros, datos restaurados');
-        END devolucionEliminar;
+    END devolucionEliminar;
 
     ------------- CONSULTAS OPERACIONALES --------------
     -- RESERVAS --
@@ -994,6 +817,79 @@ CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
 END PC_BIBLIOTECARIO;
 /
 
+
+CREATE OR REPLACE PACKAGE BODY PC_CLIENTE AS
+---------------------RESERVAS---------------------
+    ---CREAR---
+    PROCEDURE reservaCrear( p_clienteI IN VARCHAR2,
+        p_clienteT IN VARCHAR2
+    )
+    IS BEGIN
+        PC_RESERVAS.crear_reserva(p_clienteI,p_clienteT);
+    END reservaCrear;
+    ---LEER---
+    
+    FUNCTION leer_reservass RETURN SYS_REFCURSOR 
+    IS 
+    BEGIN 
+        RETURN PC_RESERVAS.leer_reservas;
+    END leer_reservass;
+    --- LEER CON ID ---
+    FUNCTION reservaLeer_id(p_clienteI IN VARCHAR2) RETURN SYS_REFCURSOR 
+    IS 
+    BEGIN 
+        RETURN PC_RESERVAS.leer_reserva_id(p_clienteI);
+    END reservaLeer_id;
+    --- ACTUALIZAR ---
+    PROCEDURE reservaLeer( p_reservaId IN VARCHAR2, p_estado IN CHAR)
+    IS BEGIN
+        PC_RESERVAS.actualizar_reserva(p_reservaId, p_estado);
+    END reservaLeer;
+    --- ELIMINAR ---
+    PROCEDURE reservaEliminar( p_reservaId IN VARCHAR2)
+    IS BEGIN
+        PC_RESERVAS.eliminar_reserva(p_reservaId);
+    END reservaEliminar;
+---------------------SUSCRITOS---------------------
+    ---CREAR---
+    PROCEDURE suscritoCrear( p_clienteI IN VARCHAR2,
+        p_clienteT IN VARCHAR2,
+        p_metodoPago IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_apellido IN VARCHAR2
+    )
+    IS BEGIN
+        PC_SUSCRITOS.crear_suscrito(p_clienteI,p_clienteT,p_metodoPago,p_nombre,p_apellido);
+    END suscritoCrear;
+    ---LEER---
+    
+    FUNCTION suscritosLeer RETURN SYS_REFCURSOR 
+    IS 
+    BEGIN 
+        RETURN PC_SUSCRITOS.leer_suscritos;
+    END suscritosLeer;
+    
+    ---LEER CON ID---
+    
+    FUNCTION suscritoLeer_id_tid(p_id_suscrito IN VARCHAR2, p_tid_suscrito IN VARCHAR2) RETURN SYS_REFCURSOR 
+    IS 
+    BEGIN 
+        RETURN PC_SUSCRITOS.leer_suscrito_id_tid(p_id_suscrito, p_tid_suscrito);
+    END suscritoLeer_id_tid;
+    
+    --- ACTUALIZAR ---
+     PROCEDURE suscritoActualizar( p_id_suscrito IN VARCHAR2,
+        p_clienteT IN VARCHAR2,
+        p_metodoPago IN VARCHAR2,
+        p_nombre IN VARCHAR2
+    )
+    IS BEGIN
+        PC_SUSCRITOS.actualizar_suscrito(p_id_suscrito,p_clienteT,p_metodoPago,p_nombre);
+    END suscritoActualizar;
+    
+END PC_CLIENTE;
+/
+        
 -------------------------------- SEGURIDAD --------------------------------
 -------------------------------- SEGURIDAD OK --------------------------------
 BEGIN
