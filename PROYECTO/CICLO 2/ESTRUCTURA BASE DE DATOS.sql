@@ -67,7 +67,7 @@ CREATE TABLE PRESTAMOS(
 clienteI VARCHAR(20) NOT NULL,
 clienteT VARCHAR(2) NOT NULL,
 idPrestamo VARCHAR(20) NOT NULL,
-reservaI VARCHAR(20) NOT NULL,
+reservaI VARCHAR(20),
 fechaEntrega DATE NOT NULL,
 fechaDevolucionEstimada DATE NOT NULL
 );
