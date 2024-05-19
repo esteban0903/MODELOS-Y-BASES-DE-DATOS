@@ -210,7 +210,7 @@ CREATE OR REPLACE PACKAGE PC_BIBLIOTECARIO AS
 
     -- READ
     FUNCTION prestamosLeer RETURN SYS_REFCURSOR;
-    FUNCTION leer_prestamo(p_idPrestamo IN VARCHAR2) RETURN SYS_REFCURSOR;
+    FUNCTION prestamoLeer(p_idPrestamo IN VARCHAR2) RETURN SYS_REFCURSOR;
 
     -- UPDATE
     PROCEDURE prestamoActualizar(
@@ -707,9 +707,293 @@ END PC_ADMINISTRADOR;
 /
 
 CREATE OR REPLACE PACKAGE BODY PC_BIBLIOTECARIO AS
+	------------- CRUD SUSCRITOS --------------
+    -- CREATE --
+    PROCEDURE suscritoCrear(
+        p_clienteT IN VARCHAR2,
+        p_metodoPago IN VARCHAR2,
+        p_nombre IN VARCHAR2,
+        p_apellido IN VARCHAR2
+    ) IS p_clienteI CLIENTES.idCliente%TYPE;
+    BEGIN
+        PC_CLIENTES.crear_cliente(p_clienteT,p_clienteI);
+    	PC_SUSCRITOS.crear_suscrito(p_clienteI,p_clienteT,p_metodoPago,p_nombre,p_apellido);
+    	COMMIT;
+		EXCEPTION
+            WHEN OTHERS THEN
+            ROLLBACK;
+			RAISE_APPLICATION_ERROR(-20300, 'Hubo un error al crear un suscrito, verifique parametros, datos restaurados');
+    END suscritoCrear;
 
+    -- READ --
+    FUNCTION suscritosLeer RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_SUSCRITOS.leer_suscritos;
+    END suscritosLeer;
+
+    FUNCTION suscritoLeer_id_tid(
+        p_id_suscrito IN VARCHAR2, 
+        p_tid_suscrito IN VARCHAR2) 
+    RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_SUSCRITOS.leer_suscrito_id_tid(p_id_suscrito, p_tid_suscrito);
+        END suscritoLeer_id_tid;
+    
+    -- UPDATE --
+    PROCEDURE suscritoActualizar(
+        p_id_suscrito IN VARCHAR2,
+        p_clienteT IN VARCHAR2,
+        p_metodoPago IN VARCHAR2,
+        p_nombre IN VARCHAR2
+    ) IS BEGIN
+        PC_SUSCRITOS.actualizar_suscrito(p_id_suscrito ,p_clienteT ,p_metodoPago,p_nombre );
+        COMMIT;
+		EXCEPTION
+            WHEN OTHERS THEN
+            ROLLBACK;
+			RAISE_APPLICATION_ERROR(-20301, 'Hubo un error al Actualizar un suscrito, verifique parametros, datos restaurados');
+        END suscritoActualizar;
+
+    -- DELETE --
+    PROCEDURE suscritoEliminar(
+        p_id_suscrito IN VARCHAR2, 
+        p_tid_suscrito IN VARCHAR2
+    ) IS BEGIN
+        PC_SUSCRITOS.eliminar_suscrito(p_id_suscrito,p_tid_suscrito);
+        COMMIT;
+		EXCEPTION
+            WHEN OTHERS THEN
+            ROLLBACK;
+			RAISE_APPLICATION_ERROR(-20302, 'Hubo un error al Eliminar un suscrito, verifique parametros, datos restaurados');
+	END suscritoEliminar;
+
+    ------------- CRUD PRESTAMOS --------------
+    -- CREATE
+    PROCEDURE prestamosCrear(
+    p_clienteI IN VARCHAR2,
+    p_clienteT IN VARCHAR2,
+    p_reservaI IN VARCHAR2,
+    p_fechaDevolucionEstimada IN DATE
+    ) IS
+    BEGIN
+        PC_PRESTAMOS.crear_prestamo(p_clienteI, p_clienteT, p_reservaI, p_fechaDevolucionEstimada);
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20303, 'Hubo un error al Crear un prestamo, verifique parametros, datos restaurados');
+    END prestamosCrear;
+
+    -- READ
+    FUNCTION prestamosLeer RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_PRESTAMOS.leer_prestamos;
+        END prestamosLeer;
+
+    FUNCTION prestamoLeer(p_idPrestamo IN VARCHAR2) RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_PRESTAMOS.leer_prestamo(p_idPrestamo);
+        END prestamoLeer;
+
+    -- UPDATE
+    PROCEDURE prestamoActualizar(
+    p_idPrestamo IN VARCHAR2,
+    p_fechaDevolucionEstimada IN DATE
+    ) IS BEGIN
+        PC_PRESTAMOS.actualizar_prestamo(p_idPrestamo,p_fechaDevolucionEstimada);
+        COMMIT;
+    	EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20304, 'Hubo un error al Actualizar un prestamo, verifique parametros, datos restaurados');
+        END prestamoActualizar;
+
+    -- DELETE
+    PROCEDURE prestamoEliminar(p_idPrestamo IN VARCHAR2) IS BEGIN
+        PC_PRESTAMOS.eliminar_prestamo(p_idPrestamo);
+		COMMIT;
+    	EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20304, 'Hubo un error al Eliminar un prestamo, verifique parametros, datos restaurados');
+        END prestamoEliminar;
+
+    ------------- CRUD FACTURAS --------------
+    -- CREATE
+    PROCEDURE facturaCrear(
+    p_prestamoI IN VARCHAR2,
+    p_metodoPago IN VARCHAR2,
+    p_fecha IN DATE,
+    p_total IN NUMBER,
+    p_estado IN CHAR
+    ) IS BEGIN
+        PC_FACTURAS.crear_factura(p_prestamoI,p_metodoPago,p_fecha,p_total,p_estado);
+        COMMIT;
+    	EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20305, 'Hubo un error al Crear una factura, verifique parametros, datos restaurados');
+        END facturaCrear;
+
+    -- READ
+    FUNCTION facturasLeer RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_FACTURAS.leer_facturas;
+        END facturasLeer;
+
+    FUNCTION facturaLeer(p_idFactura IN VARCHAR2) RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_FACTURAS.leer_factura(p_idFactura);
+        END facturaLeer;
+
+    -- UPDATE
+    PROCEDURE facturaActualizar(
+        p_idFactura IN VARCHAR2, 
+    p_fecha IN DATE,
+    p_total IN NUMBER,
+    p_estado IN CHAR
+    ) IS BEGIN 
+        PC_FACTURAS.actualizar_factura(p_idFactura,p_fecha,p_total,p_estado);
+        COMMIT;
+    	EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20306, 'Hubo un error al Actualizar una factura, verifique parametros, datos restaurados');
+        END facturaActualizar;
+
+    -- DELETE
+    PROCEDURE facturaEliminar(p_idFactura IN VARCHAR2) IS BEGIN
+        PC_FACTURAS.eliminar_factura(p_idFactura);
+        COMMIT;
+    	EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20307, 'Hubo un error al Eliminar una factura, verifique parametros, datos restaurados');
+        END facturaEliminar;
+
+    ------------- CRUD MULTAS --------------
+    -- CREATE
+    PROCEDURE multaCrear(
+    p_facturaI IN VARCHAR2,
+    p_monto IN NUMBER,
+    p_descripcion IN VARCHAR2
+    ) IS BEGIN
+        PC_MULTAS.crear_multa(p_facturaI, p_monto, p_descripcion);
+        COMMIT;
+    	EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20308, 'Hubo un error al Crear una Multa, verifique parametros, datos restaurados');
+        END multaCrear;
+
+    -- READ
+    FUNCTION multasLeer RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_MULTAS.leer_multas;
+        END multasLeer;
+    FUNCTION multaLeer(p_idMulta IN VARCHAR2) RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_MULTAS.leer_multa(p_idMulta);
+        END multaLeer;
+
+    -- UPDATE
+    PROCEDURE multaActualizar(
+    p_idMulta IN VARCHAR2,
+    p_monto IN NUMBER,
+    p_descripcion IN VARCHAR2
+    ) IS BEGIN
+        PC_MULTAS.actualizar_multa(p_idMulta,p_monto,p_descripcion);
+        COMMIT;
+    	EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20309, 'Hubo un error al Actualizar una Multa, verifique parametros, datos restaurados');
+        END multaActualizar;
+
+    -- DELETE
+    PROCEDURE multaEliminar(p_idMulta IN VARCHAR2) IS BEGIN
+        PC_MULTAS.eliminar_multa(p_idMulta);
+        COMMIT;
+    	EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20310, 'Hubo un error al Eliminar una Multa, verifique parametros, datos restaurados');
+        END multaEliminar;
+    
+    ------------- CRUD DEVOLUCIONES --------------
+    -- CREATE
+    PROCEDURE devolucionCrear(
+    p_prestamoI IN VARCHAR2,
+    p_estado IN CHAR,
+    p_fechaDevolucion IN DATE
+    ) IS BEGIN
+        PC_DEVOLUCIONES.crear_devolucion(p_prestamoI,p_estado,p_fechaDevolucion);
+        COMMIT;
+    	EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20311, 'Hubo un error al Crear un prestamo, verifique parametros, datos restaurados');
+        END devolucionCrear;
+
+    -- READ
+    FUNCTION devolucionesLeer RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_DEVOLUCIONES.leer_devoluciones;
+        END devolucionesLeer;
+    FUNCTION devolucionLeer(p_prestamoI IN VARCHAR2) RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_DEVOLUCIONES.leer_devolucion(p_prestamoI);
+        END devolucionLeer;
+
+    -- UPDATE
+    PROCEDURE devolucionActualizar(
+    p_prestamoI IN VARCHAR2,
+    p_estado IN CHAR,
+    p_fechaDevolucion IN DATE
+    ) IS BEGIN 
+        PC_DEVOLUCIONES.actualizar_devolucion(p_prestamoI,p_estado,p_fechaDevolucion);
+        COMMIT;
+    	EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20312, 'Hubo un error al Actualizar un prestamo, verifique parametros, datos restaurados');
+        END devolucionActualizar;
+
+    -- DELETE -- 
+    PROCEDURE devolucionEliminar(p_prestamoI IN VARCHAR2) IS BEGIN
+        PC_DEVOLUCIONES.eliminar_devolucion(p_prestamoI);
+        COMMIT;
+    	EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20312, 'Hubo un error al Actualizar un prestamo, verifique parametros, datos restaurados');
+        END devolucionEliminar;
+
+    ------------- CONSULTAS OPERACIONALES --------------
+    -- RESERVAS --
+    FUNCTION reservaLeer(p_clienteI IN VARCHAR2) RETURN SYS_REFCURSOR IS BEGIN 
+        RETURN PC_RESERVAS.leer_reserva_id(p_clienteI);
+        END reservaLeer;
+    FUNCTION reservasLeer RETURN SYS_REFCURSOR IS BEGIN 
+        RETURN PC_RESERVAS.leer_reservas;
+        END reservasLeer;
+    
+    -- ARTICULOS --
+    FUNCTION articulosLeer RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_ARTICULOS.leer_articulos;
+        END articulosLeer;
+    FUNCTION articuloLeer(p_idArticulo IN VARCHAR2) RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_ARTICULOS.leer_articulo(p_idArticulo);
+        END articuloLeer;
+
+    -- FISICOS --
+    FUNCTION fisicosLeer RETURN SYS_REFCURSOR IS BEGIN
+            RETURN PC_FISICOS.leer_fisicos;
+        END fisicosLeer;
+    FUNCTION fisicoLeer(p_articuloI IN VARCHAR2) RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_FISICOS.leer_fisico(p_articuloI);
+        END fisicoLeer;
+
+    -- DIGITALES --
+    FUNCTION digitalesLeer RETURN SYS_REFCURSOR IS BEGIN
+        RETURN PC_DIGITALES.leer_digitales;
+        END digitalesLeer;
+    FUNCTION digitalLeer(p_articuloI IN VARCHAR2) RETURN SYS_REFCURSOR IS BEGIN
+            RETURN PC_DIGITALES.leer_digital(p_articuloI);
+        END digitalLeer;
 END PC_BIBLIOTECARIO;
 /
+
 -------------------------------- SEGURIDAD --------------------------------
 -------------------------------- SEGURIDAD OK --------------------------------
 BEGIN

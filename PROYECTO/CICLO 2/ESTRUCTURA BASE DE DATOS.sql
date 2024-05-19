@@ -720,7 +720,9 @@ CREATE OR REPLACE PACKAGE PC_FACTURAS AS
     p_estado IN CHAR
     );
 
-
+    -- READ --
+    FUNCTION leer_facturas RETURN SYS_REFCURSOR;
+    FUNCTION leer_factura(p_idFactura IN VARCHAR2) RETURN SYS_REFCURSOR;
     -- UPDATE
     PROCEDURE actualizar_factura(
         p_idFactura IN VARCHAR2, 
@@ -1220,6 +1222,8 @@ CREATE OR REPLACE PACKAGE BODY PC_ARTICULOS AS
         END eliminar_articulo;
 END PC_ARTICULOS;
 /
+
+
 CREATE OR REPLACE PACKAGE BODY PC_FACTURAS AS
     --CREATE
     PROCEDURE crear_Factura(
@@ -1238,6 +1242,33 @@ CREATE OR REPLACE PACKAGE BODY PC_FACTURAS AS
         RAISE_APPLICATION_ERROR(-20029, 'Ocurrio un error en la crecion de la
             factura, datos restablecidos, verifique sus parametros');
     END crear_factura;
+    
+    -- READ --
+    FUNCTION leer_facturas RETURN SYS_REFCURSOR 
+        IS v_cursor SYS_REFCURSOR;
+        BEGIN
+        	OPEN v_cursor FOR
+        	SELECT * FROM FACTURAS;
+			RETURN v_cursor;
+    		EXCEPTION
+            WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20050, 'Ocurrio un error en la lectura de 
+                las Facturas, datos restablecidos');
+        	END leer_facturas;
+
+    FUNCTION leer_factura(p_idFactura IN VARCHAR2) RETURN SYS_REFCURSOR 
+        IS v_cursor SYS_REFCURSOR;
+        BEGIN
+        	OPEN v_cursor FOR
+        	SELECT * FROM FACTURAS WHERE idFactura =p_idFactura;
+			RETURN v_cursor;
+    		EXCEPTION
+            WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE_APPLICATION_ERROR(-20052, 'Ocurrio un error en la lectura de 
+                la Factura, datos restablecidos, verifique parametros');
+	        END leer_factura;
     --UPDATE
     PROCEDURE actualizar_factura(
         p_idFactura IN VARCHAR2, 
@@ -1264,6 +1295,7 @@ CREATE OR REPLACE PACKAGE BODY PC_FACTURAS AS
         END eliminar_factura;
 END PC_FACTURAS;
 /
+
 CREATE OR REPLACE PACKAGE BODY PC_AUTORES AS
     -- CREATE
     PROCEDURE crear_autor(
