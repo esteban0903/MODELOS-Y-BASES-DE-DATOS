@@ -1,0 +1,50 @@
+drop table "ARTICULOS" cascade constraints PURGE;
+drop table "AUTORES" cascade constraints PURGE;
+drop table "CLIENTES" cascade constraints PURGE;
+drop table "DEVOLUCIONES" cascade constraints PURGE;
+drop table "DIGITALES" cascade constraints PURGE;
+drop table "FACTURAS" cascade constraints PURGE;
+drop table "MULTAS" cascade constraints PURGE;
+drop table "PRESTAMOS" cascade constraints PURGE;
+drop table "PROVEEDORES" cascade constraints PURGE;
+drop table "RESERVAS" cascade constraints PURGE;
+drop table "SUSCRITOS" cascade constraints PURGE;
+drop table "VENTAS" cascade constraints PURGE;
+drop table "FISICOS" cascade constraints PURGE;
+
+
+DROP PACKAGE PC_CLIENTES;
+DROP PACKAGE PC_SUSCRITOS;
+DROP PACKAGE PC_RESERVAS;
+DROP PACKAGE PC_PROVEEDORES;
+DROP PACKAGE PC_VENTAS;
+DROP PACKAGE PC_ARTICULOS;
+DROP PACKAGE PC_AUTORES;
+DROP PACKAGE PC_FISICOS;
+DROP PACKAGE PC_DIGITALES;
+DROP PACKAGE PC_PRESTAMOS;
+DROP PACKAGE PC_DEVOLUCIONES;
+DROP PACKAGE PC_MULTAS;
+
+DROP SEQUENCE secuencia_ventas;
+DROP SEQUENCE secuencia_articulos;
+DROP SEQUENCE secuencia_facturas;
+DROP SEQUENCE secuencia_prestamos;
+DROP SEQUENCE secuencia_clientes;
+DROP SEQUENCE secuencia_reservas;
+DROP SEQUENCE secuencia_multas;
+
+
+DROP PACKAGE PC_ADMINISTRADOR;
+DROP PACKAGE PC_BIBLIOTECARIO;
+DROP PACKAGE PC_CLIENTE;
+
+
+DROP INDEX I_NOMBRES_ARTICULOS;
+DROP INDEX I_NOMBRES_USUARIO;
+
+DROP VIEW CLIENTES_SUSCRITOS;
+DROP VIEW COMPRAS;
+DROP VIEW FACTURAS_CON_MULTA;
+DROP VIEW ARTICULOS_FISICOS;
+DROP VIEW ARTICULOS_EN_RESERVA;
