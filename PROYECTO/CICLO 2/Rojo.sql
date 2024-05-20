@@ -345,7 +345,6 @@ CREATE OR REPLACE PACKAGE PC_CLIENTE AS
     ------------- CRU SUSCRITO --------------
     -- CREATE --
     PROCEDURE suscritoCrear(
-        p_clienteI IN VARCHAR2,
         p_clienteT IN VARCHAR2,
         p_metodoPago IN VARCHAR2,
         p_nombre IN VARCHAR2,
@@ -353,7 +352,6 @@ CREATE OR REPLACE PACKAGE PC_CLIENTE AS
     );
 
     -- READ --
-    FUNCTION suscritosLeer RETURN SYS_REFCURSOR;
     FUNCTION suscritoLeer_id_tid(
         p_id_suscrito IN VARCHAR2, 
         p_tid_suscrito IN VARCHAR2) 
@@ -374,18 +372,7 @@ END PC_CLIENTE;
     informacion relevante en general de la biblioteca, incluyendo las flujas con multa
     el total de facturas y las ventas efectuadas.
 */
-CREATE OR REPLACE PACKAGE PC_GERENTE AS
-    -- Aun tengo que definir este usando vistas especiales solo para este.
-
-END PC_GERENTE;
-/
-
-
-
 -------------------------------- ACTORESI --------------------------------
-
-
-
 CREATE OR REPLACE PACKAGE BODY PC_ADMINISTRADOR AS 
 	--------------- CRUD ARTICULOS --------------
 	PROCEDURE articuloCrear(
@@ -852,23 +839,16 @@ CREATE OR REPLACE PACKAGE BODY PC_CLIENTE AS
     END reservaEliminar;
 ---------------------SUSCRITOS---------------------
     ---CREAR---
-    PROCEDURE suscritoCrear( p_clienteI IN VARCHAR2,
+    PROCEDURE suscritoCrear(
         p_clienteT IN VARCHAR2,
         p_metodoPago IN VARCHAR2,
         p_nombre IN VARCHAR2,
         p_apellido IN VARCHAR2
-    )
-    IS BEGIN
+    )IS p_clienteI CLIENTES.idCliente%TYPE;
+    BEGIN
+        PC_CLIENTES.crear_cliente(p_clienteT,p_clienteI);
         PC_SUSCRITOS.crear_suscrito(p_clienteI,p_clienteT,p_metodoPago,p_nombre,p_apellido);
     END suscritoCrear;
-    ---LEER---
-    
-    FUNCTION suscritosLeer RETURN SYS_REFCURSOR 
-    IS 
-    BEGIN 
-        RETURN PC_SUSCRITOS.leer_suscritos;
-    END suscritosLeer;
-    
     ---LEER CON ID---
     
     FUNCTION suscritoLeer_id_tid(p_id_suscrito IN VARCHAR2, p_tid_suscrito IN VARCHAR2) RETURN SYS_REFCURSOR 
@@ -996,5 +976,96 @@ BEGIN
     END;
 /
 
+-----------USUARIOS----------------
+----------RESERVAS----------
+---CREAR RESERVA---
+BEGIN
+    PC_CLIENTE.reservaCrear( 'C1','CC');
+    END;
+/
+---LEER RESERVA---
+SELECT PC_CLIENTE.leer_reservass() FROM DUAL;
+---LEER RESERVA CON ID---
+SELECT PC_CLIENTE.reservaLeer_id('C1') FROM DUAL;
+---ACTUALIZAR RESERVA---
+BEGIN
+    PC_CLIENTE.reservaLeer( 'R1','A');
+    END;
+/
+---ELIMINAR RESERVA---
+BEGIN
+    PC_CLIENTE.reservaEliminar( 'R1');
+    END;
+/
+----------SUSCRITOS----------
+---CREAR SUSCRITO---
 
+BEGIN
+    PC_CLIENTE.suscritoCrear('CC','T','Esteban','Aguilera');
+    END;
+/
+---LEER SUSCRITOS---
+SELECT PC_CLIENTE.suscritoLeer_id_tid( 'C4','CC') FROM dual;
+---ACTUALIZAR SUSCRITOS---
+BEGIN
+    PC_CLIENTE.suscritoActualizar('Esteban_Aguilera_C4','TI','T','Esteban');
+    END;
+/
 -------------------------------- XSEGURIDAD --------------------------------
+DROP PACKAGE PC_ADMINISTRADOR;
+DROP PACKAGE PC_BIBLIOTECARIO;
+DROP PACKAGE PC_CLIENTE;
+
+
+
+---------------------------PRUEBAS-------------------------
+---Ana es una usuaria que quiere hacer parte de LibroTech. Recientemente ha encontrado un libro muy interesante en la plataforma y desea adquirirlo. --
+
+---1. Ana le dice al biblioteario que quiere hacer parte de librotech como un cliente suscrito.
+BEGIN
+    PC_CLIENTE.suscritoCrear('CC','T','Ana','Maria');
+    END;
+/
+
+---2 Ana quiere ver que esta en la plataforma, por lo que ingresa al sistema y revisa su id:
+SELECT PC_CLIENTE.suscritoLeer_id_tid('C1','CC') FROM DUAL;
+
+---3.. Ana desea generar una reserva de un libro que le gusto
+BEGIN
+    PC_CLIENTE.reservaCrear( 'C1','CC');
+    END;
+/
+---4. Ana decide ir al otro dia a reclamar su libro reservado.  El bibliotecario al ver que Ana genero una reserva, le genera un prestamo.
+BEGIN
+    PC_BIBLIOTECARIO.prestamosCrear( 'C1','CC','R1',SYSDATE);
+    END;
+/
+---5. Ana mira que el bibliotecario haya generado la reserva, por lo que revisa en su plataforma si esta creada.
+SELECT PC_CLIENTE.reservaLeer_id('C1') FROM DUAL;
+
+
+---6. Pasan 2 meses y Ana vuelve a la bilioteca a  entregar el libro. El bibliotecario genera una devolución de libro
+BEGIN
+    PC_DEVOLUCIONES.crear_devolucion('P1','A',SYSDATE);
+END;
+/
+
+---7. Al generasela devolución se genera una factura
+BEGIN
+    PC_BIBLIOTECARIO.facturaCrear( 'P1','T',TO_DATE('2024-07-20', 'YYYY-MM-DD'),0,'D');
+    END;
+/
+
+---8. El bibliotecario se da cuenta que Ana entrego el libro tarde por lo que le genera una multa
+BEGIN
+   PC_MULTAS.crear_multa('F1', '100', 'Entrega tarde');
+    END;
+/
+---9 Le muestra la multa a Ana para que sepa el valor que tiene que pagar
+SELECT PC_FACTURAS.leer_factura('F1') FROM dual;
+
+---10 Ana paga la multa y se elimina la factura
+BEGIN
+   PC_FACTURAS.eliminar_factura('F1');
+    END;
+/
