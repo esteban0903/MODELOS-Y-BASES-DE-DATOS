@@ -46,10 +46,18 @@ descripcion VARCHAR(100) NOT NULL,
 fechaPublicacion DATE,
 nombreArticulo VARCHAR(100) NOT NULL
 );
+/*
+<!DOCTYPE autor [
+  <!ELEMENT autor (nombre, apellido, fecha_nacimiento)>
+  <!ELEMENT nombre (#PCDATA)>
+  <!ELEMENT apellido (#PCDATA)>
+  <!ELEMENT fecha_nacimiento (#PCDATA)>
+]>
+*/
 
 CREATE TABLE AUTORES(
 articuloI VARCHAR(20) NOT NULL,
-autor VARCHAR(100) NOT NULL
+autor xmltype
 );
 
 CREATE TABLE FISICOS(
@@ -352,13 +360,13 @@ VALUES ('A004', NULL, 'Intriga y suspenso','La historia de un policia cazando un
 
 
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A001','George R. R. Martin');
+VALUES('A001',XMLType('<autor><nombre>John</nombre><apellido>Doe</apellido><fecha_nacimiento>1990-05-19</fecha_nacimiento></autor>'));
 
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A002','Flor M. Salvador');
+VALUES('A002',XMLType('<autor><nombre>Alice</nombre><apellido>Smith</apellido><fecha_nacimiento>1985-10-15</fecha_nacimiento></autor>'));
 
 INSERT INTO AUTORES(articuloI,autor)
-VALUES('A003','Nicolas Maquiavelo.');
+VALUES('A003',XMLType('<autor><nombre>Michael</nombre><apellido>Johnson</apellido><fecha_nacimiento>1978-03-24</fecha_nacimiento></autor>'));
 
 
 INSERT INTO FISICOS(articuloI,estado,disponible)
