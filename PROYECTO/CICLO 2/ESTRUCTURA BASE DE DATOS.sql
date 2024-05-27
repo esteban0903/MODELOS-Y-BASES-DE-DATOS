@@ -279,7 +279,6 @@ BEGIN
 END;
 /
 
--- Nuevos Triggers --
 -- La fecha de entrega se autogenera el dia en que se hace el prestamo 
 CREATE OR REPLACE TRIGGER TR_PRESTAMOS_INSERT_FECHA_AUTO
 BEFORE INSERT ON PRESTAMOS
@@ -290,7 +289,7 @@ END;
 /
 
 -- La fecha de entrega se autogenera cuando se hace el prestamo, por lo que no debe poder cambiar 
-CREATE OR REPLACE TRIGGER TR_PRESTAMOS_INSERT_FECHA_ENTREGA_INMUTABLE
+CREATE OR REPLACE TRIGGER TR_PRESTAMOS_UPDATE_FECHA_ENTREGA_INMUTABLE
 BEFORE UPDATE ON PRESTAMOS
 FOR EACH ROW
 BEGIN
@@ -302,7 +301,7 @@ END;
 
 
 -- La multa debe ser positiva --
-CREATE OR REPLACE TRIGGER TR_MULTAS_VALOR_POSITIVO
+CREATE OR REPLACE TRIGGER TR_MULTAS_MONTO_POSITIVO
 BEFORE INSERT OR UPDATE ON MULTAS
 FOR EACH ROW
 BEGIN
@@ -313,7 +312,7 @@ END;
 /
 
 -- El total de la factura debe ser positivo --
-CREATE OR REPLACE TRIGGER TR_FACTURAS_VALOR_POSITIVO
+CREATE OR REPLACE TRIGGER TR_FACTURAS_TOTAL_POSITIVO
 BEFORE INSERT OR UPDATE ON FACTURAS
 FOR EACH ROW
 BEGIN 
@@ -322,6 +321,8 @@ BEGIN
     END IF;
 END;
 /
+
+
 
 ---------------------------- Automatizacion de indices con Disparadores----------------------------
 -- Secuencias de automatizacion --
