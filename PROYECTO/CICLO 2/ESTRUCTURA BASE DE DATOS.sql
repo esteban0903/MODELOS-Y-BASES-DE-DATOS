@@ -47,9 +47,20 @@ fechaPublicacion DATE,
 nombreArticulo VARCHAR(100) NOT NULL
 );
 
+/*
+<!DOCTYPE autor [
+  <!ELEMENT autor (nombre, apellido, fecha_nacimiento)>
+  <!ELEMENT nombre (#PCDATA)>
+  <!ELEMENT apellido (#PCDATA)>
+  <!ELEMENT fecha_nacimiento (#PCDATA)>
+]>
+*/
+
 CREATE TABLE AUTORES(
 articuloI VARCHAR(20) NOT NULL,
-autor VARCHAR(100) NOT NULL
+nombre VARCHAR(20) NOT NULL,
+
+autor xmltype
 );
 
 CREATE TABLE FISICOS(
@@ -137,7 +148,7 @@ ALTER TABLE ARTICULOS ADD CONSTRAINT PK_ARTICULOS
 PRIMARY KEY(idArticulo);
 
 ALTER TABLE AUTORES ADD CONSTRAINT PK_AUTORES
-PRIMARY KEY(articuloI,autor);
+PRIMARY KEY(articuloI);
 
 ALTER TABLE FISICOS ADD CONSTRAINT PK_FISICOS
 PRIMARY KEY(articuloI);
@@ -274,7 +285,7 @@ BEFORE UPDATE ON FACTURAS
 FOR EACH ROW
 BEGIN
     IF :OLD.estado!='D' THEN
-            RAISE_APPLICATION_ERROR(-20001,'Si el estado de la factura no es denegado, no se puede modificar'); 
+            RAISE_APPLICATION_ERROR(-20002,'Si el estado de la factura no es denegado, no se puede modificar'); 
     END IF;
 END;
 /
@@ -294,7 +305,7 @@ BEFORE UPDATE ON PRESTAMOS
 FOR EACH ROW
 BEGIN
     IF :NEW.fechaEntrega != :OLD.fechaEntrega THEN
-        RAISE_APPLICATION_ERROR(-20000, 'La fecha de entrega se crea el dia del prestamo, es inmutable');
+        RAISE_APPLICATION_ERROR(-20003, 'La fecha de entrega se crea el dia del prestamo, es inmutable');
 	END IF;
 END;
 /
@@ -306,7 +317,7 @@ BEFORE INSERT OR UPDATE ON MULTAS
 FOR EACH ROW
 BEGIN
     IF :NEW.monto < 0 THEN
-        RAISE_APPLICATION_ERROR(-19999, 'Los valores de monto de una multa deben ser positivos');
+        RAISE_APPLICATION_ERROR(-20004, 'Los valores de monto de una multa deben ser positivos');
     END IF;
 END;
 /
@@ -317,7 +328,7 @@ BEFORE INSERT OR UPDATE ON FACTURAS
 FOR EACH ROW
 BEGIN 
     IF :NEW.total < 0 THEN
-        RAISE_APPLICATION_ERROR(-19998, 'Los valores de monto de una multa deben ser positivos');
+        RAISE_APPLICATION_ERROR(-20005, 'Los valores de monto de una multa deben ser positivos');
     END IF;
 END;
 /
@@ -600,7 +611,7 @@ CREATE OR REPLACE PACKAGE PC_AUTORES AS
     -- CREATE
     PROCEDURE crear_autor(
     p_articuloI IN VARCHAR2,
-    p_autor IN VARCHAR2
+    p_autor IN xmltype
     );
 
     -- READ
@@ -610,11 +621,11 @@ CREATE OR REPLACE PACKAGE PC_AUTORES AS
     -- UPDATE
     PROCEDURE actualizar_autor(
     p_articuloI IN VARCHAR2,
-    p_autor IN VARCHAR2
+    p_autor IN xmltype
     );
 
     -- DELETE
-    PROCEDURE eliminar_autor(p_articuloI IN VARCHAR2,p_autor IN VARCHAR2);
+    PROCEDURE eliminar_autor(p_articuloI IN VARCHAR2,p_autor IN xmltype);
 END PC_AUTORES;
 /
 
@@ -779,8 +790,8 @@ CREATE OR REPLACE PACKAGE BODY PC_CLIENTES AS
 	EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20007, 'Ocurrio un error en la lectura de 
-                        suscritos, datos restablecidos');
+        RAISE_APPLICATION_ERROR(-20006, 'Ocurrio un error en la creacion de 
+                        un cliente, datos restablecidos');
     END crear_cliente;
     -- READ --
     FUNCTION leer_clientes RETURN SYS_REFCURSOR IS
@@ -793,7 +804,7 @@ CREATE OR REPLACE PACKAGE BODY PC_CLIENTES AS
 		EXCEPTION
         WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20006, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20007, 'Ocurrio un error en la lectura de 
                         clientes, datos restablecidos');
     END leer_clientes;
 
@@ -807,7 +818,7 @@ CREATE OR REPLACE PACKAGE BODY PC_CLIENTES AS
             EXCEPTION
                 WHEN OTHERS THEN
                 ROLLBACK;
-                RAISE_APPLICATION_ERROR(-20005, 'Ocurrio un error en la lectura de 
+                RAISE_APPLICATION_ERROR(-20008, 'Ocurrio un error en la lectura de 
                         un cliente, datos restablecidos, verifique los parametros');
         END leer_cliente_con_nombre_usuario;
     -- UPDATE --
@@ -829,7 +840,7 @@ CREATE OR REPLACE PACKAGE BODY  PC_SUSCRITOS AS
 	EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20003, 'Ocurrio un error en la crecion de suscrito, datos restablecidos, verifique sus parametros');
+        RAISE_APPLICATION_ERROR(-20009, 'Ocurrio un error en la crecion de suscrito, datos restablecidos, verifique sus parametros');
     
     END crear_suscrito;
     -- READ --
@@ -842,7 +853,7 @@ CREATE OR REPLACE PACKAGE BODY  PC_SUSCRITOS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-			        RAISE_APPLICATION_ERROR(-20002, 'Ocurrio un error en la lectura de 
+			        RAISE_APPLICATION_ERROR(-20010, 'Ocurrio un error en la lectura de 
                         suscritos, datos restablecidos');
     END leer_suscritos;
 
@@ -859,7 +870,7 @@ CREATE OR REPLACE PACKAGE BODY  PC_SUSCRITOS AS
 		EXCEPTION
         WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20004, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20011, 'Ocurrio un error en la lectura de 
                         suscritos, datos restablecidos');
     END leer_suscrito_id_tid;
     
@@ -879,7 +890,7 @@ CREATE OR REPLACE PACKAGE BODY  PC_SUSCRITOS AS
 		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20001, 'Ocurrio un error con la actualizacion
+            RAISE_APPLICATION_ERROR(-20012, 'Ocurrio un error con la actualizacion
                 en suscritos, verifique sus parametros, solo puedo actualizar el nombre y
                 el metodo de pago, datos restablecidos');
         END actualizar_suscrito;
@@ -895,7 +906,7 @@ CREATE OR REPLACE PACKAGE BODY  PC_SUSCRITOS AS
 		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20000, 'Ocurrio un error con la eliminacion
+            RAISE_APPLICATION_ERROR(-20013, 'Ocurrio un error con la eliminacion
             en suscritos, verifique sus parametros, solo puedo actualizar el nombre y
             el metodo de pago, datos restablecidos');
 
@@ -915,7 +926,7 @@ CREATE OR REPLACE PACKAGE BODY PC_RESERVAS AS
 	EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20008, 'Ocurrio un error en la crecion de 
+        RAISE_APPLICATION_ERROR(-20014, 'Ocurrio un error en la crecion de 
             la reserva, datos restablecidos, verifique sus parametros');
     END crear_reserva;
     -- READ --
@@ -929,7 +940,7 @@ CREATE OR REPLACE PACKAGE BODY PC_RESERVAS AS
 			EXCEPTION
         	WHEN OTHERS THEN
         	ROLLBACK;
-        	RAISE_APPLICATION_ERROR(-20009, 'Ocurrio un error en la consulta de 
+        	RAISE_APPLICATION_ERROR(-20015, 'Ocurrio un error en la consulta de 
             la reserva, datos restablecidos, verifique sus parametros');
         END leer_reserva_id;
     
@@ -942,7 +953,7 @@ CREATE OR REPLACE PACKAGE BODY PC_RESERVAS AS
 			EXCEPTION
         	WHEN OTHERS THEN
         	ROLLBACK;
-        	RAISE_APPLICATION_ERROR(-20010, 'Ocurrio un error en la consulta de 
+        	RAISE_APPLICATION_ERROR(-20016, 'Ocurrio un error en la consulta de 
             reservas, datos restablecidos');
         END leer_reservas;
     
@@ -959,7 +970,7 @@ CREATE OR REPLACE PACKAGE BODY PC_RESERVAS AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20011, 'Ocurrio un error en la actualizacion de 
+        RAISE_APPLICATION_ERROR(-20017, 'Ocurrio un error en la actualizacion de 
         reserva, datos restablecidos, verifique sus parametros');
         END actualizar_reserva;
     
@@ -973,7 +984,7 @@ CREATE OR REPLACE PACKAGE BODY PC_RESERVAS AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20012, 'Ocurrio un error en la eliminacion de 
+        RAISE_APPLICATION_ERROR(-20018, 'Ocurrio un error en la eliminacion de 
         reserva, datos restablecidos, verifique sus parametros');
         END eliminar_reserva;
 END PC_RESERVAS;
@@ -994,7 +1005,7 @@ CREATE OR REPLACE PACKAGE BODY PC_PROVEEDORES AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20013, 'Ocurrio un error en la crecion del
+        RAISE_APPLICATION_ERROR(-20019, 'Ocurrio un error en la crecion del
             proveedor, datos restablecidos, verifique sus parametros');
     END crear_proveedor;
 
@@ -1008,7 +1019,7 @@ CREATE OR REPLACE PACKAGE BODY PC_PROVEEDORES AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20014, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20020, 'Ocurrio un error en la lectura de 
                 los proveedores, datos restablecidos');
         	END leer_proveedores;
     
@@ -1024,7 +1035,7 @@ CREATE OR REPLACE PACKAGE BODY PC_PROVEEDORES AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20015, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20021, 'Ocurrio un error en la lectura de 
                 los proveedores, datos restablecidos');
 	        END leer_proveedor_id;
     
@@ -1045,7 +1056,7 @@ CREATE OR REPLACE PACKAGE BODY PC_PROVEEDORES AS
 			EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20016, 'Ocurrio un error en la eliminacion de 
+            RAISE_APPLICATION_ERROR(-20022, 'Ocurrio un error en la eliminacion de 
                 los proveedor, datos restablecidos');
 		END actualizar_proveedor;
     
@@ -1075,7 +1086,7 @@ CREATE OR REPLACE PACKAGE BODY PC_VENTAS AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20017, 'Ocurrio un error en la crecion del
+        RAISE_APPLICATION_ERROR(-20023, 'Ocurrio un error en la crecion del
             venta, datos restablecidos, verifique sus parametros');
     END crear_ventas;
 
@@ -1088,7 +1099,7 @@ CREATE OR REPLACE PACKAGE BODY PC_VENTAS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20018, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20024, 'Ocurrio un error en la lectura de 
                 los ventas, datos restablecidos');
         	END leer_ventas;
 
@@ -1101,7 +1112,7 @@ CREATE OR REPLACE PACKAGE BODY PC_VENTAS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20019, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20025, 'Ocurrio un error en la lectura de 
                 los ventas, datos restablecidos, verifique parametros');
 	        END leer_venta;
 
@@ -1124,7 +1135,7 @@ CREATE OR REPLACE PACKAGE BODY PC_VENTAS AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20020, 'Ocurrio un error en la actualizacion de 
+        RAISE_APPLICATION_ERROR(-20026, 'Ocurrio un error en la actualizacion de 
         los ventas, datos restablecidos, verifique parametros');
 
         END actualizar_venta;
@@ -1138,7 +1149,7 @@ CREATE OR REPLACE PACKAGE BODY PC_VENTAS AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20021, 'Ocurrio un error en la eliminacion de 
+        RAISE_APPLICATION_ERROR(-20027, 'Ocurrio un error en la eliminacion de 
         los ventas, datos restablecidos, verifique parametros');
         END eliminar_venta;
 END PC_VENTAS;
@@ -1159,7 +1170,7 @@ CREATE OR REPLACE PACKAGE BODY PC_ARTICULOS AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20023, 'Ocurrio un error en la crecion del
+        RAISE_APPLICATION_ERROR(-20028, 'Ocurrio un error en la crecion del
             venta, datos restablecidos, verifique sus parametros');
     END crear_articulo;
 
@@ -1172,7 +1183,7 @@ CREATE OR REPLACE PACKAGE BODY PC_ARTICULOS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20024, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20029, 'Ocurrio un error en la lectura de 
                 los articulos, datos restablecidos');
         	END leer_articulos;
     	FUNCTION leer_articulo(p_idArticulo IN VARCHAR2) RETURN SYS_REFCURSOR 
@@ -1184,7 +1195,7 @@ CREATE OR REPLACE PACKAGE BODY PC_ARTICULOS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20025, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20030, 'Ocurrio un error en la lectura de 
                 los articulos, datos restablecidos, verifique parametros');
 	        END leer_articulo;
 
@@ -1204,7 +1215,7 @@ CREATE OR REPLACE PACKAGE BODY PC_ARTICULOS AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20026, 'Ocurrio un error en la actualizacion de 
+        RAISE_APPLICATION_ERROR(-20031, 'Ocurrio un error en la actualizacion de 
         los articulos, datos restablecidos, verifique parametros');
 
         END actualizar_articulo;
@@ -1217,7 +1228,7 @@ CREATE OR REPLACE PACKAGE BODY PC_ARTICULOS AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20028, 'Ocurrio un error en la eliminacion de 
+        RAISE_APPLICATION_ERROR(-20032, 'Ocurrio un error en la eliminacion de 
         los articulos, datos restablecidos, verifique parametros');
 		 
         END eliminar_articulo;
@@ -1240,7 +1251,7 @@ CREATE OR REPLACE PACKAGE BODY PC_FACTURAS AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20029, 'Ocurrio un error en la crecion de la
+        RAISE_APPLICATION_ERROR(-20033, 'Ocurrio un error en la crecion de la
             factura, datos restablecidos, verifique sus parametros');
     END crear_factura;
     
@@ -1254,7 +1265,7 @@ CREATE OR REPLACE PACKAGE BODY PC_FACTURAS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20050, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20034, 'Ocurrio un error en la lectura de 
                 las Facturas, datos restablecidos');
         	END leer_facturas;
 
@@ -1267,7 +1278,7 @@ CREATE OR REPLACE PACKAGE BODY PC_FACTURAS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20052, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20035, 'Ocurrio un error en la lectura de 
                 la Factura, datos restablecidos, verifique parametros');
 	        END leer_factura;
     --UPDATE
@@ -1286,7 +1297,7 @@ CREATE OR REPLACE PACKAGE BODY PC_FACTURAS AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20032, 'Ocurrio un error en la actualizacion de 
+        RAISE_APPLICATION_ERROR(-20036, 'Ocurrio un error en la actualizacion de 
         la factura, datos restablecidos, verifique parametros');
 
     END actualizar_factura;
@@ -1301,7 +1312,7 @@ CREATE OR REPLACE PACKAGE BODY PC_AUTORES AS
     -- CREATE
     PROCEDURE crear_autor(
     p_articuloI IN VARCHAR2,
-    p_autor IN VARCHAR2
+    p_autor IN xmltype
     )IS BEGIN
     	INSERT INTO AUTORES(articuloI,autor)
     	VALUES(p_articuloI, p_autor);
@@ -1309,7 +1320,7 @@ CREATE OR REPLACE PACKAGE BODY PC_AUTORES AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20029, 'Ocurrio un error en la crecion del
+        RAISE_APPLICATION_ERROR(-20037, 'Ocurrio un error en la crecion del
             autor, datos restablecidos, verifique sus parametros');
     END crear_autor;
 
@@ -1322,7 +1333,7 @@ CREATE OR REPLACE PACKAGE BODY PC_AUTORES AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20030, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20038, 'Ocurrio un error en la lectura de 
                 los autores, datos restablecidos');
         	END leer_autores;
     	
@@ -1335,14 +1346,14 @@ CREATE OR REPLACE PACKAGE BODY PC_AUTORES AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20031, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20039, 'Ocurrio un error en la lectura de 
                 los articulos, datos restablecidos, verifique parametros');
 	        END leer_autor;
 
     -- UPDATE
     PROCEDURE actualizar_autor(
     p_articuloI IN VARCHAR2,
-    p_autor IN VARCHAR2
+    p_autor IN xmltype
     ) IS BEGIN
         UPDATE	AUTORES
         SET		autor = p_autor
@@ -1351,13 +1362,13 @@ CREATE OR REPLACE PACKAGE BODY PC_AUTORES AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20032, 'Ocurrio un error en la actualizacion de 
+        RAISE_APPLICATION_ERROR(-20040, 'Ocurrio un error en la actualizacion de 
         los autores, datos restablecidos, verifique parametros');
 
         END actualizar_autor;
 
     -- DELETE
-    PROCEDURE eliminar_autor(p_articuloI IN VARCHAR2,p_autor IN VARCHAR2)
+    PROCEDURE eliminar_autor(p_articuloI IN VARCHAR2,p_autor IN xmltype)
         IS BEGIN
         DELETE FROM AUTORES WHERE autor = p_autor AND	articuloI = p_articuloI;
         END eliminar_autor;
@@ -1376,7 +1387,7 @@ CREATE OR REPLACE PACKAGE BODY PC_FISICOS AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20032, 'Ocurrio un error en la crecion del
+        RAISE_APPLICATION_ERROR(-20041, 'Ocurrio un error en la crecion del
             Fisico, datos restablecidos, verifique sus parametros');
     END crear_fisico;
 
@@ -1389,7 +1400,7 @@ CREATE OR REPLACE PACKAGE BODY PC_FISICOS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20033, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20042, 'Ocurrio un error en la lectura de 
                 los fisicos, datos restablecidos');
         	END leer_fisicos;
 
@@ -1402,7 +1413,7 @@ CREATE OR REPLACE PACKAGE BODY PC_FISICOS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20034, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20043, 'Ocurrio un error en la lectura de 
                 los articulos fisicos, datos restablecidos, verifique parametros');
 	        END leer_fisico;
 
@@ -1420,7 +1431,7 @@ CREATE OR REPLACE PACKAGE BODY PC_FISICOS AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20035, 'Ocurrio un error en la actualizacion de 
+        RAISE_APPLICATION_ERROR(-20044, 'Ocurrio un error en la actualizacion de 
         los articulos fisicos, datos restablecidos, verifique parametros');
         END actualizar_fisico;
 
@@ -1443,7 +1454,7 @@ CREATE OR REPLACE PACKAGE BODY PC_DIGITALES AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20036, 'Ocurrio un error en la crecion del
+        RAISE_APPLICATION_ERROR(-20045, 'Ocurrio un error en la crecion del
             digital, datos restablecidos, verifique sus parametros');
     END crear_digital;
 
@@ -1457,7 +1468,7 @@ CREATE OR REPLACE PACKAGE BODY PC_DIGITALES AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20037, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20046, 'Ocurrio un error en la lectura de 
                 los digitales, datos restablecidos');
         	END leer_digitales;
 
@@ -1470,7 +1481,7 @@ CREATE OR REPLACE PACKAGE BODY PC_DIGITALES AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20038, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20047, 'Ocurrio un error en la lectura de 
                 los articulos digitales, datos restablecidos, verifique parametros');
 	        END leer_digital;
 
@@ -1486,7 +1497,7 @@ CREATE OR REPLACE PACKAGE BODY PC_DIGITALES AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20039, 'Ocurrio un error en la actualizacion de 
+        RAISE_APPLICATION_ERROR(-20048, 'Ocurrio un error en la actualizacion de 
         los articulos fisicos, datos restablecidos, verifique parametros');
         END actualizar_digital;
 
@@ -1513,7 +1524,7 @@ CREATE OR REPLACE PACKAGE BODY PC_PRESTAMOS AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20039, 'Ocurrio un error en la crecion del
+        RAISE_APPLICATION_ERROR(-20049, 'Ocurrio un error en la crecion del
             prestamo, datos restablecidos, verifique sus parametros');
     END crear_prestamo;
 
@@ -1527,7 +1538,7 @@ CREATE OR REPLACE PACKAGE BODY PC_PRESTAMOS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20040, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20050, 'Ocurrio un error en la lectura de 
                 los prestamos, datos restablecidos');
         	END leer_prestamos;
 
@@ -1540,7 +1551,7 @@ CREATE OR REPLACE PACKAGE BODY PC_PRESTAMOS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20041, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20051, 'Ocurrio un error en la lectura de 
                 los prestamos, datos restablecidos, verifique parametros');
 	        END leer_prestamo;
 
@@ -1556,7 +1567,7 @@ CREATE OR REPLACE PACKAGE BODY PC_PRESTAMOS AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20042, 'Ocurrio un error en la actualizacion de 
+        RAISE_APPLICATION_ERROR(-20052, 'Ocurrio un error en la actualizacion de 
         la fehca de prestamos, datos restablecidos, verifique parametros');
         END actualizar_prestamo;
 
@@ -1568,7 +1579,7 @@ CREATE OR REPLACE PACKAGE BODY PC_PRESTAMOS AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20043, 'Ocurrio un error en la eliminacion de 
+        RAISE_APPLICATION_ERROR(-20053, 'Ocurrio un error en la eliminacion de 
         prestamos, datos restablecidos, verifique parametros');
         END eliminar_prestamo;
 END PC_PRESTAMOS;
@@ -1588,7 +1599,7 @@ CREATE OR REPLACE PACKAGE BODY PC_DEVOLUCIONES AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20044, 'Ocurrio un error en la crecion del
+        RAISE_APPLICATION_ERROR(-20054, 'Ocurrio un error en la crecion del
             devolucion, datos restablecidos, verifique sus parametros');
     END crear_devolucion;
 
@@ -1602,7 +1613,7 @@ CREATE OR REPLACE PACKAGE BODY PC_DEVOLUCIONES AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20045, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20055, 'Ocurrio un error en la lectura de 
                 las devoluciones, datos restablecidos');
         	END leer_devoluciones;
     FUNCTION leer_devolucion(p_prestamoI IN VARCHAR2) RETURN SYS_REFCURSOR
@@ -1614,7 +1625,7 @@ CREATE OR REPLACE PACKAGE BODY PC_DEVOLUCIONES AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20046, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20056, 'Ocurrio un error en la lectura de 
                 las devoluciones, datos restablecidos, verifique parametros');
 	        END leer_devolucion;
 
@@ -1633,7 +1644,7 @@ CREATE OR REPLACE PACKAGE BODY PC_DEVOLUCIONES AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20047, 'Ocurrio un error en la actualizacion de 
+        RAISE_APPLICATION_ERROR(-20057, 'Ocurrio un error en la actualizacion de 
         la devolucion, datos restablecidos, verifique parametros');
         END actualizar_devolucion;
 
@@ -1644,7 +1655,7 @@ CREATE OR REPLACE PACKAGE BODY PC_DEVOLUCIONES AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20048, 'Ocurrio un error en la eliminacion de 
+        RAISE_APPLICATION_ERROR(-20058, 'Ocurrio un error en la eliminacion de 
         devoluciones, datos restablecidos, verifique parametros');
         END eliminar_devolucion;
 END PC_DEVOLUCIONES;
@@ -1664,7 +1675,7 @@ CREATE OR REPLACE PACKAGE BODY PC_MULTAS AS
 		EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20049, 'Ocurrio un error en la crecion del
+        RAISE_APPLICATION_ERROR(-20059, 'Ocurrio un error en la crecion del
             multa, datos restablecidos, verifique sus parametros');
     END crear_multa;
 
@@ -1678,7 +1689,7 @@ CREATE OR REPLACE PACKAGE BODY PC_MULTAS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20050, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20060, 'Ocurrio un error en la lectura de 
                 las multas, datos restablecidos');
         	END leer_multas;
 
@@ -1691,7 +1702,7 @@ CREATE OR REPLACE PACKAGE BODY PC_MULTAS AS
     		EXCEPTION
             WHEN OTHERS THEN
             ROLLBACK;
-            RAISE_APPLICATION_ERROR(-20051, 'Ocurrio un error en la lectura de 
+            RAISE_APPLICATION_ERROR(-20061, 'Ocurrio un error en la lectura de 
                 la Multa, datos restablecidos, verifique parametros');
 	        END leer_multa;
 
@@ -1709,7 +1720,7 @@ CREATE OR REPLACE PACKAGE BODY PC_MULTAS AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20052, 'Ocurrio un error en la actualizacion de 
+        RAISE_APPLICATION_ERROR(-20062, 'Ocurrio un error en la actualizacion de 
         la multa, datos restablecidos, verifique parametros');
         END actualizar_multa;
 
@@ -1721,8 +1732,8 @@ CREATE OR REPLACE PACKAGE BODY PC_MULTAS AS
         EXCEPTION
         WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20053, 'Ocurrio un error en la eliminacion de 
-        devoluciones, datos restablecidos, verifique parametros');
+        RAISE_APPLICATION_ERROR(-20063, 'Ocurrio un error en la eliminacion de 
+        multa, datos restablecidos, verifique parametros');
         END eliminar_multa;
 END PC_MULTAS;
 /
@@ -1859,7 +1870,7 @@ CREATE OR REPLACE PACKAGE PC_ADMINISTRADOR AS
     -- CREATE
     PROCEDURE autorCrear(
     p_articuloI IN VARCHAR2,
-    p_autor IN VARCHAR2
+    p_autor IN xmltype
     );
 
     -- READ
@@ -1869,11 +1880,11 @@ CREATE OR REPLACE PACKAGE PC_ADMINISTRADOR AS
     -- UPDATE
     PROCEDURE autorActualizar(
     p_articuloI IN VARCHAR2,
-    p_autor IN VARCHAR2
+    p_autor IN xmltype
     );
 
     -- DELETE
-    PROCEDURE autorEliminar(p_articuloI IN VARCHAR2,p_autor IN VARCHAR2);
+    PROCEDURE autorEliminar(p_articuloI IN VARCHAR2,p_autor IN xmltype);
 END PC_ADMINISTRADOR;
 /
 /*
@@ -2280,7 +2291,7 @@ CREATE OR REPLACE PACKAGE BODY PC_ADMINISTRADOR AS
         ------------- CRUD AUTORES --------------
     PROCEDURE autorCrear(
         p_articuloI IN VARCHAR2,
-        p_autor IN VARCHAR2
+        p_autor IN xmltype
     ) IS
     BEGIN
         PC_AUTORES.crear_autor(p_articuloI, p_autor);
@@ -2298,7 +2309,7 @@ CREATE OR REPLACE PACKAGE BODY PC_ADMINISTRADOR AS
     
     PROCEDURE autorActualizar(
         p_articuloI IN VARCHAR2,
-        p_autor IN VARCHAR2
+        p_autor IN xmltype
     ) IS
     BEGIN
         PC_AUTORES.actualizar_autor(p_articuloI, p_autor);
@@ -2306,7 +2317,7 @@ CREATE OR REPLACE PACKAGE BODY PC_ADMINISTRADOR AS
     
     PROCEDURE autorEliminar(
         p_articuloI IN VARCHAR2,
-        p_autor IN VARCHAR2
+        p_autor IN xmltype
     ) IS
     BEGIN
         PC_AUTORES.eliminar_autor(p_articuloI, p_autor);
