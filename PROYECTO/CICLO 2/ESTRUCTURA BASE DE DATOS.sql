@@ -58,8 +58,6 @@ nombreArticulo VARCHAR(100) NOT NULL
 
 CREATE TABLE AUTORES(
 articuloI VARCHAR(20) NOT NULL,
-nombre VARCHAR(20) NOT NULL,
-
 autor xmltype
 );
 

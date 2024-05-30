@@ -26,7 +26,7 @@ SELECT PC_CLIENTE.reservaLeer_id('C1') FROM DUAL;
 
 ---6. Pasan 2 meses y Ana vuelve a la bilioteca a  entregar el libro. El bibliotecario genera una devolución de libro
 BEGIN
-    PC_BIBLIOTECARIO.crear_devolucion('P1','A',SYSDATE);
+    PC_BIBLIOTECARIO.devolucionCrear('P1','A',SYSDATE);
 END;
 /
 
